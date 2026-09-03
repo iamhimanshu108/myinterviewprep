@@ -10,16 +10,11 @@ import { QUESTIONS_DATA } from './data/questionsData';
 import { Header, STACK_CONFIG } from './components/Header';
 import { ProgressBanner } from './components/ProgressBanner';
 import { QuestionCard } from './components/QuestionCard';
-import { FlashcardMode } from './components/FlashcardMode';
-import { SeparatedFilesViewer } from './components/SeparatedFilesViewer';
 import { InteractiveFlowDiagram } from './components/InteractiveFlowDiagram';
 import { BackendWorkflowViewer } from './components/BackendWorkflowViewer';
 import { 
-  Sparkles, 
-  FileCode, 
   BookOpen, 
   Filter, 
-  ExternalLink,
   Code,
   Network,
   ChevronUp,
@@ -196,14 +191,19 @@ export default function App() {
   // Group filtered questions by stack
   const groupedByStack = useMemo(() => {
     const map: Record<Exclude<TechStack, 'all'>, Question[]> = {
+      html: [],
+      javascript: [],
+      python: [],
       react: [],
       java: [],
-      javascript: [],
       node: [],
-      express: []
+      express: [],
+      typescript: []
     };
     filteredQuestions.forEach((q) => {
-      map[q.stack].push(q);
+      if (map[q.stack]) {
+        map[q.stack].push(q);
+      }
     });
     return map;
   }, [filteredQuestions]);
@@ -220,6 +220,8 @@ export default function App() {
         onSearchChange={setSearchQuery}
         viewMode={viewMode}
         onChangeViewMode={setViewMode}
+        backendWorkflowTopic={backendWorkflowTopic}
+        onSelectBackendWorkflowTopic={(topic) => setBackendWorkflowTopic(topic)}
         bookmarkedOnly={bookmarkedOnly}
         onToggleBookmarkedOnly={() => setBookmarkedOnly((prev) => !prev)}
         bookmarkedCount={bookmarkedIds.length}
@@ -228,46 +230,20 @@ export default function App() {
       {/* Main Content Area */}
       {viewMode === 'workflow' ? (
         <div className="flex-1 animate-fade-up">
-          <BackendWorkflowViewer initialTopic={backendWorkflowTopic} />
+          <BackendWorkflowViewer 
+            initialTopic={backendWorkflowTopic} 
+            onTopicChange={setBackendWorkflowTopic}
+          />
         </div>
       ) : (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5">
-          {/* VIEW 1: STANDALONE CODE FILES EXPORTER */}
-          {viewMode === 'files' && (
-            <div className="animate-fade-up">
-              <SeparatedFilesViewer />
-            </div>
-          )}
-
-        {/* VIEW 2: FLASHCARD QUIZ MODE */}
-        {viewMode === 'flashcards' && (
-          <div className="space-y-4 animate-fade-up">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <h2 className="text-sm font-semibold text-slate-200">
-                Flashcards ({filteredQuestions.length})
-              </h2>
-              <span className="text-xs text-slate-400">
-                {completedIds.length} completed
-              </span>
-            </div>
-
-            <FlashcardMode
-              questions={filteredQuestions}
-              completedIds={completedIds}
-              onToggleComplete={handleToggleComplete}
-            />
-          </div>
-        )}
-
-        {/* VIEW 3: COMPREHENSIVE STUDY LIST */}
-        {viewMode === 'questions' && (
           <div className="space-y-4 animate-fade-up">
             {/* Interactive Backend Flow Launcher in current tab */}
             <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-slate-900 via-slate-900/95 to-slate-950 border border-slate-800 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-orange-400 mb-0.5 font-semibold">
                   <Boxes className="w-3.5 h-3.5" />
-                  <span>Backend Architecture Workflows in 3 Codebases</span>
+                  <span>Backend Architecture Workflows: REST & CRUD</span>
                 </div>
                 <div className="text-xs text-slate-300">
                   Select a workflow to see and compare full implementations across <strong>Express.js</strong>, <strong>Spring Boot</strong>, and <strong>FastAPI</strong>:
@@ -275,6 +251,17 @@ export default function App() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <button
+                  id="launcher-rest-btn"
+                  onClick={() => {
+                    setBackendWorkflowTopic('rest');
+                    setViewMode('workflow');
+                  }}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 transition-all flex items-center gap-1.5 shadow-sm"
+                >
+                  <Globe className="w-3.5 h-3.5 text-blue-400" />
+                  <span>REST Flow</span>
+                </button>
                 <button
                   id="launcher-crud-btn"
                   onClick={() => {
@@ -498,7 +485,7 @@ export default function App() {
               </div>
             ) : (
               <div className="space-y-6">
-                {(['react', 'java', 'javascript', 'node', 'express'] as const).map((stackKey) => {
+                {(['html', 'javascript', 'python', 'react', 'java', 'node', 'express', 'typescript'] as const).map((stackKey) => {
                   const questionsInStack = groupedByStack[stackKey];
                   if (questionsInStack.length === 0) return null;
 
@@ -547,37 +534,20 @@ export default function App() {
               </div>
             )}
           </div>
-        )}
-      </main>
-    )}
+        </main>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-slate-800 bg-slate-950 py-4 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-slate-400">
-            <span>Interview Hub</span>
+            <span className="font-semibold text-slate-300">Interview Hub</span>
             <span>•</span>
             <span>React, Java, JavaScript, Node.js, Express</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setViewMode('files')}
-              className="text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-1"
-            >
-              <FileCode className="w-3.5 h-3.5" />
-              <span>Standalone Files</span>
-            </button>
-
-            <a
-              href="/standalone/index.html"
-              target="_blank"
-              rel="noreferrer"
-              className="text-slate-400 hover:text-sky-400 transition-colors flex items-center gap-1"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>HTML Preview</span>
-            </a>
+          <div className="flex items-center gap-3 text-slate-400">
+            <span>Express.js • Spring Boot • FastAPI Architecture Workflows</span>
           </div>
         </div>
       </footer>

@@ -36,13 +36,26 @@ import { VsCodeSnippet } from './VsCodeSnippet';
 
 interface Props {
   initialTopic?: BackendWorkflowTopic;
+  onTopicChange?: (topic: BackendWorkflowTopic) => void;
 }
 
-export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'crud' }) => {
+export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', onTopicChange }) => {
   const [selectedTopic, setSelectedTopic] = useState<BackendWorkflowTopic>(initialTopic);
   const [selectedFramework, setSelectedFramework] = useState<'all' | BackendFramework>('all');
   const [activeSectionId, setActiveSectionId] = useState<string>('');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  // Sync state if initialTopic prop updates from parent header
+  useEffect(() => {
+    if (initialTopic && initialTopic !== selectedTopic) {
+      setSelectedTopic(initialTopic);
+    }
+  }, [initialTopic]);
+
+  const handleSelectTopic = (topic: BackendWorkflowTopic) => {
+    setSelectedTopic(topic);
+    onTopicChange?.(topic);
+  };
 
   // Stepper state for animated SVG flow
   const [stepIndex, setStepIndex] = useState(0);
@@ -155,18 +168,30 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'crud' }
           </div>
         </div>
 
-        {/* TOPIC SELECTOR MENU (CRUD, AUTH, REST, MIDDLEWARE) */}
+        {/* TOPIC SELECTOR MENU (REST, CRUD, AUTH, MIDDLEWARE) */}
         <div className="px-4 mb-6">
           <div className="font-mono-ref text-[9px] uppercase tracking-widest text-slate-500 font-semibold px-2 mb-2">
-            Select Topic / Workflow
+            Backend Workflows: REST & CRUD
           </div>
           <div className="grid grid-cols-2 gap-1.5 bg-slate-900/80 p-1.5 rounded-lg border border-slate-800">
             <button
+              id="topic-rest-btn"
+              onClick={() => handleSelectTopic('rest')}
+              className={`px-2.5 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${
+                selectedTopic === 'rest'
+                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40 shadow-sm font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5 text-blue-400" />
+              <span>REST</span>
+            </button>
+            <button
               id="topic-crud-btn"
-              onClick={() => setSelectedTopic('crud')}
+              onClick={() => handleSelectTopic('crud')}
               className={`px-2.5 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${
                 selectedTopic === 'crud'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm font-semibold'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
             >
@@ -175,7 +200,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'crud' }
             </button>
             <button
               id="topic-auth-btn"
-              onClick={() => setSelectedTopic('auth')}
+              onClick={() => handleSelectTopic('auth')}
               className={`px-2.5 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${
                 selectedTopic === 'auth'
                   ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40 shadow-sm'
@@ -186,20 +211,8 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'crud' }
               <span>Auth</span>
             </button>
             <button
-              id="topic-rest-btn"
-              onClick={() => setSelectedTopic('rest')}
-              className={`px-2.5 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${
-                selectedTopic === 'rest'
-                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40 shadow-sm'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              <Globe className="w-3.5 h-3.5 text-blue-400" />
-              <span>REST</span>
-            </button>
-            <button
               id="topic-middleware-btn"
-              onClick={() => setSelectedTopic('middleware')}
+              onClick={() => handleSelectTopic('middleware')}
               className={`px-2.5 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${
                 selectedTopic === 'middleware'
                   ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm'

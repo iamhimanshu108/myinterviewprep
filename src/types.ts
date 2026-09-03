@@ -1,4 +1,13 @@
-export type TechStack = 'all' | 'react' | 'java' | 'javascript' | 'node' | 'express';
+export type TechStack = 
+  | 'all' 
+  | 'html' 
+  | 'javascript' 
+  | 'python' 
+  | 'react' 
+  | 'java' 
+  | 'node' 
+  | 'express' 
+  | 'typescript';
 
 export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced';
 
@@ -36,7 +45,7 @@ export interface UserProgress {
   notes: Record<string, string>;
 }
 
-export type ViewMode = 'workflow' | 'questions' | 'flashcards' | 'files';
+export type ViewMode = 'workflow' | 'questions';
 
 export type BackendWorkflowTopic = 'auth' | 'crud' | 'rest' | 'middleware';
 export type BackendFramework = 'express' | 'springboot' | 'fastapi';
