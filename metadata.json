@@ -1,0 +1,6 @@
+{
+  "name": "Full Stack Tech Interview Hub",
+  "description": "Developer interview preparation with questions for React, Java, JavaScript, Node.js, and Express, plus interactive backend workflows for CRUD, Auth, REST, and Middleware across Express.js, Spring Boot, and FastAPI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,251 @@
+@import "tailwindcss";
+
+/* ── Reference Inspired Keyframe Animations ── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatPulse {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes dataFlow {
+  from {
+    stroke-dashoffset: 200;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.6;
+    box-shadow: 0 0 12px rgba(14, 165, 233, 0.2);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 24px rgba(14, 165, 233, 0.45);
+  }
+}
+
+@keyframes cardShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ── Animation Utility Classes ── */
+.animate-fade-up {
+  animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-float-pulse {
+  animation: floatPulse 2.8s ease-in-out infinite;
+}
+
+.animate-data-flow {
+  animation: dataFlow 1.8s linear infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* ── SVG Node Transitions from Reference ── */
+.svg-dim {
+  opacity: 0.25;
+  transition: opacity 300ms ease, filter 300ms ease;
+  filter: grayscale(80%);
+}
+
+.svg-lit {
+  opacity: 1;
+  transition: opacity 300ms ease, filter 300ms ease;
+  filter: grayscale(0%);
+}
+
+.svg-arrow-live {
+  stroke-dasharray: 6 6;
+  animation: dataFlow 1.4s linear infinite;
+}
+
+/* ── 3D Flip Card Styles ── */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* ── Typography definitions from reference ── */
+.font-fraunces {
+  font-family: 'Fraunces', Georgia, serif;
+}
+
+.font-mono-ref {
+  font-family: 'IBM Plex Mono', Menlo, monospace;
+}
+
+.font-sans-ref {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── Token highlighting ── */
+.token-split-header { color: #f4a261; }
+.token-split-payload { color: #c678dd; }
+.token-split-sig { color: #98c379; }
+.token-split-dot { color: #ffffff; font-weight: bold; }
+
+/* ── VS Code Dark+ Theme Syntax Highlighting ── */
+.vscode-editor {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', 'Menlo', 'Monaco', 'IBM Plex Mono', monospace;
+}
+
+.vscode-editor .token.comment,
+.vscode-editor .token.prolog,
+.vscode-editor .token.doctype,
+.vscode-editor .token.cdata {
+  color: #6a9955 !important;
+  font-style: italic;
+}
+
+.vscode-editor .token.punctuation {
+  color: #d4d4d4;
+}
+
+/* VS Code control-flow keywords (return, if, try, catch, await, etc.) -> #c586c0 (purple) */
+.vscode-editor .token.keyword.token-control,
+.vscode-editor .token-control,
+.vscode-editor .token.keyword-control {
+  color: #c586c0 !important;
+  font-weight: 500;
+}
+
+/* Standard language keywords (const, let, var, function, class, export, etc.) -> #569cd6 (blue) */
+.vscode-editor .token.keyword,
+.vscode-editor .token.boolean,
+.vscode-editor .token.null,
+.vscode-editor .token.nil {
+  color: #569cd6 !important;
+  font-weight: 500;
+}
+
+/* Strings -> #ce9178 (warm orange/terracotta) */
+.vscode-editor .token.string,
+.vscode-editor .token.char,
+.vscode-editor .token.attr-value,
+.vscode-editor .token.template-string,
+.vscode-editor .token.template-punctuation {
+  color: #ce9178 !important;
+}
+
+/* Numbers -> #b5cea8 (soft green) */
+.vscode-editor .token.number {
+  color: #b5cea8 !important;
+}
+
+/* Functions, method calls -> #dcdcaa (yellow/gold) */
+.vscode-editor .token.function,
+.vscode-editor .token.function-variable,
+.vscode-editor .token.method {
+  color: #dcdcaa !important;
+}
+
+/* Classes, Interfaces, Types, Generics, Annotations -> #4ec9b0 (bright teal) */
+.vscode-editor .token.class-name,
+.vscode-editor .token.interface,
+.vscode-editor .token.builtin,
+.vscode-editor .token.type,
+.vscode-editor .token.annotation,
+.vscode-editor .token.decorator {
+  color: #4ec9b0 !important;
+}
+
+/* Object keys, parameters, variables -> #9cdcfe (light blue) */
+.vscode-editor .token.property,
+.vscode-editor .token.parameter,
+.vscode-editor .token.variable,
+.vscode-editor .token.attr-name {
+  color: #9cdcfe !important;
+}
+
+/* Constants -> #4fc1ff */
+.vscode-editor .token.constant {
+  color: #4fc1ff !important;
+}
+
+/* Operators -> #d4d4d4 */
+.vscode-editor .token.operator {
+  color: #d4d4d4 !important;
+}
+
+/* Regular expressions -> #d16969 (soft red) */
+.vscode-editor .token.regex {
+  color: #d16969 !important;
+}
+
+/* Tags in JSX / HTML -> #569cd6 */
+.vscode-editor .token.tag {
+  color: #569cd6 !important;
+}
+.vscode-editor .token.tag .token.punctuation {
+  color: #808080 !important;
+}
+
+/* Rainbow bracket pair colorization */
+.vscode-bracket-0 { color: #ffd700 !important; }
+.vscode-bracket-1 { color: #da70d6 !important; }
+.vscode-bracket-2 { color: #179fff !important; }
+
+/* Active line in VS Code */
+.vscode-active-line {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  box-shadow: inset 2px 0 0 0 #007acc;
+}
+
+/* Gutter */
+.vscode-gutter {
+  background-color: #1e1e1e;
+  color: #858585;
+  user-select: none;
+}
+.vscode-gutter-active {
+  color: #c6c6c6 !important;
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
