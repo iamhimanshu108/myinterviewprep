@@ -135,7 +135,7 @@ export const HTML_QUESTIONS: Question[] = [
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Learn React Hooks from beginner to advanced with interactive examples." />
-  <title>React Hooks Guide — My Interview Prep</title>
+  <title>React Hooks Guide — Interview Master</title>
 
   <!-- Open Graph Meta Tags for social sharing -->
   <meta property="og:type" content="article" />

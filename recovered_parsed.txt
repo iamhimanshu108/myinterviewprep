@@ -1,0 +1,808 @@
+Created At: 2026-09-04T08:54:53+05:30
+Completed At: 2026-09-04T08:54:54+05:30
+File Path: `file:///e:/myinterviewprep/src/data/backendWorkflowsData.ts`
+Total Lines: 2277
+Total Bytes: 104079
+Showing lines 1 to 800
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: import { BackendWorkflowTopic, BackendFramework } from '../types';
+2: 
+3: export interface WorkflowCodebase {
+4:   framework: BackendFramework;
+5:   frameworkName: string;
+6:   language: string;
+7:   fileLabel: string;
+8:   badgeColor: string;
+9:   code: string;
+10:   explanation: string;
+11:   architectureHighlights: string[];
+12: }
+13: 
+14: export interface FlowStep {
+15:   name: string;
+16:   detail: string;
+17:   lit: string[];
+18: }
+19: 
+20: export interface WorkflowSection {
+21:   id: string;
+22:   num: number;
+23:   label: string;
+24:   group: 'Foundations' | 'Lifecycle' | 'Architecture' | 'Implementation' | 'Wrap up';
+25: }
+26: 
+27: export interface ComparisonColumn {
+28:   key: string;
+29:   label: string;
+30:   icon: string;
+31:   colorClass: string;
+32: }
+33: 
+34: export interface WorkflowTopicData {
+35:   id: BackendWorkflowTopic;
+36:   title: string;
+37:   subtitle: string;
+38:   tagline: string;
+39:   accentColor: string;
+40:   category?: 'backend' | 'frontend' | 'mobile' | 'devops';
+41:   tags: string[];
+42:   sections: WorkflowSection[];
+43:   flowSteps: FlowStep[];
+44:   codebases: Record<string, WorkflowCodebase>;
+45:   comparisonColumns?: ComparisonColumn[];
+46:   comparisonPoints: {
+47:     feature: string;
+48:     [key: string]: string;
+49:   }[];
+50:   quiz: {
+51:     question: string;
+52:     options: string[];
+53:     correctIndex: number;
+54:     explanation: string;
+55:   };
+56:   bestPractices: string[];
+57:   commonMistakes: {
+58:     mistake: string;
+59:     consequence: string;
+60:     solution: string;
+61:   }[];
+62: }
+63: 
+64: export const BACKEND_WORKFLOWS: Record<BackendWorkflowTopic, WorkflowTopicData> = {
+65:   // ─────────────────────────────────────────────────────────────
+66:   // 1. CRUD WORKFLOW
+67:   // ─────────────────────────────────────────────────────────────
+68:   crud: {
+69:     id: 'crud',
+70:     title: 'CRUD Operations & Data Layer',
+71:     subtitle: 'Create, Read, Update, Delete across Request, Service, and ORM Layers',
+72:     tagline: 'How real-world backends accept, validate, persist, mutate, and delete entities',
+73:     accentColor: '#10B981', // Emerald
+74:     tags: ['POST 201', 'GET 200', 'PUT vs PATCH', 'DELETE 204', 'ORM / JPA', 'Transactions'],
+75:     sections: [
+76:       { id: 'crud-01', num: 1, label: 'The CRUD Cycle', group: 'Foundations' },
+77:       { id: 'crud-02', num: 2, label: 'HTTP Verbs & Status Codes', group: 'Foundations' },
+78:       { id: 'crud-03', num: 3, label: 'PUT vs PATCH', group: 'Foundations' },
+79:       { id: 'crud-04', num: 4, label: 'Interactive CRUD Pipeline', group: 'Lifecycle' },
+80:       { id: 'crud-05', num: 5, label: '3-Tier Layered Architecture', group: 'Architecture' },
+81:       { id: 'crud-06', num: 6, label: 'Express.js Implementation', group: 'Implementation' },
+82:       { id: 'crud-07', num: 7, label: 'Spring Boot Implementation', group: 'Implementation' },
+83:       { id: 'crud-08', num: 8, label: 'FastAPI Implementation', group: 'Implementation' },
+84:       { id: 'crud-09', num: 9, label: 'Cross-Framework Comparison', group: 'Wrap up' },
+85:       { id: 'crud-10', num: 10, label: 'Common CRUD Bugs', group: 'Wrap up' },
+86:     ],
+87:     flowSteps: [
+88:       {
+89:         name: 'Incoming HTTP Request',
+90:         detail: 'Client sends POST/GET/PUT/DELETE to /api/products with JSON payload or route params.',
+91:         lit: ['client', 'router', 'arr-client-router']
+92:       },
+93:       {
+94:         name: 'Schema & DTO Validation',
+95:         detail: 'The incoming body is validated against schema contracts (Zod, Pydantic, or @Valid). Invalid fields immediately return 400 Bad Request.',
+96:         lit: ['router', 'validation', 'arr-router-val']
+97:       },
+98:       {
+99:         name: 'Service Layer Business Logic',
+100:         detail: 'Controller forwards clean DTO to Service layer. Handles stock checks, price calculations, and transaction coordination.',
+101:         lit: ['validation', 'service', 'arr-val-service']
+102:       },
+103:       {
+104:         name: 'Database Query / Mutation',
+105:         detail: 'Service triggers Repository/ORM (Mongoose, JPA, or SQLAlchemy) to query or commit changes to MongoDB or PostgreSQL.',
+106:         lit: ['service', 'db', 'arr-service-db']
+107:       },
+108:       {
+109:         name: 'Status Code & Response Serialization',
+110:         detail: 'Database returns the persisted entity. The framework serializes it to JSON and sends the exact HTTP status (201 Created, 200 OK, 204 No Content).',
+111:         lit: ['db', 'service', 'client', 'arr-db-client']
+112:       }
+113:     ],
+114:     codebases: {
+115:       express: {
+116:         framework: 'express',
+117:         frameworkName: 'Express.js (Node / TypeScript)',
+118:         language: 'typescript',
+119:         fileLabel: 'src/controllers/product.controller.ts',
+120:         badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+121:         code: `import { Request, Response, NextFunction } from 'express';
+122: import { ProductModel } from '../models/Product';
+123: import { z } from 'zod';
+124: 
+125: // 1. Validation Schema
+126: const CreateProductSchema = z.object({
+127:   name: z.string().min(2),
+128:   price: z.number().positive(),
+129:   category: z.string().default('General')
+130: });
+131: 
+132: // CREATE: POST /api/products -> 201 Created
+133: export const createProduct = async (req: Request, res: Response, next: NextFunction) => {
+134:   try {
+135:     const validatedData = CreateProductSchema.parse(req.body);
+136:     const product = await ProductModel.create(validatedData);
+137:     return res.status(201).json({ success: true, data: product });
+138:   } catch (error) {
+139:     next(error); // Forward to global error handler
+140:   }
+141: };
+142: 
+143: // READ ALL: GET /api/products?category=tech -> 200 OK
+144: export const getProducts = async (req: Request, res: Response, next: NextFunction) => {
+145:   try {
+146:     const { category } = req.query;
+147:     const filter = category ? { category: String(category) } : {};
+148:     const products = await ProductModel.find(filter).limit(50);
+149:     return res.status(200).json({ success: true, count: products.length, data: products });
+150:   } catch (error) {
+151:     next(error);
+152:   }
+153: };
+154: 
+155: // READ ONE: GET /api/products/:id -> 200 OK or 404
+156: export const getProductById = async (req: Request, res: Response, next: NextFunction) => {
+157:   try {
+158:     const product = await ProductModel.findById(req.params.id);
+159:     if (!product) {
+160:       return res.status(404).json({ success: false, message: 'Product not found' });
+161:     }
+162:     return res.status(200).json({ success: true, data: product });
+163:   } catch (error) {
+164:     next(error);
+165:   }
+166: };
+167: 
+168: // UPDATE: PUT /api/products/:id -> 200 OK
+169: export const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
+170:   try {
+171:     const updated = await ProductModel.findByIdAndUpdate(
+172:       req.params.id,
+173:       req.body,
+174:       { new: true, runValidators: true }
+175:     );
+176:     if (!updated) return res.status(404).json({ message: 'Product not found' });
+177:     return res.status(200).json({ success: true, data: updated });
+178:   } catch (error) {
+179:     next(error);
+180:   }
+181: };
+182: 
+183: // DELETE: DELETE /api/products/:id -> 204 No Content
+184: export const deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
+185:   try {
+186:     const deleted = await ProductModel.findByIdAndDelete(req.params.id);
+187:     if (!deleted) return res.status(404).json({ message: 'Product not found' });
+188:     return res.status(204).send(); // 204: No Content in response body
+189:   } catch (error) {
+190:     next(error);
+191:   }
+192: };`,
+193:         explanation: 'In Express, you explicitly parse inputs, query your database (Mongoose / Prisma), and manually call res.status(201).json() or res.status(204).send(). Error propagation relies on passing errors to next(error).',
+194:         architectureHighlights: [
+195:           'Direct control over req and res streams',
+196:           'Explicit HTTP status code specification',
+197:           'Centralized error boundary via next(error)',
+198:           'Lightweight middleware-based schema validation (Zod)'
+199:         ]
+200:       },
+201:       springboot: {
+202:         framework: 'springboot',
+203:         frameworkName: 'Spring Boot (Java 21 / Spring 3)',
+204:         language: 'java',
+205:         fileLabel: 'com.cohort.controller.ProductController.java',
+206:         badgeColor: 'bg-green-500/10 text-green-400 border-green-500/30',
+207:         code: `package com.cohort.controller;
+208: 
+209: import com.cohort.dto.ProductRequest;
+210: import com.cohort.model.Product;
+211: import com.cohort.service.ProductService;
+212: import jakarta.validation.Valid;
+213: import org.springframework.http.HttpStatus;
+214: import org.springframework.http.ResponseEntity;
+215: import org.springframework.web.bind.annotation.*;
+216: import java.util.List;
+217: 
+218: @RestController
+219: @RequestMapping("/api/products")
+220: public class ProductController {
+221: 
+222:     private final ProductService productService;
+223: 
+224:     public ProductController(ProductService productService) {
+225:         this.productService = productService;
+226:     }
+227: 
+228:     // CREATE: POST /api/products -> 201 Created
+229:     @PostMapping
+230:     public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductRequest request) {
+231:         Product created = productService.createProduct(request);
+232:         return new ResponseEntity<>(created, HttpStatus.CREATED);
+233:     }
+234: 
+235:     // READ ALL: GET /api/products?category=tech -> 200 OK
+236:     @GetMapping
+237:     public ResponseEntity<List<Product>> getProducts(
+238:             @RequestParam(required = false) String category) {
+239:         List<Product> products = productService.getProducts(category);
+240:         return ResponseEntity.ok(products);
+241:     }
+242: 
+243:     // READ ONE: GET /api/products/{id} -> 200 OK
+244:     @GetMapping("/{id}")
+245:     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+246:         Product product = productService.getById(id); // Throws ResourceNotFoundException if missing
+247:         return ResponseEntity.ok(product);
+248:     }
+249: 
+250:     // UPDATE: PUT /api/products/{id} -> 200 OK
+251:     @PutMapping("/{id}")
+252:     public ResponseEntity<Product> updateProduct(
+253:             @PathVariable Long id,
+254:             @Valid @RequestBody ProductRequest request) {
+255:         Product updated = productService.updateProduct(id, request);
+256:         return ResponseEntity.ok(updated);
+257:     }
+258: 
+259:     // DELETE: DELETE /api/products/{id} -> 204 No Content
+260:     @DeleteMapping("/{id}")
+261:     @ResponseStatus(HttpStatus.NO_CONTENT)
+262:     public void deleteProduct(@PathVariable Long id) {
+263:         productService.deleteProduct(id);
+264:     }
+265: }`,
+266:         explanation: 'Spring Boot uses strict dependency injection, typed DTO annotations (@Valid, @RequestBody), and declarative HTTP response entities (ResponseEntity<Product>). Exceptions like ResourceNotFoundException are caught globally by @RestControllerAdvice.',
+267:         architectureHighlights: [
+268:           'Automatic DTO mapping & Bean validation (@NotNull, @Positive)',
+269:           'Spring Data JPA provides automatic CRUD repository queries',
+270:           'Declarative status codes via @ResponseStatus(HttpStatus.NO_CONTENT)',
+271:           'Strict separation of Controller -> Service -> Repository'
+272:         ]
+273:       },
+274:       fastapi: {
+275:         framework: 'fastapi',
+276:         frameworkName: 'FastAPI (Python 3.11+ / Async)',
+277:         language: 'python',
+278:         fileLabel: 'routers/products.py',
+279:         badgeColor: 'bg-teal-500/10 text-teal-400 border-teal-500/30',
+280:         code: `from fastapi import APIRouter, Depends, HTTPException, status, Query
+281: from sqlalchemy.orm import Session
+282: from typing import List, Optional
+283: from pydantic import BaseModel, Field
+284: from database import get_db
+285: import crud_service, models
+286: 
+287: router = APIRouter(prefix="/api/products", tags=["Products"])
+288: 
+289: # 1. Pydantic DTO Schemas
+290: class ProductCreate(BaseModel):
+291:     name: str = Field(..., min_length=2, max_length=100)
+292:     price: float = Field(..., gt=0.0)
+293:     category: str = "General"
+294: 
+295: class ProductResponse(ProductCreate):
+296:     id: int
+297: 
+298:     class Config:
+299:         from_attributes = True
+300: 
+301: # CREATE: POST /api/products -> 201 Created
+302: @router.post("/", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
+303: async def create_product(payload: ProductCreate, db: Session = Depends(get_db)):
+304:     return crud_service.create_product(db=db, item=payload)
+305: 
+306: # READ ALL: GET /api/products?category=tech -> 200 OK
+307: @router.get("/", response_model=List[ProductResponse])
+308: async def get_products(category: Optional[str] = Query(None), db: Session = Depends(get_db)):
+309:     return crud_service.get_all_products(db=db, category=category)
+310: 
+311: # READ ONE: GET /api/products/{id} -> 200 OK or 404
+312: @router.get("/{product_id}", response_model=ProductResponse)
+313: async def get_product_by_id(product_id: int, db: Session = Depends(get_db)):
+314:     product = crud_service.get_product(db=db, product_id=product_id)
+315:     if not product:
+316:         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+317:     return product
+318: 
+319: # UPDATE: PUT /api/products/{id} -> 200 OK
+320: @router.put("/{product_id}", response_model=ProductResponse)
+321: async def update_product(product_id: int, payload: ProductCreate, db: Session = Depends(get_db)):
+322:     updated = crud_service.update_product(db=db, product_id=product_id, item=payload)
+323:     if not updated:
+324:         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+325:     return updated
+326: 
+327: # DELETE: DELETE /api/products/{id} -> 204 No Content
+328: @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+329: async def delete_product(product_id: int, db: Session = Depends(get_db)):
+330:     deleted = crud_service.delete_product(db=db, product_id=product_id)
+331:     if not deleted:
+332:         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+333:     return None`,
+334:         explanation: 'FastAPI uses Python type hints and Pydantic models for automatic JSON serialization, input validation, and automatic OpenAPI (Swagger) documentation. Database sessions are injected via Depends(get_db).',
+335:         architectureHighlights: [
+336:           'Automatic OpenAPI/Swagger generation at /docs',
+337:           'Pydantic handles serialization & schema validation simultaneously',
+338:           'Dependency injection via Depends(get_db)',
+339:           'Clear HTTP status codes in route decorators'
+340:         ]
+341:       }
+342:     },
+343:     comparisonPoints: [
+344:       {
+345:         feature: 'Schema Validation',
+346:         express: 'External library (Zod / Joi / express-validator)',
+347:         springboot: 'Built-in Jakarta Bean Validation (@Valid, @NotNull)',
+348:         fastapi: 'Native Pydantic type annotations with auto OpenAPI docs'
+349:       },
+350:       {
+351:         feature: 'Database Layer',
+352:         express: 'Mongoose (Mongo) or Prisma / Drizzle / TypeORM (SQL)',
+353:         springboot: 'Spring Data JPA / Hibernate with automated interfaces',
+354:         fastapi: 'SQLAlchemy / SQLModel / Tortoise ORM with async support'
+355:       },
+356:       {
+357:         feature: 'Status Code Handling',
+358:         express: 'Manual: res.status(201).json(data)',
+359:         springboot: 'ResponseEntity.status(HttpStatus.CREATED).body(data)',
+360:         fastapi: 'Decorator: @router.post(status_code=status.HTTP_201_CREATED)'
+361:       },
+362:       {
+363:         feature: 'Missing Entity (404)',
+364:         express: 'if (!item) return res.status(404).json(...)',
+365:         springboot: 'throw new ResourceNotFoundException("...") with @ExceptionHandler',
+366:         fastapi: 'raise HTTPException(status_code=404, detail="...")'
+367:       }
+368:     ],
+369:     quiz: {
+370:       question: 'When successfully deleting a resource in a RESTful CRUD API, what is the most standard HTTP status code?',
+371:       options: [
+372:         '200 OK with message: "Deleted successfully"',
+373:         '204 No Content with an empty response body',
+374:         '201 Created',
+375:         '202 Accepted'
+376:       ],
+377:       correctIndex: 1,
+378:       explanation: 'HTTP 204 No Content indicates that the action was successfully enacted and no content needs to be returned in the response payload.'
+379:     },
+380:     bestPractices: [
+381:       'Always return 201 Created for POST that generates a new ID, and return the newly generated record.',
+382:       'Always use 204 No Content for DELETE endpoints to save network bandwidth.',
+383:       'Differentiate PUT (full replacement of resource) vs PATCH (partial attribute mutation).',
+384:       'Never execute raw database queries directly in the route handler; maintain a clean Service/Repository layer.'
+385:     ],
+386:     commonMistakes: [
+387:       {
+388:         mistake: 'Returning 200 OK for entity creation instead of 201 Created',
+389:         consequence: 'Clients and API gateways cannot distinguish between a read query and a state mutation.',
+390:         solution: 'Always set HTTP 201 Created for successful resource insertions.'
+391:       },
+392:       {
+393:         mistake: 'Sending status 200 with { error: "Not found" } in the body',
+394:         consequence: 'HTTP clients, monitoring tools, and Axios interpret it as a successful response.',
+395:         solution: 'Use proper HTTP status codes (404 Not Found, 400 Bad Request) so clients trigger error branches.'
+396:       }
+397:     ]
+398:   },
+399: 
+400:   // ─────────────────────────────────────────────────────────────
+401:   // 2. AUTH WORKFLOW
+402:   // ─────────────────────────────────────────────────────────────
+403:   auth: {
+404:     id: 'auth',
+405:     title: 'Authentication & Access Control',
+406:     subtitle: 'Password Hashing, JWT Minting, Cookie Storage, and Guard Middleware',
+407:     tagline: 'Defending stateless HTTP endpoints with cryptographic tokens and bcrypt salting',
+408:     accentColor: '#C84B1F', // Orange/Rust from reference
+409:     tags: ['Stateless', 'bcryptjs', 'JWT HS256', 'httpOnly Cookies', 'AuthN vs AuthZ'],
+410:     sections: [
+411:       { id: 'auth-01', num: 1, label: 'The Problem: Statelessness', group: 'Foundations' },
+412:       { id: 'auth-02', num: 2, label: 'Authentication vs Authorization', group: 'Foundations' },
+413:       { id: 'auth-03', num: 3, label: 'Why We Hash Passwords', group: 'Foundations' },
+414:       { id: 'auth-04', num: 4, label: 'The Student ID Card (JWT)', group: 'Lifecycle' },
+415:       { id: 'auth-05', num: 5, label: 'Step-by-Step Auth Flow', group: 'Lifecycle' },
+416:       { id: 'auth-06', num: 6, label: 'Express.js Implementation', group: 'Implementation' },
+417:       { id: 'auth-07', num: 7, label: 'Spring Boot Implementation', group: 'Implementation' },
+418:       { id: 'auth-08', num: 8, label: 'FastAPI Implementation', group: 'Implementation' },
+419:       { id: 'auth-09', num: 9, label: 'Cross-Framework Comparison', group: 'Wrap up' },
+420:       { id: 'auth-10', num: 10, label: 'Security Traps & Quizzes', group: 'Wrap up' },
+421:     ],
+422:     flowSteps: [
+423:       {
+424:         name: 'Login Request (POST /login)',
+425:         detail: 'Client submits credentials (email & plaintext password) over TLS/HTTPS. Only moment the password travels over the wire.',
+426:         lit: ['client', 'server', 'arr-client-server']
+427:       },
+428:       {
+429:         name: 'Query User & Salted Hash',
+430:         detail: 'Server queries database by email. Database retrieves user document containing the bcrypt salt + hash string ($2b$10$...).',
+431:         lit: ['server', 'db', 'arr-server-db']
+432:       },
+433:       {
+434:         name: 'bcrypt.compare() Verification',
+435:         detail: 'Server extracts salt from stored hash, hashes incoming password with identical salt, and compares. Mismatch immediately yields 401.',
+436:         lit: ['server', 'crypto', 'arr-server-crypto']
+437:       },
+438:       {
+439:         name: 'Mint & Sign JSON Web Token',
+440:         detail: 'Server signs a compact token with payload { id, role } using server secret (JWT_SECRET) with expiration (e.g. 7d).',
+441:         lit: ['server', 'token', 'arr-server-token']
+442:       },
+443:       {
+444:         name: 'Issue Token via httpOnly Cookie',
+445:         detail: 'Server sends token in httpOnly, secure, sameSite cookie. JavaScript cannot read it, preventing XSS token theft.',
+446:         lit: ['server', 'client', 'arr-server-client']
+447:       },
+448:       {
+449:         name: 'Subsequent Requests & Guard Filter',
+450:         detail: 'Token arrives automatically. Middleware runs jwt.verify(token). If valid, attaches user context and executes endpoint.',
+451:         lit: ['client', 'middleware', 'route', 'arr-client-route']
+452:       }
+453:     ],
+454:     codebases: {
+455:       express: {
+456:         framework: 'express',
+457:         frameworkName: 'Express.js (Node / TypeScript)',
+458:         language: 'typescript',
+459:         fileLabel: 'src/middlewares/auth.middleware.ts',
+460:         badgeColor: 'bg-orange-500/10 text-orange-400 border-orange-500/30',
+461:         code: `import { Request, Response, NextFunction } from 'express';
+462: import jwt from 'jsonwebtoken';
+463: import bcrypt from 'bcryptjs';
+464: 
+465: // Extend Express Request to hold authenticated user
+466: declare global {
+467:   namespace Express {
+468:     interface Request {
+469:       user?: { id: string; role: string };
+470:     }
+471:   }
+472: }
+473: 
+474: // 1. Login Handler
+475: export const login = async (req: Request, res: Response) => {
+476:   const { email, password } = req.body;
+477:   const user = await UserModel.findOne({ email }).select('+password');
+478:   
+479:   if (!user || !(await bcrypt.compare(password, user.password))) {
+480:     return res.status(401).json({ message: 'Invalid email or password' });
+481:   }
+482: 
+483:   // Sign JWT with payload & secret
+484:   const token = jwt.sign(
+485:     { id: user._id, role: user.role },
+486:     process.env.JWT_SECRET!,
+487:     { expiresIn: '7d' }
+488:   );
+489: 
+490:   // Store in secure httpOnly cookie
+491:   res.cookie('token', token, {
+492:     httpOnly: true,
+493:     secure: process.env.NODE_ENV === 'production',
+494:     sameSite: 'lax',
+495:     maxAge: 7 * 24 * 60 * 60 * 1000
+496:   });
+497: 
+498:   return res.status(200).json({ success: true, message: 'Logged in successfully' });
+499: };
+500: 
+501: // 2. Auth Guard Middleware
+502: export const isLoggedIn = (req: Request, res: Response, next: NextFunction) => {
+503:   const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+504:   if (!token) return res.status(401).json({ message: 'Authentication required' });
+505: 
+506:   try {
+507:     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; role: string };
+508:     req.user = decoded;
+509:     next();
+510:   } catch (err) {
+511:     return res.status(401).json({ message: 'Invalid or expired session token' });
+512:   }
+513: };`,
+514:         explanation: 'In Express, login hashes password with bcrypt.compare, issues a JWT, and sets an httpOnly cookie. The isLoggedIn middleware intercepts protected routes, validates the signature via jwt.verify, and sets req.user.',
+515:         architectureHighlights: [
+516:           'bcrypt.compare() protects passwords against timing attacks',
+517:           'Token transmitted inside httpOnly cookie prevents XSS theft',
+518:           'Attaches decoded payload { id, role } onto req.user for downstream controllers',
+519:           'Stateless validation: zero database hits required on protected requests'
+520:         ]
+521:       },
+522:       springboot: {
+523:         framework: 'springboot',
+524:         frameworkName: 'Spring Boot (Spring Security 6)',
+525:         language: 'java',
+526:         fileLabel: 'com.cohort.security.JwtAuthenticationFilter.java',
+527:         badgeColor: 'bg-green-500/10 text-green-400 border-green-500/30',
+528:         code: `package com.cohort.security;
+529: 
+530: import io.jsonwebtoken.Claims;
+531: import io.jsonwebtoken.Jwts;
+532: import jakarta.servlet.FilterChain;
+533: import jakarta.servlet.ServletException;
+534: import jakarta.servlet.http.HttpServletRequest;
+535: import jakarta.servlet.http.HttpServletResponse;
+536: import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+537: import org.springframework.security.core.authority.SimpleGrantedAuthority;
+538: import org.springframework.security.core.context.SecurityContextHolder;
+539: import org.springframework.stereotype.Component;
+540: import org.springframework.web.filter.OncePerRequestFilter;
+541: import java.io.IOException;
+542: import java.util.List;
+543: 
+544: @Component
+545: public class JwtAuthenticationFilter extends OncePerRequestFilter {
+546: 
+547:     private final String SECRET_KEY = "mySuperSecretKeyThatIsAtLeast256BitsLong!";
+548: 
+549:     @Override
+550:     protected void doFilterInternal(HttpServletRequest request,
+551:                                     HttpServletResponse response,
+552:                                     FilterChain filterChain) throws ServletException, IOException {
+553:         String authHeader = request.getHeader("Authorization");
+554: 
+555:         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+556:             filterChain.doFilter(request, response);
+557:             return;
+558:         }
+559: 
+560:         String token = authHeader.substring(7);
+561:         try {
+562:             Claims claims = Jwts.parser()
+563:                     .setSigningKey(SECRET_KEY.getBytes())
+564:                     .build()
+565:                     .parseClaimsJws(token)
+566:                     .getBody();
+567: 
+568:             String username = claims.getSubject();
+569:             String role = claims.get("role", String.class);
+570: 
+571:             // Populate Spring Security Context
+572:             var auth = new UsernamePasswordAuthenticationToken(
+573:                     username,
+574:                     null,
+575:                     List.of(new SimpleGrantedAuthority("ROLE_" + role))
+576:             );
+577:             SecurityContextHolder.getContext().setAuthentication(auth);
+578: 
+579:         } catch (Exception e) {
+580:             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+581:             response.getWriter().write("Invalid or expired JWT token");
+582:             return;
+583:         }
+584: 
+585:         filterChain.doFilter(request, response);
+586:     }
+587: }`,
+588:         explanation: 'Spring Security relies on the Servlet Filter chain. OncePerRequestFilter extracts the Bearer token, verifies signature using io.jsonwebtoken (JJWT), and populates SecurityContextHolder with user authority.',
+589:         architectureHighlights: [
+590:           'SecurityContextHolder provides thread-local user context across all beans',
+591:           'Method-level security enabled via @PreAuthorize("hasRole(\'ADMIN\')")',
+592:           'BCryptPasswordEncoder configured globally in SecurityFilterChain',
+593:           'Standardized Spring Security Filter chain execution'
+594:         ]
+595:       },
+596:       fastapi: {
+597:         framework: 'fastapi',
+598:         frameworkName: 'FastAPI (Python 3.11+ / OAuth2 & Jose)',
+599:         language: 'python',
+600:         fileLabel: 'security/auth.py',
+601:         badgeColor: 'bg-teal-500/10 text-teal-400 border-teal-500/30',
+602:         code: `from fastapi import Depends, HTTPException, status
+603: from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+604: from jose import JWTError, jwt
+605: from passlib.context import CryptContext
+606: from datetime import datetime, timedelta
+607: 
+608: SECRET_KEY = "super-secret-jwt-key"
+609: ALGORITHM = "HS256"
+610: pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+611: oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
+612: 
+613: # 1. Password Verification
+614: def verify_password(plain_password: str, hashed_password: str) -> bool:
+615:     return pwd_context.verify(plain_password, hashed_password)
+616: 
+617: def create_access_token(data: dict, expires_delta: timedelta = timedelta(days=7)) -> str:
+618:     to_encode = data.copy()
+619:     expire = datetime.utcnow() + expires_delta
+620:     to_encode.update({"exp": expire})
+621:     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+622: 
+623: # 2. Dependency: Extracts and Verifies Current User
+624: async def get_current_user(token: str = Depends(oauth2_scheme)):
+625:     credentials_exception = HTTPException(
+626:         status_code=status.HTTP_401_UNAUTHORIZED,
+627:         detail="Could not validate credentials",
+628:         headers={"WWW-Authenticate": "Bearer"},
+629:     )
+630:     try:
+631:         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+632:         user_id: str = payload.get("sub")
+633:         role: str = payload.get("role")
+634:         if user_id is None:
+635:             raise credentials_exception
+636:         return {"id": user_id, "role": role}
+637:     except JWTError:
+638:         raise credentials_exception
+639: 
+640: # 3. Usage in Protected Endpoint
+641: # @router.get("/profile")
+642: # async def read_profile(user: dict = Depends(get_current_user)):
+643: #     return {"user": user}`,
+644:         explanation: 'FastAPI integrates OAuth2PasswordBearer with Python-Jose and Passlib. The get_current_user dependency can be injected into any route via Depends(get_current_user), seamlessly populating Swagger UI with an "Authorize" lock button.',
+645:         architectureHighlights: [
+646:           'Automatic interactive Swagger authentication via OAuth2PasswordBearer',
+647:           'Passlib handles automated bcrypt salt generation',
+648:           'FastAPI Dependency Injection automatically intercepts and verifies tokens',
+649:           'Decoupled and reusable get_current_user function'
+650:         ]
+651:       }
+652:     },
+653:     comparisonPoints: [
+654:       {
+655:         feature: 'Password Hashing',
+656:         express: 'bcryptjs / argon2 with manual salt rounds (10-12)',
+657:         springboot: 'BCryptPasswordEncoder bean in Spring Security configuration',
+658:         fastapi: 'passlib.context.CryptContext(schemes=["bcrypt"])'
+659:       },
+660:       {
+661:         feature: 'JWT Verification',
+662:         express: 'jwt.verify(token, secret) in custom Express middleware',
+663:         springboot: 'OncePerRequestFilter parsing claims into SecurityContext',
+664:         fastapi: 'Depends(get_current_user) using python-jose'
+665:       },
+666:       {
+667:         feature: 'Role-Based Guard (AuthZ)',
+668:         express: 'Custom middleware: allow("admin") checking req.user.role',
+669:         springboot: '@PreAuthorize("hasRole(\'ADMIN\')") annotation',
+670:         fastapi: 'Dependency with role check: Depends(require_admin_role)'
+671:       },
+672:       {
+673:         feature: 'Client Integration',
+674:         express: 'Cookie or Bearer token',
+675:         springboot: 'Bearer header (Authorization: Bearer <token>)',
+676:         fastapi: 'Native Swagger OAuth2 password flow + Bearer header'
+677:       }
+678:     ],
+679:     quiz: {
+680:       question: 'Why must you NEVER store user passwords or social security numbers inside a JWT payload?',
+681:       options: [
+682:         'Because the token will become too heavy for HTTP headers',
+683:         'Because JWT payloads are only Base64URL encoded (publicly readable by anyone who inspects the token)',
+684:         'Because bcrypt will fail to sign the payload',
+685:         'Because HTTP 403 status code will be triggered'
+686:       ],
+687:       correctIndex: 1,
+688:       explanation: 'A JWT payload is NOT encrypted! It is merely Base64URL encoded. Anyone who has the token string can decode the JSON payload in any browser. Only the signature requires the secret key.'
+689:     },
+690:     bestPractices: [
+691:       'Store JWTs in httpOnly, Secure, SameSite=Lax cookies to completely eliminate XSS token theft.',
+692:       'Always set an expiration time (expiresIn) on tokens; stateless tokens cannot be revoked before expiry.',
+693:       'Always respond with "Invalid email or password" on login failures to prevent user enumeration attacks.',
+694:       'Keep token payloads small (only userId and role); avoid stuffing huge cart/order objects into it.'
+695:     ],
+696:     commonMistakes: [
+697:       {
+698:         mistake: 'Using jwt.decode() instead of jwt.verify()',
+699:         consequence: 'jwt.decode() skips signature verification entirely, allowing anyone to forge an admin token.',
+700:         solution: 'Always use jwt.verify() which recalculates HMAC-SHA256 with your secret.'
+701:       },
+702:       {
+703:         mistake: 'Storing passwords as plain text or using MD5/SHA256',
+704:         consequence: 'Fast hashing algorithms can be brute-forced at billions of guesses per second via GPU rainbow tables.',
+705:         solution: 'Always use slow, salted cryptographic algorithms such as bcrypt or Argon2.'
+706:       }
+707:     ]
+708:   },
+709: 
+710:   // ─────────────────────────────────────────────────────────────
+711:   // 3. REST WORKFLOW
+712:   // ─────────────────────────────────────────────────────────────
+713:   rest: {
+714:     id: 'rest',
+715:     title: 'RESTful Architecture & Standards',
+716:     subtitle: 'Resource-Oriented URI Design, HTTP Verbs, Idempotency, and Negotiation',
+717:     tagline: 'Designing maintainable, scalable, standardized REST APIs across languages',
+718:     accentColor: '#3B82F6', // Blue
+719:     tags: ['Resource URIs', 'Idempotency', 'HTTP 200/201/204/400/404', 'Query Filtering', 'HATEOAS'],
+720:     sections: [
+721:       { id: 'rest-01', num: 1, label: 'REST Core Principles', group: 'Foundations' },
+722:       { id: 'rest-02', num: 2, label: 'URI Naming: Nouns over Verbs', group: 'Foundations' },
+723:       { id: 'rest-03', num: 3, label: 'Safe vs Idempotent Methods', group: 'Foundations' },
+724:       { id: 'rest-04', num: 4, label: 'HTTP Status Codes Matrix', group: 'Lifecycle' },
+725:       { id: 'rest-05', num: 5, label: 'Interactive REST Dispatcher', group: 'Lifecycle' },
+726:       { id: 'rest-06', num: 6, label: 'Express.js Implementation', group: 'Implementation' },
+727:       { id: 'rest-07', num: 7, label: 'Spring Boot Implementation', group: 'Implementation' },
+728:       { id: 'rest-08', num: 8, label: 'FastAPI Implementation', group: 'Implementation' },
+729:       { id: 'rest-09', num: 9, label: 'Cross-Framework Comparison', group: 'Wrap up' },
+730:       { id: 'rest-10', num: 10, label: 'REST Anti-Patterns', group: 'Wrap up' },
+731:     ],
+732:     flowSteps: [
+733:       {
+734:         name: 'Client URI & Method Dispatch',
+735:         detail: 'Client issues a request targeting a noun-based resource identifier: GET /api/v1/orders/89/items.',
+736:         lit: ['client', 'router', 'arr-client-router']
+737:       },
+738:       {
+739:         name: 'Content Negotiation & Headers',
+740:         detail: 'Server checks Content-Type (application/json) and Accept headers to negotiate output format.',
+741:         lit: ['router', 'negotiation', 'arr-router-neg']
+742:       },
+743:       {
+744:         name: 'Idempotency & Safety Check',
+745:         detail: 'GET/HEAD are safe (read-only). PUT/DELETE are idempotent (1 call = N calls). POST is non-idempotent.',
+746:         lit: ['negotiation', 'controller', 'arr-neg-ctrl']
+747:       },
+748:       {
+749:         name: 'Uniform JSON Envelope',
+750:         detail: 'Controller shapes response with standard payload, metadata (pagination, counts), and HATEOAS navigational links.',
+751:         lit: ['controller', 'serializer', 'arr-ctrl-serial']
+752:       },
+753:       {
+754:         name: 'Standard HTTP Status Output',
+755:         detail: 'Server replies with semantically accurate status code (200, 201, 204, 400, 404, 409, 500).',
+756:         lit: ['serializer', 'client', 'arr-serial-client']
+757:       }
+758:     ],
+759:     codebases: {
+760:       express: {
+761:         framework: 'express',
+762:         frameworkName: 'Express.js (Node / TypeScript)',
+763:         language: 'typescript',
+764:         fileLabel: 'src/routes/api.v1.routes.ts',
+765:         badgeColor: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+766:         code: `import { Router, Request, Response } from 'express';
+767: 
+768: const router = Router();
+769: 
+770: // REST Principle 1: Nouns, not verbs!
+771: // BAD: /api/getUserOrders, /api/createOrder
+772: // GOOD: GET /api/v1/users/:userId/orders, POST /api/v1/orders
+773: 
+774: // Nested Resource: GET /api/v1/users/:userId/orders?status=shipped&page=1&limit=10
+775: router.get('/users/:userId/orders', async (req: Request, res: Response) => {
+776:   const { userId } = req.params;
+777:   const { status, page = '1', limit = '10' } = req.query;
+778: 
+779:   const pageNum = parseInt(page as string, 10);
+780:   const limitNum = parseInt(limit as string, 10);
+781: 
+782:   // Query database with pagination and filters
+783:   const [orders, total] = await Promise.all([
+784:     OrderModel.find({ userId, ...(status ? { status } : {}) })
+785:       .skip((pageNum - 1) * limitNum)
+786:       .limit(limitNum),
+787:     OrderModel.countDocuments({ userId })
+788:   ]);
+789: 
+790:   // REST Standard JSON envelope with metadata
+791:   return res.status(200).json({
+792:     data: orders,
+793:     meta: {
+794:       total,
+795:       page: pageNum,
+796:       totalPages: Math.ceil(total / limitNum),
+797:       limit: limitNum
+798:     },
+799:     links: {
+800:       self: \`/api/v1/users/\${userId}/orders?page=\${pageNum}\`,
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

@@ -27,7 +27,8 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { BackendWorkflowTopic, BackendFramework } from '../types';
-import { BACKEND_WORKFLOWS, WorkflowTopicData, WorkflowCodebase } from '../data/backendWorkflowsData';
+import { BACKEND_WORKFLOWS } from '../data/backendWorkflowsData';
+import { WorkflowTopicData, WorkflowCodebase } from '../types';
 import { VsCodeSnippet } from './VsCodeSnippet';
 
 interface Props {
@@ -40,6 +41,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
   const [selectedFramework, setSelectedFramework] = useState<'all' | BackendFramework>('all');
   const [activeSectionId, setActiveSectionId] = useState<string>('');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Sync state if initialTopic prop updates from parent header
   useEffect(() => {
@@ -125,6 +127,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
 
   const scrollToSection = (id: string) => {
     setActiveSectionId(id);
+    setIsSidebarOpen(false);
     const target = document.getElementById(id);
     if (target) {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -143,7 +146,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
 
   // Dynamic framework details helper based on active topic
   const frameworksList = useMemo(() => {
-    return Object.entries(currentTopicData.codebases).map(([key, cb]) => {
+    return Object.entries(currentTopicData.codebases).map(([key, cb]: [string, any]) => {
       let icon = '⚡';
       if (key === 'express') icon = '🟢';
       else if (key === 'springboot') icon = '🍃';
@@ -170,8 +173,22 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-orange-500/20">
       
+      {/* ── MOBILE SIDEBAR TOGGLE ── */}
+      <div className="md:hidden sticky top-0 z-30 p-3 border-b border-slate-800 bg-slate-950 flex justify-between items-center shadow-sm">
+        <div className="flex items-center gap-2 text-orange-500">
+          <Layers className="w-4 h-4" />
+          <span className="font-mono-ref text-[10px] font-bold uppercase tracking-widest">Course Curriculum</span>
+        </div>
+        <button 
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded text-xs text-slate-300 font-semibold"
+        >
+          {isSidebarOpen ? 'Hide' : 'Show'}
+        </button>
+      </div>
+
       {/* ── LEFT SIDEBAR NAVIGATION ── */}
-      <aside className="w-full md:w-64 lg:w-72 bg-slate-950 border-r border-slate-800 md:sticky md:top-14 md:h-[calc(100vh-3.5rem)] overflow-y-auto shrink-0 py-6 scrollbar-thin">
+      <aside className={`${isSidebarOpen ? 'block' : 'hidden'} md:block w-full md:w-64 lg:w-72 bg-slate-950 border-r border-slate-800 md:sticky md:top-14 md:h-[calc(100vh-3.5rem)] overflow-y-auto shrink-0 py-6 scrollbar-thin`}>
 
 
 
@@ -179,7 +196,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
         {/* Grouped Chapter Navigation for Active Topic */}
         <nav className="space-y-6" aria-label="Backend Topic Navigation">
           {(Object.keys(groupedNav) as (keyof typeof groupedNav)[]).map((groupName, groupIdx) => {
-            const parts = groupName.split(': ');
+            const parts = String(groupName).split(': ');
             const phase = parts[0] || '';
             const title = parts.length > 1 ? parts[1] : '';
 
@@ -291,7 +308,8 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
 
           <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900 shadow-xl">
             {/* SVG Diagram Canvas */}
-            <div className="p-6 sm:p-8 bg-slate-950 flex flex-col items-center justify-center min-h-[260px]">
+            <div className="p-6 sm:p-8 bg-slate-950 flex flex-col items-center justify-center min-h-[260px] overflow-x-auto">
+              <div className="min-w-[700px] w-full flex justify-center">
               <svg
                 viewBox="0 0 820 180"
                 className="w-full max-w-3xl h-auto"
@@ -385,6 +403,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
                   <text x="732" y="105" fill="#94a3b8" fontSize="10" textAnchor="middle" fontFamily="monospace">SQL / Mongo / State</text>
                 </g>
               </svg>
+              </div>
             </div>
 
             {/* Stepper Controls Bar */}

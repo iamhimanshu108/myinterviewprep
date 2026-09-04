@@ -1,0 +1,470 @@
+// 2. Auth Guard Middleware
+export const isLoggedIn = (req: Request, res: Response, next: NextFunction) => {
+  const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'Authentication required' });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; role: string };
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid or expired session token' });
+  }
+};`,
+        explanation: 'In Express, login hashes password with bcrypt.compare, issues a JWT, and sets an httpOnly cookie. The isLoggedIn middleware intercepts protected routes, validates the signature via jwt.verify, and sets req.user.',
+        architectureHighlights: [
+          'bcrypt.compare() protects passwords against timing attacks',
+          'Token transmitted inside httpOnly cookie prevents XSS theft',
+          'Attaches decoded payload { id, role } onto req.user for downstream controllers',
+          'Stateless validation: zero database hits required on protected requests'
+        ]
+      },
+      springboot: {
+        framework: 'springboot',
+        frameworkName: 'Spring Boot (Spring Security 6)',
+        language: 'java',
+        fileLabel: 'com.cohort.security.JwtAuthenticationFilter.java',
+        badgeColor: 'bg-green-500/10 text-green-400 border-green-500/30',
+        code: `package com.cohort.security;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+import java.io.IOException;
+import java.util.List;
+
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final String SECRET_KEY = "mySuperSecretKeyThatIsAtLeast256BitsLong!";
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String token = authHeader.substring(7);
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(SECRET_KEY.getBytes())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String username = claims.getSubject();
+            String role = claims.get("role", String.class);
+
+            // Populate Spring Security Context
+            var auth = new UsernamePasswordAuthenticationToken(
+                    username,
+                    null,
+                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
+            );
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Invalid or expired JWT token");
+            return;
+        }
+
+        filterChain.doFilter(request, response);
+    }
+}`,
+        explanation: 'Spring Security relies on the Servlet Filter chain. OncePerRequestFilter extracts the Bearer token, verifies signature using io.jsonwebtoken (JJWT), and populates SecurityContextHolder with user authority.',
+        architectureHighlights: [
+          'SecurityContextHolder provides thread-local user context across all beans',
+          'Method-level security enabled via @PreAuthorize("hasRole(\'ADMIN\')")',
+          'BCryptPasswordEncoder configured globally in SecurityFilterChain',
+          'Standardized Spring Security Filter chain execution'
+        ]
+      },
+      fastapi: {
+        framework: 'fastapi',
+        frameworkName: 'FastAPI (Python 3.11+ / OAuth2 & Jose)',
+        language: 'python',
+        fileLabel: 'security/auth.py',
+        badgeColor: 'bg-teal-500/10 text-teal-400 border-teal-500/30',
+        code: `from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from datetime import datetime, timedelta
+
+SECRET_KEY = "super-secret-jwt-key"
+ALGORITHM = "HS256"
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
+
+# 1. Password Verification
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def create_access_token(data: dict, expires_delta: timedelta = timedelta(days=7)) -> str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + expires_delta
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+# 2. Dependency: Extracts and Verifies Current User
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        role: str = payload.get("role")
+        if user_id is None:
+            raise credentials_exception
+        return {"id": user_id, "role": role}
+    except JWTError:
+        raise credentials_exception
+
+# 3. Usage in Protected Endpoint
+# @router.get("/profile")
+# async def read_profile(user: dict = Depends(get_current_user)):
+#     return {"user": user}`,
+        explanation: 'FastAPI integrates OAuth2PasswordBearer with Python-Jose and Passlib. The get_current_user dependency can be injected into any route via Depends(get_current_user), seamlessly populating Swagger UI with an "Authorize" lock button.',
+        architectureHighlights: [
+          'Automatic interactive Swagger authentication via OAuth2PasswordBearer',
+          'Passlib handles automated bcrypt salt generation',
+          'FastAPI Dependency Injection automatically intercepts and verifies tokens',
+          'Decoupled and reusable get_current_user function'
+        ]
+      }
+    },
+    comparisonPoints: [
+      {
+        feature: 'Password Hashing',
+        express: 'bcryptjs / argon2 with manual salt rounds (10-12)',
+        springboot: 'BCryptPasswordEncoder bean in Spring Security configuration',
+        fastapi: 'passlib.context.CryptContext(schemes=["bcrypt"])'
+      },
+      {
+        feature: 'JWT Verification',
+        express: 'jwt.verify(token, secret) in custom Express middleware',
+        springboot: 'OncePerRequestFilter parsing claims into SecurityContext',
+        fastapi: 'Depends(get_current_user) using python-jose'
+      },
+      {
+        feature: 'Role-Based Guard (AuthZ)',
+        express: 'Custom middleware: allow("admin") checking req.user.role',
+        springboot: '@PreAuthorize("hasRole(\'ADMIN\')") annotation',
+        fastapi: 'Dependency with role check: Depends(require_admin_role)'
+      },
+      {
+        feature: 'Client Integration',
+        express: 'Cookie or Bearer token',
+        springboot: 'Bearer header (Authorization: Bearer <token>)',
+        fastapi: 'Native Swagger OAuth2 password flow + Bearer header'
+      }
+    ],
+    quiz: {
+      question: 'Why must you NEVER store user passwords or social security numbers inside a JWT payload?',
+      options: [
+        'Because the token will become too heavy for HTTP headers',
+        'Because JWT payloads are only Base64URL encoded (publicly readable by anyone who inspects the token)',
+        'Because bcrypt will fail to sign the payload',
+        'Because HTTP 403 status code will be triggered'
+      ],
+      correctIndex: 1,
+      explanation: 'A JWT payload is NOT encrypted! It is merely Base64URL encoded. Anyone who has the token string can decode the JSON payload in any browser. Only the signature requires the secret key.'
+    },
+    bestPractices: [
+      'Store JWTs in httpOnly, Secure, SameSite=Lax cookies to completely eliminate XSS token theft.',
+      'Always set an expiration time (expiresIn) on tokens; stateless tokens cannot be revoked before expiry.',
+      'Always respond with "Invalid email or password" on login failures to prevent user enumeration attacks.',
+      'Keep token payloads small (only userId and role); avoid stuffing huge cart/order objects into it.'
+    ],
+    commonMistakes: [
+      {
+        mistake: 'Using jwt.decode() instead of jwt.verify()',
+        consequence: 'jwt.decode() skips signature verification entirely, allowing anyone to forge an admin token.',
+        solution: 'Always use jwt.verify() which recalculates HMAC-SHA256 with your secret.'
+      },
+      {
+        mistake: 'Storing passwords as plain text or using MD5/SHA256',
+        consequence: 'Fast hashing algorithms can be brute-forced at billions of guesses per second via GPU rainbow tables.',
+        solution: 'Always use slow, salted cryptographic algorithms such as bcrypt or Argon2.'
+      }
+    ]
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // 3. REST WORKFLOW
+  // ─────────────────────────────────────────────────────────────
+  rest: {
+    id: 'rest',
+    title: 'RESTful Architecture & Standards',
+    subtitle: 'Resource-Oriented URI Design, HTTP Verbs, Idempotency, and Negotiation',
+    tagline: 'Designing maintainable, scalable, standardized REST APIs across languages',
+    accentColor: '#3B82F6', // Blue
+    tags: ['Resource URIs', 'Idempotency', 'HTTP 200/201/204/400/404', 'Query Filtering', 'HATEOAS'],
+    sections: [
+      { id: 'rest-01', num: 1, label: 'REST Core Principles', group: 'Phase 1: Beginner' },
+      { id: 'rest-04', num: 2, label: 'Interactive REST Dispatcher', group: 'Phase 2: Intermediate' },
+      { id: 'rest-06', num: 3, label: 'Real-World Implementations', group: 'Phase 3: Advanced' },
+      { id: 'rest-09', num: 4, label: 'Architectural Comparison', group: 'Phase 4: Expert' },
+      { id: 'rest-10', num: 5, label: 'Knowledge Check & Pitfalls', group: 'Phase 5: Mastery' },
+    ],
+    flowSteps: [
+      {
+        name: 'Client URI & Method Dispatch',
+        detail: 'Client issues a request targeting a noun-based resource identifier: GET /api/v1/orders/89/items.',
+        lit: ['client', 'router', 'arr-client-router']
+      },
+      {
+        name: 'Content Negotiation & Headers',
+        detail: 'Server checks Content-Type (application/json) and Accept headers to negotiate output format.',
+        lit: ['router', 'negotiation', 'arr-router-neg']
+      },
+      {
+        name: 'Idempotency & Safety Check',
+        detail: 'GET/HEAD are safe (read-only). PUT/DELETE are idempotent (1 call = N calls). POST is non-idempotent.',
+        lit: ['negotiation', 'controller', 'arr-neg-ctrl']
+      },
+      {
+        name: 'Uniform JSON Envelope',
+        detail: 'Controller shapes response with standard payload, metadata (pagination, counts), and HATEOAS navigational links.',
+        lit: ['controller', 'serializer', 'arr-ctrl-serial']
+      },
+      {
+        name: 'Standard HTTP Status Output',
+        detail: 'Server replies with semantically accurate status code (200, 201, 204, 400, 404, 409, 500).',
+        lit: ['serializer', 'client', 'arr-serial-client']
+      }
+    ],
+    codebases: {
+      express: {
+        framework: 'express',
+        frameworkName: 'Express.js (Node / TypeScript)',
+        language: 'typescript',
+        fileLabel: 'src/routes/api.v1.routes.ts',
+        badgeColor: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+        code: `import { Router, Request, Response } from 'express';
+
+const router = Router();
+
+// REST Principle 1: Nouns, not verbs!
+// BAD: /api/getUserOrders, /api/createOrder
+// GOOD: GET /api/v1/users/:userId/orders, POST /api/v1/orders
+
+// Nested Resource: GET /api/v1/users/:userId/orders?status=shipped&page=1&limit=10
+router.get('/users/:userId/orders', async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { status, page = '1', limit = '10' } = req.query;
+
+  const pageNum = parseInt(page as string, 10);
+  const limitNum = parseInt(limit as string, 10);
+
+  // Query database with pagination and filters
+  const [orders, total] = await Promise.all([
+    OrderModel.find({ userId, ...(status ? { status } : {}) })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum),
+    OrderModel.countDocuments({ userId })
+  ]);
+
+  // REST Standard JSON envelope with metadata
+  return res.status(200).json({
+    data: orders,
+    meta: {
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum),
+      limit: limitNum
+    },
+    links: {
+      self: \`/api/v1/users/\${userId}/orders?page=\${pageNum}\`,
+      next: pageNum * limitNum < total ? \`/api/v1/users/\${userId}/orders?page=\${pageNum + 1}\` : null
+    }
+  });
+});
+
+export default router;`,
+        explanation: 'Express lets you build RESTful endpoints by organizing routes with resource hierarchy (/users/:userId/orders) and reading query parameters for pagination, filtering, and sorting.',
+        architectureHighlights: [
+          'Nested sub-resource routing expresses parent-child domain relationships',
+          'Standardized pagination envelope with metadata and hypermedia links',
+          'Stateless query string parameters for filtering (?status=shipped)',
+          'Strict avoidance of verb-based URI paths'
+        ]
+      },
+      springboot: {
+        framework: 'springboot',
+        frameworkName: 'Spring Boot (Spring Web / HATEOAS)',
+        language: 'java',
+        fileLabel: 'com.cohort.controller.UserOrderRestController.java',
+        badgeColor: 'bg-green-500/10 text-green-400 border-green-500/30',
+        code: `package com.cohort.controller;
+
+import com.cohort.dto.OrderResponse;
+import com.cohort.service.OrderService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.net.URI;
+
+@RestController
+@RequestMapping("/api/v1")
+public class UserOrderRestController {
+
+    private final OrderService orderService;
+
+    public UserOrderRestController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    // Nested REST Resource: GET /api/v1/users/{userId}/orders
+    @GetMapping("/users/{userId}/orders")
+    public ResponseEntity<Page<OrderResponse>> getUserOrders(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String status,
+            @PageableDefault(size = 10) Pageable pageable) {
+
+        Page<OrderResponse> page = orderService.findUserOrders(userId, status, pageable);
+        return ResponseEntity.ok(page);
+    }
+
+    // Create Order with Location Header: POST /api/v1/orders -> 201 Created
+    @PostMapping("/orders")
+    public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderRequest req) {
+        OrderResponse created = orderService.createOrder(req);
+        URI location = URI.create("/api/v1/orders/" + created.getId());
+        return ResponseEntity.created(location).body(created);
+    }
+}`,
+        explanation: 'Spring Boot leverages Pageable for built-in REST pagination and provides ResponseEntity.created(URI) to automatically set the HTTP Location header pointing to the newly created REST resource.',
+        architectureHighlights: [
+          'Automatic Pageable handles page, size, and sort query parameters',
+          'ResponseEntity.created(location) sets RFC-compliant Location header',
+          'Declarative @PathVariable and @RequestParam type conversion',
+          'Clean REST API resource representation'
+        ]
+      },
+      fastapi: {
+        framework: 'fastapi',
+        frameworkName: 'FastAPI (Python 3.11+ / APIRouter)',
+        language: 'python',
+        fileLabel: 'routers/rest_orders.py',
+        badgeColor: 'bg-teal-500/10 text-teal-400 border-teal-500/30',
+        code: `from fastapi import APIRouter, Query, status, Response
+from typing import List, Optional
+from pydantic import BaseModel
+
+router = APIRouter(prefix="/api/v1", tags=["REST Orders"])
+
+class OrderItem(BaseModel):
+    id: int
+    user_id: int
+    total_amount: float
+    status: str
+
+class PaginatedOrders(BaseModel):
+    items: List[OrderItem]
+    total: int
+    page: int
+    limit: int
+
+# Nested Resource: GET /api/v1/users/{user_id}/orders
+@router.get("/users/{user_id}/orders", response_model=PaginatedOrders)
+async def get_user_orders(
+    user_id: int,
+    status: Optional[str] = Query(None, description="Filter by status (pending, shipped)"),
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100)
+):
+    # Retrieve paginated items from database
+    orders, total = await order_service.get_orders(user_id, status, page, limit)
+    return PaginatedOrders(items=orders, total=total, page=page, limit=limit)
+
+# Create Order: POST /api/v1/orders -> 201 Created with Location Header
+@router.post("/orders", status_code=status.HTTP_201_CREATED)
+async def create_order(payload: OrderCreate, response: Response):
+    new_order = await order_service.create(payload)
+    response.headers["Location"] = f"/api/v1/orders/{new_order.id}"
+    return new_order`,
+        explanation: 'FastAPI uses Pydantic models with Query validation (ge=1, le=100). The Response object allows directly attaching standard REST headers such as Location.',
+        architectureHighlights: [
+          'Query parameters with built-in constraints (page ge=1, limit le=100)',
+          'Automated OpenAPI documentation of query filters and responses',
+          'RFC-compliant Location header injection via response.headers',
+          'Strongly-typed paginated envelope structures'
+        ]
+      }
+    },
+    comparisonPoints: [
+      {
+        feature: 'Pagination',
+        express: 'Manual calculation: skip((page-1)*limit).limit(limit)',
+        springboot: 'Built-in Pageable and Page<T> interface with Spring Data',
+        fastapi: 'Pydantic Paginated model with Query(ge=1, le=100)'
+      },
+      {
+        feature: 'Resource Location Header',
+        express: 'res.setHeader("Location", `/api/orders/${id}`)',
+        springboot: 'ResponseEntity.created(URI.create(...)).body(dto)',
+        fastapi: 'response.headers["Location"] = f"/api/orders/{id}"'
+      },
+      {
+        feature: 'URI Versioning',
+        express: 'Router prefix: app.use("/api/v1", v1Router)',
+        springboot: '@RequestMapping("/api/v1/...") on controller',
+        fastapi: 'APIRouter(prefix="/api/v1")'
+      },
+      {
+        feature: 'Documentation',
+        express: 'External tools (Swagger UI Express / TSOA)',
+        springboot: 'SpringDoc OpenAPI / Swagger integration',
+        fastapi: '100% native automated Swagger UI at /docs and ReDoc at /redoc'
+      }
+    ],
+    quiz: {
+      question: 'Which of the following URIs follows true RESTful conventions for updating a user profile?',
+      options: [
+        'POST /api/updateUserProfile?id=42',
+        'PATCH /api/v1/users/42',
+        'GET /api/users/edit/42',
+        'POST /api/doUserUpdate/42'
+      ],
+      correctIndex: 1,
+      explanation: 'REST URIs must be nouns representing resources (/api/v1/users/42). The HTTP method (PATCH or PUT) tells the server what action to perform.'
+    },
+    bestPractices: [
+      'Use plural nouns for collections (e.g. /api/v1/users, not /api/v1/user).',
+      'Use sub-resources for relational hierarchy (e.g. /users/5/orders, not /getOrdersForUser5).',
+      'Use proper HTTP verbs: GET (safe/read), POST (create), PUT (replace), PATCH (modify), DELETE (remove).',
+      'Never put verbs in your URI paths.'
+    ],
+    commonMistakes: [
+      {
+        mistake: 'Using GET requests to delete or mutate data (e.g. GET /api/users/delete/5)',
+        consequence: 'Web crawlers, browsers pre-fetching pages, and CDNs will accidentally delete records.',
+        solution: 'Always use DELETE or POST/PATCH for state mutations.'
+      },
+      {
+        mistake: 'Using PUT when only modifying a single field',
+        consequence: 'PUT semantically replaces the ENTIRE resource, potentially wiping out omitted fields.',
+        solution: 'Use PATCH for partial updates, and PUT only for complete document replacements.'
+      }
+    ]
+  },

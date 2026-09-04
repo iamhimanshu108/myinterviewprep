@@ -12,7 +12,17 @@ import {
   Sliders,
   Smartphone,
   Rocket,
-  Atom
+  Atom,
+  Server,
+  Network,
+  Cpu,
+  Terminal,
+  Binary,
+  Zap,
+  Shield,
+  Inbox,
+  Box,
+  Activity
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -164,7 +174,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div>
               <h1 className="text-base sm:text-lg font-bold text-slate-100 tracking-tight leading-tight">
-                My Interview Prep
+                Interview Master
               </h1>
             </div>
           </div>
@@ -236,13 +246,33 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
 
                 {[
+                  { id: 'mvc' as BackendWorkflowTopic, label: 'Layered MVC', icon: Server, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/40' },
                   { id: 'rest' as BackendWorkflowTopic, label: 'REST API', icon: Globe, color: 'text-blue-400', bg: 'bg-blue-500/20', border: 'border-blue-500/40' },
                   { id: 'auth' as BackendWorkflowTopic, label: 'AUTH (JWT)', icon: Lock, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/40' },
                   { id: 'crud' as BackendWorkflowTopic, label: 'CRUD & DB', icon: Database, color: 'text-emerald-400', bg: 'bg-emerald-500/20', border: 'border-emerald-500/40' },
                   { id: 'middleware' as BackendWorkflowTopic, label: 'Middleware', icon: Sliders, color: 'text-purple-400', bg: 'bg-purple-500/20', border: 'border-purple-500/40' },
                   { id: 'react' as BackendWorkflowTopic, label: 'React (Web)', icon: Atom, color: 'text-cyan-400', bg: 'bg-cyan-500/20', border: 'border-cyan-500/40' },
                   { id: 'react-native' as BackendWorkflowTopic, label: 'React Native', icon: Smartphone, color: 'text-indigo-400', bg: 'bg-indigo-500/20', border: 'border-indigo-500/40' },
-                  { id: 'devops' as BackendWorkflowTopic, label: 'DevOps & CI/CD', icon: Rocket, color: 'text-pink-400', bg: 'bg-pink-500/20', border: 'border-pink-500/40' },
+                  { id: 'networking' as BackendWorkflowTopic, label: 'Networking', icon: Network, color: 'text-blue-400', bg: 'bg-blue-500/20', border: 'border-blue-500/40' },
+                  { id: 'os-memory' as BackendWorkflowTopic, label: 'OS & Memory', icon: Cpu, color: 'text-slate-400', bg: 'bg-slate-500/20', border: 'border-slate-500/40' },
+                  { id: 'cli-tools' as BackendWorkflowTopic, label: 'CLI Tools', icon: Terminal, color: 'text-green-400', bg: 'bg-green-500/20', border: 'border-green-500/40' },
+                  { id: 'data-structures' as BackendWorkflowTopic, label: 'Data Structures', icon: Binary, color: 'text-orange-400', bg: 'bg-orange-500/20', border: 'border-orange-500/40' },
+                  { id: 'graphql' as BackendWorkflowTopic, label: 'GraphQL', icon: Zap, color: 'text-pink-400', bg: 'bg-pink-500/20', border: 'border-pink-500/40' },
+                  { id: 'grpc' as BackendWorkflowTopic, label: 'gRPC', icon: Workflow, color: 'text-purple-400', bg: 'bg-purple-500/20', border: 'border-purple-500/40' },
+                  { id: 'websockets' as BackendWorkflowTopic, label: 'WebSockets', icon: Activity, color: 'text-cyan-400', bg: 'bg-cyan-500/20', border: 'border-cyan-500/40' },
+                  { id: 'sql-dbs' as BackendWorkflowTopic, label: 'SQL DBs', icon: Database, color: 'text-blue-400', bg: 'bg-blue-500/20', border: 'border-blue-500/40' },
+                  { id: 'nosql-dbs' as BackendWorkflowTopic, label: 'NoSQL DBs', icon: Database, color: 'text-emerald-400', bg: 'bg-emerald-500/20', border: 'border-emerald-500/40' },
+                  { id: 'caching' as BackendWorkflowTopic, label: 'Caching', icon: Zap, color: 'text-yellow-400', bg: 'bg-yellow-500/20', border: 'border-yellow-500/40' },
+                  { id: 'orms' as BackendWorkflowTopic, label: 'ORMs', icon: Layers, color: 'text-indigo-400', bg: 'bg-indigo-500/20', border: 'border-indigo-500/40' },
+                  { id: 'owasp' as BackendWorkflowTopic, label: 'OWASP', icon: Shield, color: 'text-red-400', bg: 'bg-red-500/20', border: 'border-red-500/40' },
+                  { id: 'encryption' as BackendWorkflowTopic, label: 'Encryption', icon: Lock, color: 'text-emerald-400', bg: 'bg-emerald-500/20', border: 'border-emerald-500/40' },
+                  { id: 'load-balancers' as BackendWorkflowTopic, label: 'Load Balancers', icon: Network, color: 'text-sky-400', bg: 'bg-sky-500/20', border: 'border-sky-500/40' },
+                  { id: 'message-queues' as BackendWorkflowTopic, label: 'Message Queues', icon: Inbox, color: 'text-purple-400', bg: 'bg-purple-500/20', border: 'border-purple-500/40' },
+                  { id: 'microservices' as BackendWorkflowTopic, label: 'Microservices', icon: Box, color: 'text-indigo-400', bg: 'bg-indigo-500/20', border: 'border-indigo-500/40' },
+                  { id: 'docker' as BackendWorkflowTopic, label: 'Docker', icon: Box, color: 'text-blue-400', bg: 'bg-blue-500/20', border: 'border-blue-500/40' },
+                  { id: 'cicd' as BackendWorkflowTopic, label: 'CI/CD', icon: Rocket, color: 'text-green-400', bg: 'bg-green-500/20', border: 'border-green-500/40' },
+                  { id: 'monitoring' as BackendWorkflowTopic, label: 'Monitoring', icon: Activity, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/40' },
+                  { id: 'devops' as BackendWorkflowTopic, label: 'DevOps', icon: Rocket, color: 'text-pink-400', bg: 'bg-pink-500/20', border: 'border-pink-500/40' }
                 ].map((t) => {
                   const Icon = t.icon;
                   const isSelected = backendWorkflowTopic === t.id;

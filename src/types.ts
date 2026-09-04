@@ -55,12 +55,94 @@ export interface UserProgress {
 export type ViewMode = 'workflow' | 'questions';
 
 export type BackendWorkflowTopic = 
+  | 'mvc'
   | 'rest' 
   | 'auth' 
   | 'crud' 
   | 'middleware' 
   | 'react' 
   | 'react-native' 
-  | 'devops';
+  | 'devops'
+  | 'networking'
+  | 'os-memory'
+  | 'cli-tools'
+  | 'data-structures'
+  | 'graphql'
+  | 'grpc'
+  | 'websockets'
+  | 'sql-dbs'
+  | 'nosql-dbs'
+  | 'caching'
+  | 'orms'
+  | 'owasp'
+  | 'encryption'
+  | 'load-balancers'
+  | 'message-queues'
+  | 'microservices'
+  | 'docker'
+  | 'cicd'
+  | 'monitoring';
 
 export type BackendFramework = string;
+
+
+export interface WorkflowCodebase {
+  framework: BackendFramework;
+  frameworkName: string;
+  language: string;
+  fileLabel: string;
+  badgeColor: string;
+  code: string;
+  explanation: string;
+  architectureHighlights: string[];
+}
+
+export interface FlowStep {
+  name: string;
+  detail: string;
+  lit: string[];
+}
+
+export interface WorkflowSection {
+  id: string;
+  num: number;
+  label: string;
+  group: 'Phase 1: Beginner' | 'Phase 2: Intermediate' | 'Phase 3: Advanced' | 'Phase 4: Expert' | 'Phase 5: Mastery';
+}
+
+export interface ComparisonColumn {
+  key: string;
+  label: string;
+  icon: string;
+  colorClass: string;
+}
+
+export interface WorkflowTopicData {
+  id: BackendWorkflowTopic;
+  title: string;
+  subtitle: string;
+  tagline: string;
+  accentColor: string;
+  category?: string;
+  tags: string[];
+  sections: WorkflowSection[];
+  flowSteps: FlowStep[];
+  codebases: Record<string, WorkflowCodebase>;
+  comparisonColumns?: ComparisonColumn[];
+  comparisonPoints: {
+    feature: string;
+    [key: string]: string;
+  }[];
+  quiz: {
+    question: string;
+    options: string[];
+    correctIndex: number;
+    explanation: string;
+  };
+  bestPractices: string[];
+  commonMistakes: {
+    mistake: string;
+    consequence: string;
+    solution: string;
+  }[];
+}
