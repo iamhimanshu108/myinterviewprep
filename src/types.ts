@@ -47,5 +47,13 @@ export interface UserProgress {
 
 export type ViewMode = 'workflow' | 'questions';
 
-export type BackendWorkflowTopic = 'auth' | 'crud' | 'rest' | 'middleware';
-export type BackendFramework = 'express' | 'springboot' | 'fastapi';
+export type BackendWorkflowTopic = 
+  | 'rest' 
+  | 'auth' 
+  | 'crud' 
+  | 'middleware' 
+  | 'react' 
+  | 'react-native' 
+  | 'devops';
+
+export type BackendFramework = string;

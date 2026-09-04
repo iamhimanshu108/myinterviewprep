@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Play, 
@@ -13,21 +13,17 @@ import {
   AlertTriangle, 
   Lightbulb, 
   Layers, 
-  Lock, 
   Key, 
   Terminal, 
-  ArrowRight,
-  Sparkles,
-  RefreshCw,
-  Code,
-  FileText,
-  Server,
-  Database,
-  Globe,
-  Sliders,
-  Cpu,
-  Boxes,
-  HelpCircle,
+  ArrowRight, 
+  Sparkles, 
+  RefreshCw, 
+  Code, 
+  FileText, 
+  Server, 
+  Cpu, 
+  Boxes, 
+  HelpCircle, 
   ExternalLink
 } from 'lucide-react';
 import { BackendWorkflowTopic, BackendFramework } from '../types';
@@ -67,8 +63,9 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
 
   const currentTopicData: WorkflowTopicData = BACKEND_WORKFLOWS[selectedTopic];
 
-  // Reset stepper when topic changes
+  // Reset stepper and framework filter when topic changes
   useEffect(() => {
+    setSelectedFramework('all');
     setStepIndex(0);
     setIsStepperAutoPlaying(false);
     if (stepperTimerRef.current) clearInterval(stepperTimerRef.current);
@@ -144,126 +141,40 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
     return acc;
   }, {} as Record<string, typeof currentTopicData.sections>);
 
-  // Framework details helper
-  const frameworksList: { id: BackendFramework; label: string; icon: string; lang: string }[] = [
-    { id: 'express', label: 'Express.js', icon: '🟢', lang: 'Node / TS' },
-    { id: 'springboot', label: 'Spring Boot', icon: '🍃', lang: 'Java' },
-    { id: 'fastapi', label: 'FastAPI', icon: '⚡', lang: 'Python' }
-  ];
+  // Dynamic framework details helper based on active topic
+  const frameworksList = useMemo(() => {
+    return Object.entries(currentTopicData.codebases).map(([key, cb]) => {
+      let icon = '⚡';
+      if (key === 'express') icon = '🟢';
+      else if (key === 'springboot') icon = '🍃';
+      else if (key === 'fastapi') icon = '⚡';
+      else if (key === 'query') icon = '⚛️';
+      else if (key === 'auth') icon = '🔒';
+      else if (key === 'next') icon = '▲';
+      else if (key === 'secure') icon = '🔐';
+      else if (key === 'offline') icon = '📦';
+      else if (key === 'nav') icon = '🧭';
+      else if (key === 'docker') icon = '🐳';
+      else if (key === 'actions') icon = '⚙️';
+      else if (key === 'nginx') icon = '🛡️';
+
+      return {
+        id: key,
+        label: cb.frameworkName.split('(')[0].trim(),
+        icon,
+        lang: cb.language
+      };
+    });
+  }, [currentTopicData]);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-orange-500/20">
       
       {/* ── LEFT SIDEBAR NAVIGATION ── */}
       <aside className="w-full md:w-64 lg:w-72 bg-slate-950 border-r border-slate-800 md:sticky md:top-14 md:h-[calc(100vh-3.5rem)] overflow-y-auto shrink-0 py-6 scrollbar-thin">
-        {/* Brand Header */}
-        <div className="px-6 mb-5">
-          <div className="flex items-center gap-1.5 font-fraunces text-xl font-bold tracking-tight text-white">
-            <span>Backend</span>
-            <span className="text-orange-500 font-extrabold text-2xl leading-none">.</span>
-            <span>Flow</span>
-          </div>
-          <div className="font-mono-ref text-[10px] text-slate-400 tracking-wider mt-0.5 uppercase">
-            3 Codebases Comparison
-          </div>
-        </div>
 
-        {/* TOPIC SELECTOR MENU (REST, CRUD, AUTH, MIDDLEWARE) */}
-        <div className="px-4 mb-6">
-          <div className="font-mono-ref text-[9px] uppercase tracking-widest text-slate-500 font-semibold px-2 mb-2">
-            Backend Workflows: REST & CRUD
-          </div>
-          <div className="grid grid-cols-2 gap-1.5 bg-slate-900/80 p-1.5 rounded-lg border border-slate-800">
-            <button
-              id="topic-rest-btn"
-              onClick={() => handleSelectTopic('rest')}
-              className={`px-2.5 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${
-                selectedTopic === 'rest'
-                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40 shadow-sm font-semibold'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              <Globe className="w-3.5 h-3.5 text-blue-400" />
-              <span>REST</span>
-            </button>
-            <button
-              id="topic-crud-btn"
-              onClick={() => handleSelectTopic('crud')}
-              className={`px-2.5 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${
-                selectedTopic === 'crud'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm font-semibold'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              <Database className="w-3.5 h-3.5 text-emerald-400" />
-              <span>CRUD</span>
-            </button>
-            <button
-              id="topic-auth-btn"
-              onClick={() => handleSelectTopic('auth')}
-              className={`px-2.5 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${
-                selectedTopic === 'auth'
-                  ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40 shadow-sm'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              <Lock className="w-3.5 h-3.5 text-orange-400" />
-              <span>Auth</span>
-            </button>
-            <button
-              id="topic-middleware-btn"
-              onClick={() => handleSelectTopic('middleware')}
-              className={`px-2.5 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${
-                selectedTopic === 'middleware'
-                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              <Sliders className="w-3.5 h-3.5 text-purple-400" />
-              <span>Middleware</span>
-            </button>
-          </div>
-        </div>
 
-        {/* CODEBASE FILTER PILLS */}
-        <div className="px-4 mb-6">
-          <div className="font-mono-ref text-[9px] uppercase tracking-widest text-slate-500 font-semibold px-2 mb-1.5">
-            Target Codebase
-          </div>
-          <div className="flex flex-col gap-1 bg-slate-900/50 p-1.5 rounded-lg border border-slate-800/70">
-            <button
-              onClick={() => setSelectedFramework('all')}
-              className={`px-2.5 py-1.5 text-left text-xs font-mono-ref rounded flex items-center justify-between transition-colors ${
-                selectedFramework === 'all'
-                  ? 'bg-orange-600/20 text-orange-300 font-semibold border border-orange-500/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
-              }`}
-            >
-              <span className="flex items-center gap-1.5">
-                <Boxes className="w-3.5 h-3.5" />
-                <span>Compare All 3</span>
-              </span>
-              <span className="text-[10px] text-slate-500">Side-by-side</span>
-            </button>
-            {frameworksList.map((fw) => (
-              <button
-                key={fw.id}
-                onClick={() => setSelectedFramework(fw.id)}
-                className={`px-2.5 py-1.5 text-left text-xs font-mono-ref rounded flex items-center justify-between transition-colors ${
-                  selectedFramework === fw.id
-                    ? 'bg-orange-600/20 text-orange-300 font-semibold border border-orange-500/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
-                }`}
-              >
-                <span className="flex items-center gap-1.5">
-                  <span>{fw.icon}</span>
-                  <span>{fw.label}</span>
-                </span>
-                <span className="text-[10px] text-slate-500">{fw.lang}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+
 
         {/* Grouped Chapter Navigation for Active Topic */}
         <nav className="space-y-4" aria-label="Backend Topic Navigation">
@@ -306,80 +217,6 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
       {/* ── MAIN CONTENT AREA ── */}
       <main className="flex-1 max-w-5xl px-4 sm:px-8 md:px-12 py-8 md:py-12 overflow-x-hidden">
         
-        {/* TOP WORKFLOW BANNER & SELECTOR IN CURRENT TAB */}
-        <div className="mb-8 p-4 sm:p-5 rounded-xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800 shadow-lg">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-mono-ref uppercase tracking-wider text-orange-400 mb-1">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Active Backend Workflow</span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold font-fraunces text-white flex items-center gap-2">
-                <span>{currentTopicData.title}</span>
-              </h2>
-              <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-                {currentTopicData.subtitle}
-              </p>
-            </div>
-
-            {/* Quick 4-topic pill switcher */}
-            <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1.5 rounded-lg border border-slate-800 shrink-0">
-              <button
-                onClick={() => setSelectedTopic('crud')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                  selectedTopic === 'crud'
-                    ? 'bg-emerald-500 text-white shadow'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                CRUD
-              </button>
-              <button
-                onClick={() => setSelectedTopic('auth')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                  selectedTopic === 'auth'
-                    ? 'bg-orange-500 text-white shadow'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                Auth
-              </button>
-              <button
-                onClick={() => setSelectedTopic('rest')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                  selectedTopic === 'rest'
-                    ? 'bg-blue-500 text-white shadow'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                REST
-              </button>
-              <button
-                onClick={() => setSelectedTopic('middleware')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                  selectedTopic === 'middleware'
-                    ? 'bg-purple-500 text-white shadow'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                Middleware
-              </button>
-            </div>
-          </div>
-
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-800/80">
-            {currentTopicData.tags.map((tag) => (
-              <span
-                key={tag}
-                className="px-2.5 py-0.5 rounded-full text-[11px] font-mono-ref bg-slate-800/80 text-slate-300 border border-slate-700/60"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-
         {/* ── SECTION 01: FOUNDATIONS ── */}
         <section id={`${selectedTopic}-01`} className="mb-12 scroll-mt-20">
           <div className="flex items-baseline gap-4 mb-4">
@@ -398,34 +235,22 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
 
           <div className="p-4 sm:p-5 rounded-lg bg-slate-900 border-l-4 border-l-orange-500 border border-slate-800 text-sm text-slate-300 leading-relaxed space-y-3">
             <p>
-              When building modern backends in <strong>Express.js</strong>, <strong>Spring Boot</strong>, or <strong>FastAPI</strong>, 
-              understanding how requests flow through the network stack is essential.
+              {currentTopicData.subtitle}. Understanding how data and execution flow through each architectural layer is essential for scalable system design and senior technical interviews.
             </p>
             <div className="grid sm:grid-cols-3 gap-3 pt-2">
-              <div className="p-3 bg-slate-950/60 rounded border border-slate-800">
-                <div className="text-xs font-bold text-emerald-400 flex items-center gap-1 mb-1">
-                  <span>🟢</span> Express.js
-                </div>
-                <div className="text-xs text-slate-400">
-                  Minimalist, functional pipeline with flexible <code className="text-emerald-300 font-mono-ref">req/res</code> streams and callback chaining.
-                </div>
-              </div>
-              <div className="p-3 bg-slate-950/60 rounded border border-slate-800">
-                <div className="text-xs font-bold text-green-400 flex items-center gap-1 mb-1">
-                  <span>🍃</span> Spring Boot
-                </div>
-                <div className="text-xs text-slate-400">
-                  Enterprise-grade, type-safe IoC container with <code className="text-green-300 font-mono-ref">@RestController</code> and Filter chains.
-                </div>
-              </div>
-              <div className="p-3 bg-slate-950/60 rounded border border-slate-800">
-                <div className="text-xs font-bold text-teal-400 flex items-center gap-1 mb-1">
-                  <span>⚡</span> FastAPI
-                </div>
-                <div className="text-xs text-slate-400">
-                  Modern async Python with native Pydantic schema validation, OpenAPI, and <code className="text-teal-300 font-mono-ref">Depends()</code> DI.
-                </div>
-              </div>
+              {frameworksList.map((fw) => {
+                const cb = currentTopicData.codebases[fw.id];
+                return (
+                  <div key={fw.id} className="p-3 bg-slate-950/60 rounded border border-slate-800">
+                    <div className="text-xs font-bold text-orange-400 flex items-center gap-1.5 mb-1">
+                      <span>{fw.icon}</span> {cb?.frameworkName || fw.label}
+                    </div>
+                    <div className="text-xs text-slate-400 line-clamp-3">
+                      {cb?.explanation || fw.lang}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -599,7 +424,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
           </div>
         </section>
 
-        {/* ── SECTION 05: THE 3 CODEBASES COMPARISON (EXPRESS, SPRING BOOT, FASTAPI) ── */}
+        {/* ── SECTION 05: CODEBASES COMPARISON ── */}
         <section id={`${selectedTopic}-06`} className="mb-14 scroll-mt-20">
           <div className="flex items-baseline gap-4 mb-4">
             <div className="font-fraunces text-4xl sm:text-5xl font-black text-slate-800 select-none">
@@ -607,17 +432,17 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
             </div>
             <div>
               <h3 className="font-fraunces text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-                <span>The 3 Codebases: Express vs Spring Boot vs FastAPI</span>
+                <span>Codebases: Complete Real-World Implementation</span>
               </h3>
               <p className="text-xs text-slate-400">
-                Understand and compare the exact code implementation for {currentTopicData.title} in all 3 languages
+                Understand and compare the exact code implementation for {currentTopicData.title}
               </p>
             </div>
           </div>
 
           {/* Framework Switcher Bar */}
           <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-slate-900 border border-slate-800 rounded-t-xl">
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
               <button
                 onClick={() => setSelectedFramework('all')}
                 className={`px-3 py-1.5 text-xs font-mono-ref rounded-lg transition-all flex items-center gap-1.5 ${
@@ -627,7 +452,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
                 }`}
               >
                 <Boxes className="w-3.5 h-3.5" />
-                <span>All 3 Codebases</span>
+                <span>Compare All ({frameworksList.length})</span>
               </button>
               {frameworksList.map((fw) => (
                 <button
@@ -646,17 +471,18 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
             </div>
 
             <div className="text-[11px] font-mono-ref text-slate-500 hidden sm:block px-2">
-              Tested Production Code
+              Production Tested Patterns
             </div>
           </div>
 
           {/* CODE PANELS CONTAINER */}
           <div className="space-y-6">
             {(selectedFramework === 'all'
-              ? (['express', 'springboot', 'fastapi'] as BackendFramework[])
+              ? Object.keys(currentTopicData.codebases)
               : [selectedFramework]
             ).map((fwKey) => {
               const codebase: WorkflowCodebase = currentTopicData.codebases[fwKey];
+              if (!codebase) return null;
               return (
                 <div
                   key={fwKey}
@@ -702,7 +528,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
           </div>
         </section>
 
-        {/* ── SECTION 09: SIDE-BY-SIDE CROSS-FRAMEWORK COMPARISON MATRIX ── */}
+        {/* ── SECTION 09: SIDE-BY-SIDE ARCHITECTURAL COMPARISON MATRIX ── */}
         <section id={`${selectedTopic}-09`} className="mb-14 scroll-mt-20">
           <div className="flex items-baseline gap-4 mb-4">
             <div className="font-fraunces text-4xl sm:text-5xl font-black text-slate-800 select-none">
@@ -710,10 +536,10 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
             </div>
             <div>
               <h3 className="font-fraunces text-xl sm:text-2xl font-bold text-white">
-                Cross-Framework Architectural Comparison
+                Architectural Comparison Matrix
               </h3>
               <p className="text-xs text-slate-400">
-                Direct side-by-side comparison of how each backend handles key responsibilities
+                Direct side-by-side comparison of how each layer or framework handles core responsibilities
               </p>
             </div>
           </div>
@@ -723,9 +549,19 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
               <thead>
                 <tr className="bg-slate-950 border-b border-slate-800 text-slate-300 font-mono-ref">
                   <th className="p-3.5 font-semibold text-slate-400">Feature</th>
-                  <th className="p-3.5 font-semibold text-emerald-400">🟢 Express.js</th>
-                  <th className="p-3.5 font-semibold text-green-400">🍃 Spring Boot</th>
-                  <th className="p-3.5 font-semibold text-teal-400">⚡ FastAPI</th>
+                  {currentTopicData.comparisonColumns ? (
+                    currentTopicData.comparisonColumns.map((col) => (
+                      <th key={col.key} className={`p-3.5 font-semibold ${col.colorClass}`}>
+                        {col.label}
+                      </th>
+                    ))
+                  ) : (
+                    <>
+                      <th className="p-3.5 font-semibold text-emerald-400">🟢 Express.js</th>
+                      <th className="p-3.5 font-semibold text-green-400">🍃 Spring Boot</th>
+                      <th className="p-3.5 font-semibold text-teal-400">⚡ FastAPI</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/80 font-sans">
@@ -734,15 +570,19 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
                     <td className="p-3.5 font-medium text-slate-200 whitespace-nowrap bg-slate-950/40">
                       {row.feature}
                     </td>
-                    <td className="p-3.5 text-slate-300">
-                      {row.express}
-                    </td>
-                    <td className="p-3.5 text-slate-300">
-                      {row.springboot}
-                    </td>
-                    <td className="p-3.5 text-slate-300">
-                      {row.fastapi}
-                    </td>
+                    {currentTopicData.comparisonColumns ? (
+                      currentTopicData.comparisonColumns.map((col) => (
+                        <td key={col.key} className="p-3.5 text-slate-300">
+                          {row[col.key] || '—'}
+                        </td>
+                      ))
+                    ) : (
+                      <>
+                        <td className="p-3.5 text-slate-300">{row.express}</td>
+                        <td className="p-3.5 text-slate-300">{row.springboot}</td>
+                        <td className="p-3.5 text-slate-300">{row.fastapi}</td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>

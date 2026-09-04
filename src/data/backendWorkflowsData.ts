@@ -24,21 +24,28 @@ export interface WorkflowSection {
   group: 'Foundations' | 'Lifecycle' | 'Architecture' | 'Implementation' | 'Wrap up';
 }
 
+export interface ComparisonColumn {
+  key: string;
+  label: string;
+  icon: string;
+  colorClass: string;
+}
+
 export interface WorkflowTopicData {
   id: BackendWorkflowTopic;
   title: string;
   subtitle: string;
   tagline: string;
   accentColor: string;
+  category?: 'backend' | 'frontend' | 'mobile' | 'devops';
   tags: string[];
   sections: WorkflowSection[];
   flowSteps: FlowStep[];
-  codebases: Record<BackendFramework, WorkflowCodebase>;
+  codebases: Record<string, WorkflowCodebase>;
+  comparisonColumns?: ComparisonColumn[];
   comparisonPoints: {
     feature: string;
-    express: string;
-    springboot: string;
-    fastapi: string;
+    [key: string]: string;
   }[];
   quiz: {
     question: string;
@@ -1251,6 +1258,1018 @@ async def generic_exception_handler(request: Request, exc: Exception):
         mistake: 'Leaking raw database stack traces in error middleware',
         consequence: 'Attackers can view internal table names, SQL queries, and software versions.',
         solution: 'Filter out err.stack in production environments and only log it server-side.'
+      }
+    ]
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // 5. REACT WEB ARCHITECTURE WORKFLOW
+  // ─────────────────────────────────────────────────────────────
+  react: {
+    id: 'react',
+    title: 'React Web Architecture & Data Flow',
+    subtitle: 'Virtual DOM Reconciliation, TanStack Query CRUD with Optimistic UI, & Web Auth',
+    tagline: 'How modern React apps orchestrate hooks, manage server state, handle JWT sessions, and render 60 FPS UIs',
+    accentColor: '#06B6D4', // Cyan
+    category: 'frontend',
+    tags: ['Virtual DOM / Fiber', 'Hooks Lifecycle', 'TanStack Query CRUD', 'Optimistic UI', 'Axios Interceptors', 'Cookie Auth'],
+    sections: [
+      { id: 'react-01', num: 1, label: 'Virtual DOM & Fiber Architecture', group: 'Foundations' },
+      { id: 'react-02', num: 2, label: 'Component Lifecycle & Hooks Rules', group: 'Foundations' },
+      { id: 'react-03', num: 3, label: 'State Management Spectrum', group: 'Foundations' },
+      { id: 'react-04', num: 4, label: 'Interactive React Data Flow', group: 'Lifecycle' },
+      { id: 'react-05', num: 5, label: 'Server State vs Client State', group: 'Architecture' },
+      { id: 'react-06', num: 6, label: 'TanStack Query CRUD Implementation', group: 'Implementation' },
+      { id: 'react-07', num: 7, label: 'Auth Context & Axios Interceptors', group: 'Implementation' },
+      { id: 'react-08', num: 8, label: 'Next.js App Router & Server Actions', group: 'Implementation' },
+      { id: 'react-09', num: 9, label: 'Frontend Architectural Comparison', group: 'Wrap up' },
+      { id: 'react-10', num: 10, label: 'Common React Anti-Patterns', group: 'Wrap up' },
+    ],
+    flowSteps: [
+      {
+        name: 'User Event & State Trigger',
+        detail: 'User clicks submit or filter. React handler dispatches a mutation or state update via useState / useMutation.',
+        lit: ['client', 'router', 'arr-client-router']
+      },
+      {
+        name: 'Fiber Reconciliation & Diffing',
+        detail: 'React creates work-in-progress Fiber nodes, computes virtual DOM diffs asynchronously, and prioritizes urgent updates (concurrent mode).',
+        lit: ['router', 'validation', 'arr-router-val']
+      },
+      {
+        name: 'API Request & Auth Interceptor',
+        detail: 'Axios interceptor verifies token validity. Injects Authorization Bearer header or relies on HttpOnly cookie credentials.',
+        lit: ['validation', 'service', 'arr-val-service']
+      },
+      {
+        name: 'Optimistic UI Update',
+        detail: 'TanStack Query cancels outgoing queries, snapshots previous cache, and immediately renders new item in UI without waiting for server response.',
+        lit: ['service', 'db', 'arr-service-db']
+      },
+      {
+        name: 'Server Sync & Cache Commit',
+        detail: 'Backend returns 201 Created or 200 OK. Query cache commits server ID; rolls back snapshot if backend returns 4xx/5xx error.',
+        lit: ['db', 'service', 'client', 'arr-db-client']
+      },
+      {
+        name: 'Commit Phase & Real DOM Flush',
+        detail: 'React commits final mutations to the real browser DOM in a single synchronous layout pass, avoiding layout thrashing.',
+        lit: ['client', 'router']
+      }
+    ],
+    comparisonColumns: [
+      { key: 'query', label: '⚛️ TanStack Query', icon: '⚛️', colorClass: 'text-cyan-400' },
+      { key: 'auth', label: '🔒 Auth & Interceptors', icon: '🔒', colorClass: 'text-amber-400' },
+      { key: 'next', label: '▲ Next.js Server Actions', icon: '▲', colorClass: 'text-sky-400' }
+    ],
+    codebases: {
+      query: {
+        framework: 'query',
+        frameworkName: 'React + TanStack Query v5 (CRUD & Optimistic UI)',
+        language: 'typescript',
+        fileLabel: 'src/features/products/useProducts.ts',
+        badgeColor: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
+        code: `import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '../../lib/apiClient';
+
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+}
+
+// 1. READ (List) - GET with automatic cache & stale-while-revalidate
+export const useProducts = (category?: string) => {
+  return useQuery({
+    queryKey: ['products', { category }],
+    queryFn: async (): Promise<Product[]> => {
+      const res = await apiClient.get('/products', { params: { category } });
+      return res.data.data;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes fresh
+  });
+};
+
+// 2. CREATE - POST with Optimistic UI Update & Rollback
+export const useCreateProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newProduct: Omit<Product, 'id'>) => {
+      const res = await apiClient.post('/products', newProduct);
+      return res.data.data;
+    },
+    // When mutate is called:
+    onMutate: async (newProduct) => {
+      // Cancel outgoing refetches so they don't overwrite optimistic update
+      await queryClient.cancelQueries({ queryKey: ['products'] });
+
+      // Snapshot the previous state
+      const previousProducts = queryClient.getQueryData<Product[]>(['products']);
+
+      // Optimistically update cache with temporary id
+      queryClient.setQueryData<Product[]>(['products'], (old = []) => [
+        { ...newProduct, id: 'temp-' + Date.now() },
+        ...old,
+      ]);
+
+      return { previousProducts };
+    },
+    // If mutation fails, roll back to snapshot:
+    onError: (_err, _newProduct, context) => {
+      if (context?.previousProducts) {
+        queryClient.setQueryData(['products'], context.previousProducts);
+      }
+    },
+    // Always refetch to sync with server ground truth:
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+};`,
+        explanation: 'TanStack Query separates Server State from Client State. By implementing onMutate, onError, and onSettled, user actions feel instantaneous with automatic rollback on network failure.',
+        architectureHighlights: [
+          'Automatic request deduplication, background refetching, and stale time caching',
+          'Optimistic UI updates ensure zero-latency feedback for mutations',
+          'Automatic rollback protects UI consistency on 4xx/5xx network errors',
+          'Query keys act as fine-grained cache dependencies'
+        ]
+      },
+      auth: {
+        framework: 'auth',
+        frameworkName: 'React Auth Context + Axios Silent Refresh Interceptor',
+        language: 'typescript',
+        fileLabel: 'src/context/AuthContext.tsx',
+        badgeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+        code: `import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
+
+interface User {
+  id: string;
+  email: string;
+  role: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  login: (credentials: object) => Promise<void>;
+  logout: () => Promise<void>;
+  isLoading: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  withCredentials: true, // Crucial: sends and receives httpOnly cookies
+});
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Setup Axios Interceptors for 401 Auto-Refresh
+  useEffect(() => {
+    const interceptor = apiClient.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+          try {
+            // Call refresh endpoint (server reads httpOnly refresh cookie)
+            await axios.post('/api/v1/auth/refresh', {}, { withCredentials: true });
+            return apiClient(originalRequest); // Retry original request
+          } catch (refreshErr) {
+            setUser(null); // Session completely dead -> force login
+            return Promise.reject(refreshErr);
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    // Initial session bootstrap
+    apiClient.get('/auth/me')
+      .then((res) => setUser(res.data.user))
+      .catch(() => setUser(null))
+      .finally(() => setIsLoading(false));
+
+    return () => apiClient.interceptors.response.eject(interceptor);
+  }, []);
+
+  const login = async (credentials: object) => {
+    const res = await apiClient.post('/auth/login', credentials);
+    setUser(res.data.user);
+  };
+
+  const logout = async () => {
+    await apiClient.post('/auth/logout');
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  return context;
+};`,
+        explanation: 'Provides secure web authentication using httpOnly cookies (resistant to XSS). Axios response interceptor intercepts 401 errors and performs silent refresh behind the scenes.',
+        architectureHighlights: [
+          'withCredentials: true enables automatic browser cookie transmission',
+          'Silent refresh interceptor retries failed 401 requests transparently',
+          'Centralized AuthContext guarantees consistent authorization state across tree',
+          'Initial /auth/me bootstrap restores authenticated state on browser refresh'
+        ]
+      },
+      next: {
+        framework: 'next',
+        frameworkName: 'Next.js 15 (App Router & Server Actions CRUD)',
+        language: 'typescript',
+        fileLabel: 'app/actions/products.ts',
+        badgeColor: 'bg-sky-500/10 text-sky-400 border-sky-500/30',
+        code: `'use server';
+
+import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+
+const ProductSchema = z.object({
+  name: z.string().min(2),
+  price: z.coerce.number().positive(),
+  category: z.string().default('General'),
+});
+
+// CREATE - Server Action called directly from form or client component
+export async function createProductAction(formData: FormData) {
+  const rawData = {
+    name: formData.get('name'),
+    price: formData.get('price'),
+    category: formData.get('category'),
+  };
+
+  // 1. Server-side validation
+  const validation = ProductSchema.safeParse(rawData);
+  if (!validation.success) {
+    return { success: false, errors: validation.error.flatten().fieldErrors };
+  }
+
+  // 2. Direct database mutation (No extra API network hop needed!)
+  try {
+    const newProduct = await db.product.create({
+      data: validation.data,
+    });
+
+    // 3. Purge Next.js data cache and refresh server components
+    revalidatePath('/products');
+
+    return { success: true, data: newProduct };
+  } catch (error) {
+    return { success: false, message: 'Database error occurred' };
+  }
+}
+
+// DELETE - Server Action
+export async function deleteProductAction(productId: string) {
+  try {
+    await db.product.delete({ where: { id: productId } });
+    revalidatePath('/products');
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: 'Could not delete product' };
+  }
+}`,
+        explanation: 'Next.js 15 Server Actions run strictly on the Node.js server. They accept FormData directly from React components, validate input, mutate the database, and trigger revalidatePath.',
+        architectureHighlights: [
+          "'use server' directive boundary prevents server secrets from leaking to client",
+          'Zero API boilerplate: eliminates the need for separate controllers and routes',
+          'revalidatePath automatically invalidates edge and server cache',
+          'Progressive enhancement: works even before JavaScript finishes hydrating'
+        ]
+      }
+    },
+    comparisonPoints: [
+      {
+        feature: 'Data Fetching & Cache',
+        query: 'TanStack Query: In-memory stale-while-revalidate, optimistic updates',
+        auth: 'Axios / Fetch with manual useEffect or custom hooks',
+        next: 'Next.js fetch cache + React Server Components (RSC)'
+      },
+      {
+        feature: 'Auth Storage Method',
+        query: 'Accepts JWT from memory; relies on HttpOnly cookies for persistence',
+        auth: 'HttpOnly Secure Cookie with automatic Axios 401 refresh loop',
+        next: 'Encrypted cookie sessions (Iron-session / Auth.js / NextAuth)'
+      },
+      {
+        feature: 'CRUD Mutation Handling',
+        query: 'useMutation with onMutate optimistic cache update and rollback',
+        auth: 'Imperative API calls wrapped in Context methods',
+        next: 'Server Actions with automatic revalidatePath & useActionState'
+      },
+      {
+        feature: 'Rendering Mechanism',
+        query: 'Client-Side Rendering (CSR) hydrated into browser DOM',
+        auth: 'Client-Side Auth Guard with redirect to /login on 401',
+        next: 'Hybrid: Static (SSG), Dynamic (SSR), and Streaming React components'
+      }
+    ],
+    quiz: {
+      question: 'Why is storing JWT access tokens in browser localStorage considered an anti-pattern for web applications?',
+      options: [
+        'LocalStorage has a strict 50KB size limit',
+        'Any Cross-Site Scripting (XSS) vulnerability can read localStorage and exfiltrate the token',
+        'LocalStorage does not persist across browser tabs',
+        'Browsers delete localStorage automatically every 24 hours'
+      ],
+      correctIndex: 1,
+      explanation: 'Any JavaScript running on the page (including third-party analytics or compromised npm packages) has full read access to localStorage. Using httpOnly cookies ensures JavaScript cannot access the token.'
+    },
+    bestPractices: [
+      'Separate server state (TanStack Query) from client UI state (Zustand / useState).',
+      'Always store authentication tokens in httpOnly, Secure, SameSite cookies to mitigate XSS.',
+      'Implement optimistic UI updates for high-frequency CRUD operations to maximize perceived speed.',
+      'Use abort controllers to cancel pending network requests when components unmount.'
+    ],
+    commonMistakes: [
+      {
+        mistake: 'Storing server data in global Redux/Zustand stores without caching semantics',
+        consequence: 'Manual tracking of isLoading, error, refetching, and race conditions leads to duplicated code and stale UI.',
+        solution: 'Use TanStack Query or RTK Query designed specifically for asynchronous server state.'
+      },
+      {
+        mistake: 'Putting access tokens in localStorage',
+        consequence: 'Trivial token exfiltration via XSS attacks.',
+        solution: 'Use httpOnly cookies or in-memory tokens refreshed via an httpOnly refresh cookie.'
+      }
+    ]
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // 6. REACT NATIVE MOBILE ARCHITECTURE WORKFLOW
+  // ─────────────────────────────────────────────────────────────
+  'react-native': {
+    id: 'react-native',
+    title: 'React Native Mobile Architecture & Sync',
+    subtitle: 'Bridge vs New Architecture (Fabric / JSI), Hardware SecureStore, & Offline CRUD',
+    tagline: 'Bridging JavaScript and Native iOS/Android: Threading, Hardware Keychain, and Resilient Data Sync',
+    accentColor: '#6366F1', // Indigo
+    category: 'mobile',
+    tags: ['New Architecture (Fabric / JSI)', 'TurboModules', 'Keychain / Keystore', 'Offline CRUD', 'React Navigation', 'AppState'],
+    sections: [
+      { id: 'react-native-01', num: 1, label: 'Bridge vs Fabric & TurboModules (JSI)', group: 'Foundations' },
+      { id: 'react-native-02', num: 2, label: 'Threading Model: UI, JS, & Shadow', group: 'Foundations' },
+      { id: 'react-native-03', num: 3, label: 'Secure Storage: Keychain vs AsyncStorage', group: 'Foundations' },
+      { id: 'react-native-04', num: 4, label: 'Interactive Mobile Request Lifecycle', group: 'Lifecycle' },
+      { id: 'react-native-05', num: 5, label: 'Offline-First Synchronization Pattern', group: 'Architecture' },
+      { id: 'react-native-06', num: 6, label: 'Hardware-Backed Auth Implementation', group: 'Implementation' },
+      { id: 'react-native-07', num: 7, label: 'Offline CRUD & SQLite Sync Engine', group: 'Implementation' },
+      { id: 'react-native-08', num: 8, label: 'Protected Mobile Navigation & AppState', group: 'Implementation' },
+      { id: 'react-native-09', num: 9, label: 'Mobile Architecture Comparison', group: 'Wrap up' },
+      { id: 'react-native-10', num: 10, label: 'Common Mobile Anti-Patterns', group: 'Wrap up' },
+    ],
+    flowSteps: [
+      {
+        name: 'Native Touch on UI Thread',
+        detail: 'User touches the screen. Native OS (iOS UIKit / Android View) registers gesture and propagates event at 120Hz.',
+        lit: ['client', 'router', 'arr-client-router']
+      },
+      {
+        name: 'JSI Direct Invocation (No JSON Queue)',
+        detail: 'New Architecture bypasses old asynchronous JSON bridge. JavaScript invokes native C++ methods synchronously via JSI.',
+        lit: ['router', 'validation', 'arr-router-val']
+      },
+      {
+        name: 'Hardware Keychain / Keystore Auth',
+        detail: 'App retrieves encrypted JWT from hardware-backed storage (iOS Keychain / Android KeyStore) via expo-secure-store.',
+        lit: ['validation', 'service', 'arr-val-service']
+      },
+      {
+        name: 'NetInfo Guard & Offline Queue',
+        detail: 'App evaluates connectivity. If offline, the CRUD action is persisted into local SQLite database with pending_sync flag.',
+        lit: ['service', 'db', 'arr-service-db']
+      },
+      {
+        name: 'Native TLS Socket & REST Call',
+        detail: 'When online, native networking engine executes TLS 1.3 socket to backend REST endpoint (/api/v1/resource).',
+        lit: ['db', 'service', 'client', 'arr-db-client']
+      },
+      {
+        name: 'SQLite Sync & 60 FPS Re-render',
+        detail: 'Server response updates local SQLite cache; Fabric updates native iOS/Android views directly on the UI thread.',
+        lit: ['client', 'router']
+      }
+    ],
+    comparisonColumns: [
+      { key: 'secure', label: '🔐 Secure Hardware Auth', icon: '🔐', colorClass: 'text-indigo-400' },
+      { key: 'offline', label: '📦 Offline CRUD & SQLite', icon: '📦', colorClass: 'text-emerald-400' },
+      { key: 'nav', label: '🧭 Native Navigation & AppState', icon: '🧭', colorClass: 'text-rose-400' }
+    ],
+    codebases: {
+      secure: {
+        framework: 'secure',
+        frameworkName: 'React Native Secure Hardware Auth (Keychain / Keystore)',
+        language: 'typescript',
+        fileLabel: 'src/services/secureAuth.ts',
+        badgeColor: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30',
+        code: `import * as SecureStore from 'expo-secure-store';
+import axios from 'axios';
+
+const ACCESS_TOKEN_KEY = 'secure_access_token';
+const REFRESH_TOKEN_KEY = 'secure_refresh_token';
+
+// 1. Hardware-Backed Storage (iOS Keychain / Android KeyStore)
+export const saveTokens = async (accessToken: string, refreshToken: string) => {
+  await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken, {
+    keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK,
+  });
+  await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken, {
+    keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK,
+  });
+};
+
+export const getAccessToken = async (): Promise<string | null> => {
+  return await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+};
+
+export const clearTokens = async () => {
+  await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+  await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+};
+
+// 2. Mobile Axios Instance with Token Injection & Auto-Refresh
+export const mobileApiClient = axios.create({
+  baseURL: 'https://api.myapp.com/v1',
+  timeout: 10000,
+});
+
+mobileApiClient.interceptors.request.use(async (config) => {
+  const token = await getAccessToken();
+  if (token) {
+    config.headers.Authorization = \`Bearer \${token}\`;
+  }
+  return config;
+});
+
+mobileApiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+      if (!refreshToken) return Promise.reject(error);
+
+      try {
+        const res = await axios.post('https://api.myapp.com/v1/auth/refresh', {
+          refreshToken,
+        });
+        const { accessToken: newAccess, refreshToken: newRefresh } = res.data;
+        await saveTokens(newAccess, newRefresh);
+        originalRequest.headers.Authorization = \`Bearer \${newAccess}\`;
+        return mobileApiClient(originalRequest);
+      } catch (refreshErr) {
+        await clearTokens(); // Force re-authentication
+        return Promise.reject(refreshErr);
+      }
+    }
+    return Promise.reject(error);
+  }
+);`,
+        explanation: 'In mobile, cookies do not persist naturally across app lifecycles. Instead, tokens are stored inside hardware-backed storage (iOS Keychain and Android KeyStore) using SecureStore.',
+        architectureHighlights: [
+          'Hardware-backed encryption protects tokens against physical memory extraction',
+          'Avoids unencrypted AsyncStorage which is vulnerable on rooted devices',
+          'Automatic token rotation handling via Axios interceptors',
+          'Thread-safe asynchronous token access across app backgrounding'
+        ]
+      },
+      offline: {
+        framework: 'offline',
+        frameworkName: 'React Native Offline-First CRUD & SQLite Sync Engine',
+        language: 'typescript',
+        fileLabel: 'src/services/offlineSync.ts',
+        badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+        code: `import * as SQLite from 'expo-sqlite';
+import NetInfo from '@react-native-community/netinfo';
+import { mobileApiClient } from './secureAuth';
+
+const db = SQLite.openDatabaseSync('app_data.db');
+
+// 1. Initialize local SQLite table with sync flags
+export const initOfflineDb = () => {
+  db.execSync(\`
+    CREATE TABLE IF NOT EXISTS orders (
+      id TEXT PRIMARY KEY,
+      customer TEXT NOT NULL,
+      amount REAL NOT NULL,
+      sync_status TEXT NOT NULL DEFAULT 'synced', -- 'synced' | 'pending_create' | 'pending_delete'
+      updated_at INTEGER NOT NULL
+    );
+  \`);
+};
+
+// 2. Offline-First CREATE: Writes locally first, then syncs if online
+export const createOrderOfflineFirst = async (order: { id: string; customer: string; amount: number }) => {
+  const isOnline = (await NetInfo.fetch()).isConnected;
+  const initialStatus = isOnline ? 'synced' : 'pending_create';
+
+  // Always write to local database immediately (instant UI feedback)
+  db.runSync(
+    \`INSERT OR REPLACE INTO orders (id, customer, amount, sync_status, updated_at) VALUES (?, ?, ?, ?, ?)\`,
+    [order.id, order.customer, order.amount, initialStatus, Date.now()]
+  );
+
+  if (isOnline) {
+    try {
+      await mobileApiClient.post('/orders', order);
+    } catch (err) {
+      // Mark as pending if network request failed midway
+      db.runSync(\`UPDATE orders SET sync_status = 'pending_create' WHERE id = ?\`, [order.id]);
+    }
+  }
+};
+
+// 3. Background Sync: Triggered on NetInfo reconnect or app foreground
+export const syncPendingOrders = async () => {
+  const state = await NetInfo.fetch();
+  if (!state.isConnected) return;
+
+  const pendingRecords = db.getAllSync<{ id: string; customer: string; amount: number }>(
+    \`SELECT id, customer, amount FROM orders WHERE sync_status = 'pending_create'\`
+  );
+
+  for (const record of pendingRecords) {
+    try {
+      await mobileApiClient.post('/orders', record);
+      db.runSync(\`UPDATE orders SET sync_status = 'synced' WHERE id = ?\`, [record.id]);
+    } catch (err) {
+      console.warn('Sync failed for item', record.id, err);
+    }
+  }
+};`,
+        explanation: 'Mobile apps must function without an internet connection. This pattern writes immediately to local SQLite with a sync_status flag, syncing to the backend REST API when connectivity returns.',
+        architectureHighlights: [
+          'Zero-latency local CRUD operations: writes to local SQLite first',
+          'Resilient sync_status flag manages offline queues (pending_create, synced)',
+          'NetInfo triggers automatic synchronization upon network reconnection',
+          'Protects user input from network packet drops or subway dead-zones'
+        ]
+      },
+      nav: {
+        framework: 'nav',
+        frameworkName: 'React Native Navigation Guard & AppState Lifecycle',
+        language: 'typescript',
+        fileLabel: 'src/navigation/RootNavigator.tsx',
+        badgeColor: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
+        code: `import React, { useEffect, useState } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { getAccessToken } from '../services/secureAuth';
+import { syncPendingOrders } from '../services/offlineSync';
+
+const Stack = createNativeStackNavigator();
+
+export const RootNavigator = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  // 1. Initial auth check
+  useEffect(() => {
+    getAccessToken().then((token) => setIsAuthenticated(!!token));
+  }, []);
+
+  // 2. AppState Lifecycle Listener: Trigger sync when app resumes
+  useEffect(() => {
+    const handleAppStateChange = (nextState: AppStateStatus) => {
+      if (nextState === 'active') {
+        // App returned to foreground: sync offline queues & check token freshness
+        syncPendingOrders();
+      }
+    };
+
+    const sub = AppState.addEventListener('change', handleAppStateChange);
+    return () => sub.remove();
+  }, []);
+
+  if (isAuthenticated === null) return null; // Or splash screen
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {isAuthenticated ? (
+          // Protected App Stack
+          <Stack.Group>
+            <Stack.Screen name="Dashboard" component={DashboardScreen} />
+            <Stack.Screen name="Orders" component={OrdersScreen} />
+          </Stack.Group>
+        ) : (
+          // Public Auth Stack
+          <Stack.Group>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+          </Stack.Group>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};`,
+        explanation: 'Combines native screen transitions with conditional routing based on auth state. Listens to mobile AppState (active, background, inactive) to trigger data sync upon foregrounding.',
+        architectureHighlights: [
+          'Conditional stack rendering prevents unauthenticated screen access',
+          'Native stack navigator renders true iOS UINavigationController and Android Fragments',
+          'AppState listener synchronizes offline queues whenever user opens the app',
+          'Splash screen prevents UI flashes during asynchronous token resolution'
+        ]
+      }
+    },
+    comparisonPoints: [
+      {
+        feature: 'Architecture & Engine',
+        secure: 'JSI (JavaScript Interface) invokes C++ directly without serialization',
+        offline: 'C++ SQLite bindings bypass JS bridge for microsecond queries',
+        nav: 'Native Stack delegates navigation to OS native view controllers'
+      },
+      {
+        feature: 'Authentication Persistence',
+        secure: 'Hardware-backed iOS Keychain & Android KeyStore via SecureStore',
+        offline: 'Stores user credentials alongside encrypted local database records',
+        nav: 'Reactive auth state dynamically switches RootNavigator route tree'
+      },
+      {
+        feature: 'Offline Resilience',
+        secure: 'Cached tokens allow biometric / offline app unlock',
+        offline: 'Local SQLite engine with pending_sync queue and NetInfo trigger',
+        nav: 'AppState listener triggers sync when user returns from background'
+      },
+      {
+        feature: 'Thread Performance',
+        secure: 'Async crypto hashing executes off the main 60/120 FPS UI thread',
+        offline: 'Background worker thread prevents UI thread stutter during sync',
+        nav: 'Native driver animates screen transitions at native 120 FPS'
+      }
+    ],
+    quiz: {
+      question: 'What is the main architectural benefit of React Native’s New Architecture (Fabric & TurboModules) over the legacy Bridge?',
+      options: [
+        'It compiles JavaScript into native Swift and Kotlin code ahead of time',
+        'It replaces the asynchronous JSON serialization bridge with direct synchronous C++ JSI calls',
+        'It allows React Native apps to run in the browser without Node.js',
+        'It eliminates the need for state management libraries'
+      ],
+      correctIndex: 1,
+      explanation: 'The old bridge passed JSON messages asynchronously across threads, causing lag on fast gestures or lists. JSI gives JavaScript direct pointers to C++ native host objects for synchronous, zero-copy communication.'
+    },
+    bestPractices: [
+      'Never store sensitive authentication tokens in AsyncStorage; always use Keychain / KeyStore.',
+      'Design mobile apps to be offline-first using SQLite, WatermelonDB, or TanStack offline persistence.',
+      'Listen to AppState to pause timers or refetch data when app returns to foreground.',
+      'Always run animations using the native driver (useNativeDriver: true or react-native-reanimated).'
+    ],
+    commonMistakes: [
+      {
+        mistake: 'Using AsyncStorage for JWT tokens and sensitive user data',
+        consequence: 'AsyncStorage is unencrypted plain-text XML/JSON on the filesystem; easily extracted from rooted devices.',
+        solution: 'Use expo-secure-store or react-native-keychain with hardware-backed encryption.'
+      },
+      {
+        mistake: 'Failing to handle offline state when making REST calls',
+        consequence: 'App throws unhandled network errors or displays empty white screens when user enters a tunnel or loses Wi-Fi.',
+        solution: 'Use NetInfo and an offline queue pattern to persist mutations locally before syncing.'
+      }
+    ]
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // 7. DEVOPS, CI/CD, & CLOUD DEPLOYMENT WORKFLOW
+  // ─────────────────────────────────────────────────────────────
+  devops: {
+    id: 'devops',
+    title: 'DevOps, CI/CD Pipeline & Cloud Deployment',
+    subtitle: 'Multi-Stage Dockerization, GitHub Actions CI/CD, Nginx Gateway, & Cloud Infrastructure',
+    tagline: 'From Git commit to zero-downtime production deployment with automated testing, containerization, and APM',
+    accentColor: '#EC4899', // Pink
+    category: 'devops',
+    tags: ['Docker Multi-stage', 'GitHub Actions', 'Nginx Reverse Proxy', 'AWS ECS / K8s', 'Zero Downtime', 'Prometheus / Sentry'],
+    sections: [
+      { id: 'devops-01', num: 1, label: 'The Modern DevOps Lifecycle', group: 'Foundations' },
+      { id: 'devops-02', num: 2, label: 'Containerization & Multi-Stage Builds', group: 'Foundations' },
+      { id: 'devops-03', num: 3, label: 'CI/CD Pipeline Stages', group: 'Foundations' },
+      { id: 'devops-04', num: 4, label: 'Interactive Deployment Pipeline Flow', group: 'Lifecycle' },
+      { id: 'devops-05', num: 5, label: 'Edge Ingress, SSL, & Rate Limiting', group: 'Architecture' },
+      { id: 'devops-06', num: 6, label: 'Multi-Stage Dockerfile & Compose', group: 'Implementation' },
+      { id: 'devops-07', num: 7, label: 'GitHub Actions CI/CD Workflow', group: 'Implementation' },
+      { id: 'devops-08', num: 8, label: 'Nginx Gateway & SSL Configuration', group: 'Implementation' },
+      { id: 'devops-09', num: 9, label: 'DevOps & Deployment Matrix', group: 'Wrap up' },
+      { id: 'devops-10', num: 10, label: 'Critical Deployment Mistakes', group: 'Wrap up' },
+    ],
+    flowSteps: [
+      {
+        name: 'Git Push & PR Webhook Trigger',
+        detail: 'Developer pushes code to main or opens PR. GitHub Actions runner provisions containerized Ubuntu runner.',
+        lit: ['client', 'router', 'arr-client-router']
+      },
+      {
+        name: 'Automated Test & Lint Matrix',
+        detail: 'Runner installs dependencies, executes TypeScript compilation (tsc), ESLint, unit tests, and integration tests.',
+        lit: ['router', 'validation', 'arr-router-val']
+      },
+      {
+        name: 'Security Audit & Vulnerability Scan',
+        detail: 'Snyk and Trivy scan npm dependencies and Docker base images for critical CVE vulnerabilities. Halts if high severity found.',
+        lit: ['validation', 'service', 'arr-val-service']
+      },
+      {
+        name: 'Multi-Stage Container Build',
+        detail: 'Docker executes multi-stage build: compiles code in builder stage, copies only runtime artifacts to a slim alpine image.',
+        lit: ['service', 'db', 'arr-service-db']
+      },
+      {
+        name: 'Registry Push & Cloud Deployment',
+        detail: 'Image tagged with Git commit SHA is pushed to AWS ECR / Docker Hub. Deploys to AWS ECS / Kubernetes with rolling update.',
+        lit: ['db', 'service', 'client', 'arr-db-client']
+      },
+      {
+        name: 'Health Check & Zero-Downtime Traffic Shift',
+        detail: 'Nginx / ALB tests /healthz endpoint. Traffic shifts to new pods only when healthy; old containers terminated cleanly.',
+        lit: ['client', 'router']
+      }
+    ],
+    comparisonColumns: [
+      { key: 'docker', label: '🐳 Multi-Stage Dockerfile', icon: '🐳', colorClass: 'text-sky-400' },
+      { key: 'actions', label: '⚙️ GitHub Actions CI/CD', icon: '⚙️', colorClass: 'text-amber-400' },
+      { key: 'nginx', label: '🛡️ Nginx Reverse Proxy', icon: '🛡️', colorClass: 'text-emerald-400' }
+    ],
+    codebases: {
+      docker: {
+        framework: 'docker',
+        frameworkName: 'Production Multi-Stage Dockerfile & Docker Compose',
+        language: 'dockerfile',
+        fileLabel: 'Dockerfile',
+        badgeColor: 'bg-sky-500/10 text-sky-400 border-sky-500/30',
+        code: `# ── STAGE 1: Builder ──
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Cache package manifests first (Docker layer caching)
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+# Prune development dependencies
+RUN npm prune --production
+
+# ── STAGE 2: Production Runner ──
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Security: Create non-root user and group
+RUN addgroup --system --gid 1001 nodejs && \\
+    adduser --system --uid 1001 appuser
+
+# Copy only production artifacts from builder
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+
+# Switch away from root user
+USER appuser
+
+EXPOSE 3000
+ENV PORT=3000
+
+# Health check instruction for orchestrator
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \\
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/healthz || exit 1
+
+CMD ["node", "dist/main.js"]`,
+        explanation: 'Multi-stage builds decouple the build tools (TypeScript compiler, testing frameworks) from the final runtime image, reducing image size from 1.2GB to <120MB and eliminating build-time security vulnerabilities.',
+        architectureHighlights: [
+          'Layer caching: package*.json copied before source code speeds up rebuilds',
+          'Non-root user (appuser:1001) mitigates container breakout vulnerabilities',
+          'HEALTHCHECK instruction enables Kubernetes/Docker swarm automatic healing',
+          'Distroless/Alpine base dramatically minimizes attack surface'
+        ]
+      },
+      actions: {
+        framework: 'actions',
+        frameworkName: 'GitHub Actions Automated CI/CD Pipeline (.github/workflows)',
+        language: 'yaml',
+        fileLabel: '.github/workflows/deploy.yml',
+        badgeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+        code: `name: CI/CD Production Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: \${{ github.repository }}
+
+jobs:
+  # 1. Continuous Integration (Lint, Typecheck, Test)
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run lint
+
+      - name: Run Unit & Integration Tests
+        run: npm test -- --coverage
+
+  # 2. Security Vulnerability Scan
+  security-audit:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: \${{ secrets.SNYK_TOKEN }}
+
+  # 3. Continuous Delivery (Build & Deploy to Cloud)
+  deploy:
+    needs: [validate, security-audit]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: \${{ env.REGISTRY }}
+          username: \${{ github.actor }}
+          password: \${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            \${{ env.REGISTRY }}/\${{ env.IMAGE_NAME }}:latest
+            \${{ env.REGISTRY }}/\${{ env.IMAGE_NAME }}:\${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to Cloud (Rolling Update)
+        run: |
+          echo "Triggering cloud deploy on AWS ECS / Kubernetes..."
+          # e.g., aws ecs update-service --cluster prod --service api --force-new-deployment`,
+        explanation: 'GitHub Actions automates code validation, security scanning, multi-arch Docker image compilation, and automated deployment with zero human error.',
+        architectureHighlights: [
+          'Branch guards: deployments execute strictly on verified commits to main',
+          'GitHub Actions Docker cache (type=gha) saves minutes on image builds',
+          'Automated security audit halts delivery if high CVE vulnerabilities exist',
+          'Tagged with commit SHA for instant, deterministic one-click rollbacks'
+        ]
+      },
+      nginx: {
+        framework: 'nginx',
+        frameworkName: 'Nginx Reverse Proxy, SSL, & Rate Limiting Configuration',
+        language: 'nginx',
+        fileLabel: 'nginx/conf.d/default.conf',
+        badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+        code: `# 1. Rate Limiting Zone: 20 requests per second per IP
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=20r/s;
+
+# 2. Redirect HTTP to HTTPS
+server {
+    listen 80;
+    server_name api.myapp.com;
+    return 301 https://$host$request_uri;
+}
+
+# 3. HTTPS Server & Reverse Proxy
+server {
+    listen 443 ssl http2;
+    server_name api.myapp.com;
+
+    # SSL Certificates (Let's Encrypt / Cloudflare)
+    ssl_certificate /etc/letsencrypt/live/api.myapp.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.myapp.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    # Security Headers
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # Gzip Compression
+    gzip on;
+    gzip_types application/json text/plain text/css application/javascript;
+
+    # API Proxy Location
+    location / {
+        # Enforce rate limit with burst allowance of 10 requests
+        limit_req zone=api_limit burst=10 nodelay;
+
+        proxy_pass http://backend_upstream:3000;
+        proxy_http_version 1.1;
+
+        # Forward real client headers
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Timeouts
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 30s;
+    }
+}`,
+        explanation: 'Nginx sits at the edge in front of backend containers. It handles SSL termination, enforces IP rate limiting against DDoS attacks, enables gzip compression, and securely forwards traffic.',
+        architectureHighlights: [
+          'SSL/TLS 1.3 termination relieves application servers from CPU-heavy crypto operations',
+          'limit_req protects backend databases against brute-force and DDoS flooding',
+          'Security headers (HSTS, nosniff, DENY) protect against clickjacking and MIME sniffing',
+          'X-Forwarded-* headers ensure application controllers read real client IP addresses'
+        ]
+      }
+    },
+    comparisonPoints: [
+      {
+        feature: 'Deployment Strategy',
+        docker: 'Docker Compose: Single-server or local microservices orchestration',
+        actions: 'GitHub Actions: Automated CI/CD pipeline triggering cloud updates',
+        nginx: 'Nginx: Upstream weighted routing for Blue-Green or Canary releases'
+      },
+      {
+        feature: 'Security Hardening',
+        docker: 'Non-root user (appuser), Alpine base image, stripped devDependencies',
+        actions: 'Snyk CVE scanning, branch protection, encrypted repo secrets',
+        nginx: 'SSL/TLS 1.3 termination, HSTS headers, IP-based rate limiting'
+      },
+      {
+        feature: 'Health Checks & Resilience',
+        docker: 'HEALTHCHECK instruction probes /healthz every 30 seconds',
+        actions: 'Rolls back deployment automatically if post-deploy smoke tests fail',
+        nginx: 'Fails over to healthy upstream instances with zero dropped connections'
+      },
+      {
+        feature: 'Scalability Model',
+        docker: 'docker compose up --scale backend=5 behind local load balancer',
+        actions: 'Parallel matrix testing across Node, Python, and Java environments',
+        nginx: 'Event-driven asynchronous epoll architecture handles 50,000+ concurrent connections'
+      }
+    ],
+    quiz: {
+      question: 'In a Dockerfile, why is it critical to COPY package.json and run npm install BEFORE copying the rest of the application source code?',
+      options: [
+        'npm will fail if source code is already present in the directory',
+        'To take advantage of Docker layer caching: dependencies only reinstall when package.json changes, drastically speeding up builds',
+        'Docker requires all JSON files to be loaded first in memory',
+        'It prevents git commit hashes from being embedded in the container'
+      ],
+      correctIndex: 1,
+      explanation: 'Docker caches each instruction layer. If you copy source code first, any change in your code invalidates the cache for all subsequent steps, forcing a slow npm install on every single build.'
+    },
+    bestPractices: [
+      'Always use multi-stage Docker builds to keep production images tiny and secure.',
+      'Never run containers as the root user in production.',
+      'Enforce zero-downtime rolling updates with /healthz readiness and liveness probes.',
+      'Use infrastructure-as-code (Terraform / Helm) and automated CI/CD instead of manual SSH deploys.'
+    ],
+    commonMistakes: [
+      {
+        mistake: 'Deploying containers with the :latest tag in production',
+        consequence: 'Impossible to determine what exact version is running; rollbacks become unpredictable and break traceability.',
+        solution: 'Tag Docker images with the exact Git commit SHA ($GITHUB_SHA) or semantic release version.'
+      },
+      {
+        mistake: 'Running containers as the root user',
+        consequence: 'If a vulnerability is exploited in your app, the attacker gains root access to the host kernel.',
+        solution: 'Create and switch to a non-privileged user (e.g., USER appuser) in the Dockerfile.'
       }
     ]
   }

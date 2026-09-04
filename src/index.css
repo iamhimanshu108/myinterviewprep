@@ -1,9 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Roboto', 'Comic Relief', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Comic Relief', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-comic: 'Comic Relief', cursive, sans-serif;
+  --font-roboto: 'Roboto', sans-serif;
 }
 
 body {
@@ -127,6 +129,15 @@ body {
 
 .font-sans-ref {
   font-family: var(--font-sans);
+}
+
+.font-roboto {
+  font-family: var(--font-roboto);
+}
+
+.font-comic,
+.font-comic-relief {
+  font-family: var(--font-comic);
 }
 
 /* ── Token highlighting ── */

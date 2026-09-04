@@ -8,24 +8,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { TechStack, ViewMode, Question, Difficulty, BackendWorkflowTopic } from './types';
 import { QUESTIONS_DATA } from './data/questionsData';
 import { Header, STACK_CONFIG } from './components/Header';
-import { ProgressBanner } from './components/ProgressBanner';
 import { QuestionCard } from './components/QuestionCard';
-import { InteractiveFlowDiagram } from './components/InteractiveFlowDiagram';
 import { BackendWorkflowViewer } from './components/BackendWorkflowViewer';
-import { 
-  BookOpen, 
-  Filter, 
-  Code,
-  Network,
-  ChevronUp,
-  ChevronDown,
-  Database,
-  Lock,
-  Globe,
-  Sliders,
-  Boxes,
-  ArrowRight
-} from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 
 const STORAGE_KEY_COMPLETED = 'interview_prep_completed_v3';
 const STORAGE_KEY_BOOKMARKS = 'interview_prep_bookmarks_v3';
@@ -40,7 +25,6 @@ export default function App() {
   const [backendWorkflowTopic, setBackendWorkflowTopic] = useState<BackendWorkflowTopic>('crud');
   const [bookmarkedOnly, setBookmarkedOnly] = useState<boolean>(false);
   const [animatedCodeOnly, setAnimatedCodeOnly] = useState<boolean>(false);
-  const [showArchitectureDiagram, setShowArchitectureDiagram] = useState<boolean>(true);
 
   // Persistence States
   const [completedIds, setCompletedIds] = useState<string[]>(() => {
@@ -108,32 +92,11 @@ export default function App() {
     });
   };
 
-  const handleExpandAll = () => {
-    setOpenCardIds(new Set(filteredQuestions.map((q) => q.id)));
-  };
-
-  const handleCollapseAll = () => {
-    setOpenCardIds(new Set());
-  };
-
-  const handleResetProgress = () => {
-    setCompletedIds([]);
-  };
-
   // Reset topic & difficulty when stack changes
   const handleSelectStack = (stack: TechStack) => {
     setSelectedStack(stack);
     setSelectedTopic('all');
   };
-
-  // Available topics for currently selected stack
-  const availableTopics = useMemo(() => {
-    const list = selectedStack === 'all' 
-      ? QUESTIONS_DATA 
-      : QUESTIONS_DATA.filter((q) => q.stack === selectedStack);
-    const set = new Set(list.map((q) => q.topic));
-    return Array.from(set);
-  }, [selectedStack]);
 
   // Filtered questions
   const filteredQuestions = useMemo(() => {
@@ -174,20 +137,6 @@ export default function App() {
     });
   }, [selectedStack, selectedTopic, selectedDifficulty, bookmarkedOnly, bookmarkedIds, animatedCodeOnly, searchQuery]);
 
-  // Difficulty counts
-  const difficultyCounts = useMemo(() => {
-    const base = selectedStack === 'all' 
-      ? QUESTIONS_DATA 
-      : QUESTIONS_DATA.filter((q) => q.stack === selectedStack);
-
-    return {
-      all: base.length,
-      Beginner: base.filter((q) => q.difficulty === 'Beginner').length,
-      Intermediate: base.filter((q) => q.difficulty === 'Intermediate').length,
-      Advanced: base.filter((q) => q.difficulty === 'Advanced').length
-    };
-  }, [selectedStack]);
-
   // Group filtered questions by stack
   const groupedByStack = useMemo(() => {
     const map: Record<Exclude<TechStack, 'all'>, Question[]> = {
@@ -207,8 +156,6 @@ export default function App() {
     });
     return map;
   }, [filteredQuestions]);
-
-  const allFilteredExpanded = filteredQuestions.length > 0 && filteredQuestions.every((q) => openCardIds.has(q.id));
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-sky-500/20">
@@ -238,229 +185,6 @@ export default function App() {
       ) : (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5">
           <div className="space-y-4 animate-fade-up">
-            {/* Interactive Backend Flow Launcher in current tab */}
-            <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-slate-900 via-slate-900/95 to-slate-950 border border-slate-800 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-orange-400 mb-0.5 font-semibold">
-                  <Boxes className="w-3.5 h-3.5" />
-                  <span>Backend Architecture Workflows: REST & CRUD</span>
-                </div>
-                <div className="text-xs text-slate-300">
-                  Select a workflow to see and compare full implementations across <strong>Express.js</strong>, <strong>Spring Boot</strong>, and <strong>FastAPI</strong>:
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 shrink-0">
-                <button
-                  id="launcher-rest-btn"
-                  onClick={() => {
-                    setBackendWorkflowTopic('rest');
-                    setViewMode('workflow');
-                  }}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 transition-all flex items-center gap-1.5 shadow-sm"
-                >
-                  <Globe className="w-3.5 h-3.5 text-blue-400" />
-                  <span>REST Flow</span>
-                </button>
-                <button
-                  id="launcher-crud-btn"
-                  onClick={() => {
-                    setBackendWorkflowTopic('crud');
-                    setViewMode('workflow');
-                  }}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all flex items-center gap-1.5 shadow-sm"
-                >
-                  <Database className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>CRUD Flow</span>
-                </button>
-                <button
-                  id="launcher-auth-btn"
-                  onClick={() => {
-                    setBackendWorkflowTopic('auth');
-                    setViewMode('workflow');
-                  }}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 border border-orange-500/30 transition-all flex items-center gap-1.5 shadow-sm"
-                >
-                  <Lock className="w-3.5 h-3.5 text-orange-400" />
-                  <span>Auth Flow</span>
-                </button>
-                <button
-                  id="launcher-rest-btn"
-                  onClick={() => {
-                    setBackendWorkflowTopic('rest');
-                    setViewMode('workflow');
-                  }}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 transition-all flex items-center gap-1.5 shadow-sm"
-                >
-                  <Globe className="w-3.5 h-3.5 text-blue-400" />
-                  <span>REST Flow</span>
-                </button>
-                <button
-                  id="launcher-middleware-btn"
-                  onClick={() => {
-                    setBackendWorkflowTopic('middleware');
-                    setViewMode('workflow');
-                  }}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 transition-all flex items-center gap-1.5 shadow-sm"
-                >
-                  <Sliders className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Middleware Flow</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Overall Progress Banner */}
-            <ProgressBanner
-              questions={QUESTIONS_DATA}
-              completedIds={completedIds}
-              onResetProgress={handleResetProgress}
-              onExpandAll={handleExpandAll}
-              onCollapseAll={handleCollapseAll}
-              allExpanded={allFilteredExpanded}
-            />
-
-            {/* Architecture Lifecycle Stepper Diagram Toggle */}
-            <div className="mb-2">
-              <div className="flex items-center justify-between pb-1 mb-2">
-                <button
-                  onClick={() => setShowArchitectureDiagram(!showArchitectureDiagram)}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-sky-400 transition-colors"
-                >
-                  <Network className="w-3.5 h-3.5 text-sky-400" />
-                  <span>Architecture & Request Lifecycle Flow</span>
-                  {showArchitectureDiagram ? (
-                    <ChevronUp className="w-3 h-3 text-slate-500" />
-                  ) : (
-                    <ChevronDown className="w-3 h-3 text-slate-500" />
-                  )}
-                </button>
-              </div>
-
-              <AnimatePresence>
-                {showArchitectureDiagram && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.25 }}
-                  >
-                    <InteractiveFlowDiagram />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Filter Toolbar: Difficulty Levels & Code Toggle */}
-            <div className="flex flex-wrap items-center justify-between gap-2.5 p-2.5 bg-slate-900 border border-slate-800 rounded-xl">
-              {/* Difficulty Level Tabs */}
-              <div className="flex items-center gap-1 overflow-x-auto text-xs">
-                <span className="text-slate-400 text-xs mr-1 font-medium">Level:</span>
-
-                <button
-                  onClick={() => setSelectedDifficulty('all')}
-                  className={`px-2.5 py-1 rounded text-xs transition-colors ${
-                    selectedDifficulty === 'all'
-                      ? 'bg-slate-800 text-sky-400 font-semibold border border-slate-700'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  All ({difficultyCounts.all})
-                </button>
-
-                <button
-                  onClick={() => setSelectedDifficulty('Beginner')}
-                  className={`px-2.5 py-1 rounded text-xs transition-colors ${
-                    selectedDifficulty === 'Beginner'
-                      ? 'bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/30'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  Beginner ({difficultyCounts.Beginner})
-                </button>
-
-                <button
-                  onClick={() => setSelectedDifficulty('Intermediate')}
-                  className={`px-2.5 py-1 rounded text-xs transition-colors ${
-                    selectedDifficulty === 'Intermediate'
-                      ? 'bg-amber-500/10 text-amber-400 font-semibold border border-amber-500/30'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  Intermediate ({difficultyCounts.Intermediate})
-                </button>
-
-                <button
-                  onClick={() => setSelectedDifficulty('Advanced')}
-                  className={`px-2.5 py-1 rounded text-xs transition-colors ${
-                    selectedDifficulty === 'Advanced'
-                      ? 'bg-rose-500/10 text-rose-400 font-semibold border border-rose-500/30'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  Advanced ({difficultyCounts.Advanced})
-                </button>
-              </div>
-
-              {/* Animated Code Filter Toggle */}
-              <button
-                type="button"
-                onClick={() => setAnimatedCodeOnly((prev) => !prev)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs transition-colors border ${
-                  animatedCodeOnly
-                    ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 font-medium'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
-                }`}
-                title="Filter questions with code simulations"
-              >
-                <Code className="w-3.5 h-3.5 text-sky-400" />
-                <span>Code Only</span>
-              </button>
-            </div>
-
-            {/* Sub-Topic Filter Chips */}
-            {availableTopics.length > 1 && (
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
-                <span className="text-slate-400 shrink-0 text-xs flex items-center gap-1 mr-1">
-                  <Filter className="w-3 h-3 text-slate-500" />
-                  <span>Topic:</span>
-                </span>
-                <button
-                  id="topic-filter-all"
-                  onClick={() => setSelectedTopic('all')}
-                  className={`px-2.5 py-0.5 rounded text-xs whitespace-nowrap transition-colors border ${
-                    selectedTopic === 'all'
-                      ? 'bg-slate-800 text-slate-200 border-slate-700 font-medium'
-                      : 'border-transparent text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  All ({filteredQuestions.length})
-                </button>
-                {availableTopics.map((topic) => {
-                  const topicCount = QUESTIONS_DATA.filter((q) =>
-                    selectedStack === 'all'
-                      ? q.topic === topic
-                      : q.stack === selectedStack && q.topic === topic
-                  ).length;
-                  const isSelected = selectedTopic === topic;
-
-                  return (
-                    <button
-                      key={topic}
-                      id={`topic-filter-${topic.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-                      onClick={() => setSelectedTopic(topic)}
-                      className={`px-2.5 py-0.5 rounded text-xs whitespace-nowrap transition-colors border ${
-                        isSelected
-                          ? 'bg-slate-800 text-slate-200 border-slate-700 font-medium'
-                          : 'border-transparent text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      {topic} ({topicCount})
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
             {/* Questions List Render */}
             {filteredQuestions.length === 0 ? (
               <div className="text-center py-14 bg-slate-900 border border-slate-800 rounded-xl p-6">

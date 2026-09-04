@@ -7,7 +7,12 @@ import {
   X,
   Workflow,
   Globe,
-  Database
+  Database,
+  Lock,
+  Sliders,
+  Smartphone,
+  Rocket,
+  Atom
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -119,9 +124,6 @@ export const Header: React.FC<HeaderProps> = ({
               <h1 className="text-base sm:text-lg font-bold text-slate-100 tracking-tight leading-tight">
                 Full Stack Interview Prep
               </h1>
-              <span className="text-[11px] text-slate-400">
-                Interactive Architecture Flows & Code Execution
-              </span>
             </div>
           </div>
 
@@ -184,46 +186,40 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Sub-row: Dynamic based on Flow or Question */}
         <div className="flex flex-wrap items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-800/80">
           {viewMode === 'workflow' ? (
-            /* ── IN BACKEND/FLOW: REST & CRUD TABS ── */
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold pr-1">
-                  Backend Topics:
+            /* ── IN FLOW MODE: ALL ARCHITECTURAL FLOW TOPICS ── */
+            <div className="flex items-center justify-between w-full gap-2 overflow-hidden">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold pr-1 shrink-0">
+                  Flows:
                 </span>
 
-                <button
-                  id="tab-flow-rest"
-                  onClick={() => onSelectBackendWorkflowTopic('rest')}
-                  className={`flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium transition-all border ${
-                    backendWorkflowTopic === 'rest'
-                      ? 'bg-blue-500/20 text-blue-300 border-blue-500/40 shadow-sm font-semibold'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                  }`}
-                >
-                  <Globe className="w-3.5 h-3.5 text-blue-400" />
-                  <span>REST</span>
-                </button>
-
-                <button
-                  id="tab-flow-crud"
-                  onClick={() => onSelectBackendWorkflowTopic('crud')}
-                  className={`flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium transition-all border ${
-                    backendWorkflowTopic === 'crud'
-                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm font-semibold'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                  }`}
-                >
-                  <Database className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>CRUD</span>
-                </button>
-              </div>
-
-              <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-slate-400 bg-slate-950/60 px-2.5 py-1 rounded-md border border-slate-800/80">
-                <span className="text-emerald-400">● Express.js</span>
-                <span>•</span>
-                <span className="text-sky-400">● Spring Boot</span>
-                <span>•</span>
-                <span className="text-amber-400">● FastAPI</span>
+                {[
+                  { id: 'rest' as BackendWorkflowTopic, label: 'REST API', icon: Globe, color: 'text-blue-400', bg: 'bg-blue-500/20', border: 'border-blue-500/40' },
+                  { id: 'auth' as BackendWorkflowTopic, label: 'AUTH (JWT)', icon: Lock, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/40' },
+                  { id: 'crud' as BackendWorkflowTopic, label: 'CRUD & DB', icon: Database, color: 'text-emerald-400', bg: 'bg-emerald-500/20', border: 'border-emerald-500/40' },
+                  { id: 'middleware' as BackendWorkflowTopic, label: 'Middleware', icon: Sliders, color: 'text-purple-400', bg: 'bg-purple-500/20', border: 'border-purple-500/40' },
+                  { id: 'react' as BackendWorkflowTopic, label: 'React (Web)', icon: Atom, color: 'text-cyan-400', bg: 'bg-cyan-500/20', border: 'border-cyan-500/40' },
+                  { id: 'react-native' as BackendWorkflowTopic, label: 'React Native', icon: Smartphone, color: 'text-indigo-400', bg: 'bg-indigo-500/20', border: 'border-indigo-500/40' },
+                  { id: 'devops' as BackendWorkflowTopic, label: 'DevOps & CI/CD', icon: Rocket, color: 'text-pink-400', bg: 'bg-pink-500/20', border: 'border-pink-500/40' },
+                ].map((t) => {
+                  const Icon = t.icon;
+                  const isSelected = backendWorkflowTopic === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      id={`tab-flow-${t.id}`}
+                      onClick={() => onSelectBackendWorkflowTopic(t.id)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all border whitespace-nowrap shrink-0 ${
+                        isSelected
+                          ? `${t.bg} ${t.color} ${t.border} shadow-sm font-semibold`
+                          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{t.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ) : (
