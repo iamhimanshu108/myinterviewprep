@@ -63,14 +63,44 @@ export const STACK_CONFIG: Record<
 };
 
 const ScrollableContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -200 : 200,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div className="relative flex items-center w-full overflow-hidden group">
       <div className="absolute left-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-r from-slate-900 to-transparent pointer-events-none" />
       
-      <div className="animate-marquee flex items-center gap-1.5 py-1">
-        {children}
+      <button 
+        onClick={() => scroll('left')}
+        className="absolute left-0 z-20 p-1 text-slate-400 hover:text-white bg-slate-900/80 rounded-r-md opacity-0 group-hover:opacity-100 transition-opacity"
+        title="Scroll left"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+
+      <div 
+        ref={scrollRef}
+        className="flex items-center gap-1.5 py-1 overflow-x-auto scrollbar-hide scroll-smooth w-full px-6"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
         {children}
       </div>
+
+      <button 
+        onClick={() => scroll('right')}
+        className="absolute right-0 z-20 p-1 text-slate-400 hover:text-white bg-slate-900/80 rounded-l-md opacity-0 group-hover:opacity-100 transition-opacity"
+        title="Scroll right"
+      >
+        <ChevronRight className="w-4 h-4" />
+      </button>
 
       <div className="absolute right-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-l from-slate-900 to-transparent pointer-events-none" />
     </div>
@@ -106,28 +136,26 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            {viewMode === 'questions' && (
-              <div className="relative flex-1 sm:w-56">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none" />
-                <input
-                  id="search-input"
-                  type="text"
-                  placeholder="Search questions..."
-                  value={searchQuery}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 text-slate-200 placeholder:text-slate-500 text-xs rounded-lg pl-8 pr-7 py-1.5 focus:outline-none focus:border-sky-500 transition-colors"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => onSearchChange('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-0.5"
-                    title="Clear search"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-            )}
+            <div className="relative flex-1 sm:w-56">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none" />
+              <input
+                id="search-input"
+                type="text"
+                placeholder={viewMode === 'questions' ? "Search questions..." : "Search flows & topics..."}
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 text-slate-200 placeholder:text-slate-500 text-xs rounded-lg pl-8 pr-7 py-1.5 focus:outline-none focus:border-sky-500 transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => onSearchChange('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-0.5"
+                  title="Clear search"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
 
             <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800/90 shadow-inner">
               <button
@@ -165,15 +193,16 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex-1 min-w-0 flex items-center justify-center">
                 <ScrollableContainer>
                 {[
-                  { id: 'mvc' as BackendWorkflowTopic, label: 'Layered MVC', icon: Server, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/40' },
-                  { id: 'rest' as BackendWorkflowTopic, label: 'REST API', icon: Globe, color: 'text-blue-400', bg: 'bg-blue-500/20', border: 'border-blue-500/40' },
-                  { id: 'auth' as BackendWorkflowTopic, label: 'AUTH (JWT)', icon: Lock, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/40' },
-                  { id: 'crud' as BackendWorkflowTopic, label: 'CRUD & DB', icon: Database, color: 'text-emerald-400', bg: 'bg-emerald-500/20', border: 'border-emerald-500/40' },
-                  { id: 'middleware' as BackendWorkflowTopic, label: 'Middleware', icon: Sliders, color: 'text-purple-400', bg: 'bg-purple-500/20', border: 'border-purple-500/40' },
-                  { id: 'react' as BackendWorkflowTopic, label: 'React (Web)', icon: Atom, color: 'text-cyan-400', bg: 'bg-cyan-500/20', border: 'border-cyan-500/40' },
-                  { id: 'os-memory' as BackendWorkflowTopic, label: 'OS & Memory', icon: Cpu, color: 'text-slate-400', bg: 'bg-slate-500/20', border: 'border-slate-500/40' },
-                  { id: 'devops' as BackendWorkflowTopic, label: 'DevOps', icon: Rocket, color: 'text-pink-400', bg: 'bg-pink-500/20', border: 'border-pink-500/40' }
-                ].map((t) => {
+                  { id: 'mvc' as BackendWorkflowTopic, label: 'Layered MVC', icon: Server, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/40', tags: 'mvc architecture design pattern models views controllers routes' },
+                  { id: 'rest' as BackendWorkflowTopic, label: 'REST API', icon: Globe, color: 'text-blue-400', bg: 'bg-blue-500/20', border: 'border-blue-500/40', tags: 'http methods verbs status codes stateless json api endpoints post get' },
+                  { id: 'auth' as BackendWorkflowTopic, label: 'AUTH (JWT)', icon: Lock, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/40', tags: 'jwt tokens bcrypt hashing password security login register authentication authorization' },
+                  { id: 'crud' as BackendWorkflowTopic, label: 'CRUD & DB', icon: Database, color: 'text-emerald-400', bg: 'bg-emerald-500/20', border: 'border-emerald-500/40', tags: 'sql nosql orm create read update delete postgres mongodb database persistence' },
+                  { id: 'middleware' as BackendWorkflowTopic, label: 'Middleware', icon: Sliders, color: 'text-purple-400', bg: 'bg-purple-500/20', border: 'border-purple-500/40', tags: 'express next logger cors error handling request response' },
+                  { id: 'react' as BackendWorkflowTopic, label: 'React (Web)', icon: Atom, color: 'text-cyan-400', bg: 'bg-cyan-500/20', border: 'border-cyan-500/40', tags: 'react frontend spa components props state hooks' },
+                  { id: 'os-memory' as BackendWorkflowTopic, label: 'OS & Memory', icon: Cpu, color: 'text-slate-400', bg: 'bg-slate-500/20', border: 'border-slate-500/40', tags: 'os memory heap stack processes threads' },
+                  { id: 'devops' as BackendWorkflowTopic, label: 'DevOps', icon: Rocket, color: 'text-pink-400', bg: 'bg-pink-500/20', border: 'border-pink-500/40', tags: 'devops deployment ci cd docker containers cloud aws linux' }
+                ].filter(t => !searchQuery || t.label.toLowerCase().includes(searchQuery.toLowerCase()) || (t.tags && t.tags.includes(searchQuery.toLowerCase())))
+                .map((t) => {
                   const Icon = t.icon;
                   const isSelected = backendWorkflowTopic === t.id;
                   return (

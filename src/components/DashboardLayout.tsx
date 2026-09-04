@@ -12,6 +12,10 @@ import { QUESTIONS_DATA } from '../data/questionsData';
 import { Header, STACK_CONFIG } from './Header';
 import { QuestionCard } from './QuestionCard';
 import { BackendWorkflowViewer } from './BackendWorkflowViewer';
+import { AuthCohortNotesViewer } from './AuthCohortNotesViewer';
+import { RestCohortNotesViewer } from './RestCohortNotesViewer';
+import { CrudCohortNotesViewer } from './CrudCohortNotesViewer';
+import { MiddlewareCohortNotesViewer } from './MiddlewareCohortNotesViewer';
 import { RightTopicNavbar } from './RightTopicNavbar';
 import { BookOpen, PanelLeftOpen } from 'lucide-react';
 
@@ -298,10 +302,20 @@ export function DashboardLayout() {
       {/* Main Content Area */}
       {viewMode === 'workflow' ? (
         <div className="flex-1 animate-fade-up">
-          <BackendWorkflowViewer 
-            initialTopic={backendWorkflowTopic} 
-            onTopicChange={setBackendWorkflowTopic}
-          />
+          {backendWorkflowTopic === 'auth' ? (
+            <AuthCohortNotesViewer />
+          ) : backendWorkflowTopic === 'rest' ? (
+            <RestCohortNotesViewer />
+          ) : backendWorkflowTopic === 'crud' ? (
+            <CrudCohortNotesViewer />
+          ) : backendWorkflowTopic === 'middleware' ? (
+            <MiddlewareCohortNotesViewer />
+          ) : (
+            <BackendWorkflowViewer 
+              initialTopic={backendWorkflowTopic} 
+              onTopicChange={setBackendWorkflowTopic}
+            />
+          )}
         </div>
       ) : (
         <main className="flex-1 max-w-[1500px] w-full mx-auto px-4 sm:px-6 py-5">
