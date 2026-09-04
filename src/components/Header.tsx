@@ -122,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div>
               <h1 className="text-base sm:text-lg font-bold text-slate-100 tracking-tight leading-tight">
-                Full Stack Interview Prep
+                My Interview Prep
               </h1>
             </div>
           </div>

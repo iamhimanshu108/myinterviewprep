@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Question } from '../types';
-import { STACK_CONFIG } from './Header';
 import { AnimatedCodeBlock } from './AnimatedCodeBlock';
 import { 
   Check, 
@@ -15,6 +14,7 @@ import {
 
 interface QuestionCardProps {
   question: Question;
+  questionNumber?: number;
   isCompleted: boolean;
   isBookmarked: boolean;
   isOpen: boolean;
@@ -23,14 +23,9 @@ interface QuestionCardProps {
   onToggleBookmark: () => void;
 }
 
-const DIFFICULTY_STYLES = {
-  Beginner: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  Intermediate: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  Advanced: 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-};
-
 export const QuestionCard: React.FC<QuestionCardProps> = ({
   question,
+  questionNumber,
   isCompleted,
   isBookmarked,
   isOpen,
@@ -38,7 +33,6 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   onToggleComplete,
   onToggleBookmark
 }) => {
-  const stackCfg = STACK_CONFIG[question.stack];
 
   return (
     <motion.article
@@ -80,35 +74,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             <Check className="w-3.5 h-3.5 stroke-[2.5]" />
           </motion.button>
 
-          <div className="space-y-1.5 flex-1">
-            {/* Meta badges */}
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-              <span
-                className={`font-semibold px-2 py-0.5 rounded border ${stackCfg.bg} ${stackCfg.color} ${stackCfg.border}`}
-              >
-                {stackCfg.label}
-              </span>
-
-              <span className="text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60">
-                {question.topic}
-              </span>
-
-              <span
-                className={`font-medium px-2 py-0.5 rounded border ${
-                  DIFFICULTY_STYLES[question.difficulty]
-                }`}
-              >
-                {question.difficulty}
-              </span>
-
-              {question.codeExample && (
-                <span className="text-slate-400 bg-slate-800/60 px-1.5 py-0.5 rounded border border-slate-700/40 flex items-center gap-1 font-mono text-[10px]">
-                  <Code className="w-3 h-3 text-sky-400" />
-                  <span>Code</span>
-                </span>
-              )}
-            </div>
-
+          <div className="flex-1 min-w-0">
             {/* Question Title */}
             <h3
               className={`text-sm sm:text-base font-medium leading-snug transition-colors ${
@@ -117,6 +83,9 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                   : 'text-slate-100'
               }`}
             >
+              {questionNumber !== undefined && (
+                <span className="font-mono text-sky-400 font-bold mr-2">Q{questionNumber}.</span>
+              )}
               {question.title}
             </h3>
           </div>
