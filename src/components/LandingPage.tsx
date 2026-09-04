@@ -73,14 +73,23 @@ export const LandingPage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6, ease: 'easeOut' }}
+          className="flex flex-col sm:flex-row gap-4"
         >
           <Link
-            to="/dashboard"
+            to="/flows/mvc"
             className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-slate-950 font-semibold rounded-full overflow-hidden transition-transform hover:scale-105 active:scale-95"
           >
             <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-black/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
-            <span className="relative z-10 text-lg">Enter Dashboard</span>
+            <span className="relative z-10 text-lg">Learning Flow</span>
             <ArrowRight size={20} className="relative z-10 group-hover:translate-x-1 transition-transform" />
+          </Link>
+          
+          <Link
+            to="/questions/all"
+            className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 border border-slate-800 hover:border-slate-700 text-white font-semibold rounded-full overflow-hidden transition-all hover:bg-slate-800 active:scale-95 shadow-lg shadow-black/20"
+          >
+            <span className="relative z-10 text-lg">Interview Questions</span>
+            <Code2 size={20} className="relative z-10" />
           </Link>
         </motion.div>
       </div>

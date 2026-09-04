@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@import "./ref-theme.css";
 @theme {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-business: 'Inter', system-ui, sans-serif;
@@ -75,6 +75,21 @@ body {
 
 .animate-data-flow {
   animation: dataFlow 1.8s linear infinite;
+}
+
+@keyframes scrollMarquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: scrollMarquee 25s linear infinite;
+  display: flex;
+  width: max-content;
+}
+
+.group:hover .animate-marquee {
+  animation-play-state: paused;
 }
 
 .animate-pulse-glow {

@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+const fs = require('fs');
+
+const content = `import React, { useState, useEffect, useRef } from 'react';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -155,7 +157,7 @@ export const BackendWorkflowViewer: React.FC<BackendWorkflowViewerProps> = ({ se
         </button>
       </div>
 
-      <nav className={`ref-sidebar ${isSidebarOpen ? 'block' : 'hidden'} md:block`}>
+      <nav className={\`ref-sidebar \${isSidebarOpen ? 'block' : 'hidden'} md:block\`}>
         <div className="ref-nav-brand">
           <div className="logo">{currentTopicData.title.substring(0, 15)}<span className="accent-dot">.</span></div>
           <div className="sub">Interview Master · Flow</div>
@@ -174,7 +176,7 @@ export const BackendWorkflowViewer: React.FC<BackendWorkflowViewerProps> = ({ se
                   <button
                     key={item.id}
                     onClick={() => scrollToSection(item.id)}
-                    className={`ref-nav-link ${isActive ? 'active' : ''}`}
+                    className={\`ref-nav-link \${isActive ? 'active' : ''}\`}
                   >
                     <span className="ref-nav-num">{item.num}</span>
                     <span>{item.label}</span>
@@ -333,7 +335,7 @@ export const BackendWorkflowViewer: React.FC<BackendWorkflowViewerProps> = ({ se
             <div style={{display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap'}}>
                <button
                 onClick={() => setSelectedFramework('all')}
-                className={`ref-badge ${selectedFramework === 'all' ? 'ref-badge-accent' : ''}`}
+                className={\`ref-badge \${selectedFramework === 'all' ? 'ref-badge-accent' : ''}\`}
                 style={selectedFramework !== 'all' ? { backgroundColor: 'var(--paper3)', color: 'var(--muted)' } : {}}
               >
                 Compare All
@@ -342,7 +344,7 @@ export const BackendWorkflowViewer: React.FC<BackendWorkflowViewerProps> = ({ se
                 <button
                   key={fw.id}
                   onClick={() => setSelectedFramework(fw.id)}
-                  className={`ref-badge ${selectedFramework === fw.id ? 'ref-badge-accent' : ''}`}
+                  className={\`ref-badge \${selectedFramework === fw.id ? 'ref-badge-accent' : ''}\`}
                   style={selectedFramework !== fw.id ? { backgroundColor: 'var(--paper3)', color: 'var(--muted)' } : {}}
                 >
                   {fw.icon} {fw.label}
@@ -427,7 +429,7 @@ export const BackendWorkflowViewer: React.FC<BackendWorkflowViewerProps> = ({ se
                 })}
               </div>
               {quizResults[selectedTopic] && (
-                <div className={`ref-quiz-feedback ${quizResults[selectedTopic].isCorrect ? 'correct' : 'incorrect'}`}>
+                <div className={\`ref-quiz-feedback \${quizResults[selectedTopic].isCorrect ? 'correct' : 'incorrect'}\`}>
                   {quizResults[selectedTopic].isCorrect ? '✓ Correct! ' : '✗ Incorrect. '}
                   <span style={{textTransform: 'none', fontFamily: 'var(--font-dm)', fontSize: '13px'}}>{currentTopicData.quiz.explanation}</span>
                 </div>
@@ -473,3 +475,9 @@ export const BackendWorkflowViewer: React.FC<BackendWorkflowViewerProps> = ({ se
     </div>
   );
 };
+`;
+fs.writeFileSync('src/components/BackendWorkflowViewer.tsx', content);
+console.log('Successfully wrote BackendWorkflowViewer.tsx!');
+`;
+fs.writeFileSync('rewrite-viewer.js', scriptContent);
+`

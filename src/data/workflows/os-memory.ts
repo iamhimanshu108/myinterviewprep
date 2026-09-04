@@ -3,42 +3,48 @@ import { WorkflowTopicData } from '../../types';
 export const osMemoryWorkflow: WorkflowTopicData = {
     id: 'os-memory',
     title: 'OS & Memory Management',
-    subtitle: 'Processes, threads, I/O, memory allocation',
-    tagline: 'Deep dive into OS & Memory Management concepts and code architectures.',
-    accentColor: '#6366f1', // Indigo
-    category: 'Fundamentals',
-    tags: ["Processes","Threads","I/O","Memory"],
+    subtitle: 'Processes, Threads, and Garbage Collection',
+    tagline: 'Understanding the foundation of systems programming.',
+    accentColor: '#64748B',
+    tags: ['Threads', 'Heap', 'Stack', 'Garbage Collection'],
     sections: [
-      { id: 'os-memory-01', num: 1, label: 'Core Principles', group: 'Phase 1: Beginner' }
+      { id: 'os-01', num: 1, label: 'Memory Layout', group: 'Phase 1: Beginner' }
     ],
     flowSteps: [
       {
-        name: 'Concept Overview',
-        detail: 'Detailed flow implementation coming soon.',
-        lit: ['client', 'server']
+        name: 'Process Allocation',
+        detail: 'The OS allocates a chunk of RAM for the process, dividing it into Stack, Heap, Data, and Text segments.',
+        lit: ['server']
       }
     ],
     codebases: {
-      placeholder: {
-        framework: 'placeholder',
-        frameworkName: 'Coming Soon',
-        language: 'plaintext',
-        fileLabel: 'example.txt',
+      c: {
+        framework: 'c',
+        frameworkName: 'C Language',
+        language: 'c',
+        fileLabel: 'memory.c',
         badgeColor: 'bg-slate-500/10 text-slate-400 border-slate-500/30',
-        code: 'Detailed framework implementations for this topic are currently under construction.',
-        explanation: 'Stay tuned for deep-dives into how this is handled across Express, Spring Boot, Django, and FastAPI!',
-        architectureHighlights: ['Check back soon!']
+        code: `int main() {
+  // Stack allocation
+  int local_var = 5;
+  
+  // Heap allocation
+  int *heap_var = (int*)malloc(sizeof(int));
+  *heap_var = 10;
+  
+  // Must manually free heap memory!
+  free(heap_var);
+  return 0;
+}`,
+        explanation: 'Manual memory management in C demonstrates the difference between Stack (automatic) and Heap (manual) allocation.',
+        architectureHighlights: [
+          'Stack is fast and automatically cleaned up',
+          'Heap requires manual malloc/free, risking memory leaks'
+        ]
       }
     },
+    quiz: undefined,
     comparisonPoints: [],
-    quiz: {
-      question: 'Placeholder Quiz for OS & Memory Management',
-      options: ['A', 'B', 'C', 'D'],
-      correctIndex: 0,
-      explanation: 'Placeholder explanation.'
-    },
-    bestPractices: ['Coming soon.'],
-    commonMistakes: [
-      { mistake: 'Coming soon.', consequence: 'Unknown', solution: 'N/A' }
-    ]
-  };
+    bestPractices: [],
+    commonMistakes: []
+};

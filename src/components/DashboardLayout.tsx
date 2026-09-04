@@ -112,8 +112,7 @@ export function DashboardLayout() {
 
   // Reset topic & difficulty when stack changes
   const handleSelectStack = (stack: TechStack) => {
-    setSelectedStack(stack);
-    setSelectedTopic('all');
+    navigate(`/questions/${stack}`);
   };
 
   // Filtered questions
@@ -285,9 +284,12 @@ export function DashboardLayout() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         viewMode={viewMode}
-        onChangeViewMode={setViewMode}
+        onChangeViewMode={(mode) => {
+          if (mode === 'workflow') navigate(`/flows/${backendWorkflowTopic}`);
+          else navigate(`/questions/${selectedStack}`);
+        }}
         backendWorkflowTopic={backendWorkflowTopic}
-        onSelectBackendWorkflowTopic={(topic) => setBackendWorkflowTopic(topic)}
+        onSelectBackendWorkflowTopic={(topic) => navigate(`/flows/${topic}`)}
         bookmarkedOnly={bookmarkedOnly}
         onToggleBookmarkedOnly={() => setBookmarkedOnly((prev) => !prev)}
         bookmarkedCount={bookmarkedIds.length}
