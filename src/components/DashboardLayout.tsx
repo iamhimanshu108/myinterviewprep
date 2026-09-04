@@ -7,6 +7,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { TechStack, ViewMode, Question, Difficulty, BackendWorkflowTopic } from '../types';
+import { BACKEND_WORKFLOWS } from '../data/backendWorkflowsData';
 import { QUESTIONS_DATA } from '../data/questionsData';
 import { Header, STACK_CONFIG } from './Header';
 import { QuestionCard } from './QuestionCard';

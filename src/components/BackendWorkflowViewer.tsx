@@ -63,7 +63,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
   // Interactive Quiz state (quizId -> { selectedIndex, isCorrect })
   const [quizResults, setQuizResults] = useState<Record<string, { selectedIndex: number; isCorrect: boolean }>>({});
 
-  const currentTopicData: WorkflowTopicData = BACKEND_WORKFLOWS[selectedTopic];
+  const currentTopicData: WorkflowTopicData | undefined = BACKEND_WORKFLOWS[selectedTopic];
 
   // Reset stepper and framework filter when topic changes
   useEffect(() => {
@@ -71,8 +71,8 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
     setStepIndex(0);
     setIsStepperAutoPlaying(false);
     if (stepperTimerRef.current) clearInterval(stepperTimerRef.current);
-    if (currentTopicData.sections.length > 0) {
-      setActiveSectionId(currentTopicData.sections[0].id);
+    if ((currentTopicData?.sections || []).length > 0) {
+      setActiveSectionId((currentTopicData?.sections || [])[0].id);
     }
   }, [selectedTopic]);
 
@@ -80,7 +80,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
   useEffect(() => {
     if (isStepperAutoPlaying) {
       stepperTimerRef.current = setInterval(() => {
-        setStepIndex((prev) => (prev + 1) % currentTopicData.flowSteps.length);
+        setStepIndex((prev) => (prev + 1) % (currentTopicData?.flowSteps?.length || 1));
       }, 3500);
     } else {
       if (stepperTimerRef.current) clearInterval(stepperTimerRef.current);
@@ -88,7 +88,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
     return () => {
       if (stepperTimerRef.current) clearInterval(stepperTimerRef.current);
     };
-  }, [isStepperAutoPlaying, currentTopicData.flowSteps.length]);
+  }, [isStepperAutoPlaying, (currentTopicData?.flowSteps?.length || 1)]);
 
   // Scrollspy to update active section in sidebar
   useEffect(() => {
@@ -103,13 +103,13 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
       { rootMargin: '-20% 0px -60% 0px' }
     );
 
-    currentTopicData.sections.forEach((s) => {
+    (currentTopicData?.sections || []).forEach((s) => {
       const el = document.getElementById(s.id);
       if (el) observer.observe(el);
     });
 
     return () => observer.disconnect();
-  }, [selectedTopic, currentTopicData.sections]);
+  }, [selectedTopic, (currentTopicData?.sections || [])]);
 
   const handleCopyCode = (text: string, key: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -134,19 +134,19 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
     }
   };
 
-  const currentStep = currentTopicData.flowSteps[stepIndex] || currentTopicData.flowSteps[0];
+  const currentStep = (currentTopicData?.flowSteps || [])[stepIndex] || (currentTopicData?.flowSteps || [])[0];
   const isLit = (elementId: string) => currentStep.lit.includes(elementId);
 
   // Group navigation items
-  const groupedNav = currentTopicData.sections.reduce((acc, curr) => {
+  const groupedNav = (currentTopicData?.sections || []).reduce((acc, curr) => {
     if (!acc[curr.group]) acc[curr.group] = [];
     acc[curr.group].push(curr);
     return acc;
-  }, {} as Record<string, typeof currentTopicData.sections>);
+  }, {} as Record<string, WorkflowTopicData['sections']>);
 
   // Dynamic framework details helper based on active topic
   const frameworksList = useMemo(() => {
-    return Object.entries(currentTopicData.codebases).map(([key, cb]: [string, any]) => {
+    return Object.entries((currentTopicData?.codebases || {})).map(([key, cb]: [string, any]) => {
       let icon = '⚡';
       if (key === 'express') icon = '🟢';
       else if (key === 'springboot') icon = '🍃';
@@ -260,18 +260,18 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
                 Core Concept &amp; The Architectural Dilemma
               </h3>
               <p className="text-xs text-slate-400">
-                {currentTopicData.tagline}
+                {(currentTopicData?.tagline || "")}
               </p>
             </div>
           </div>
 
           <div className="p-4 sm:p-5 rounded-lg bg-slate-900 border-l-4 border-l-orange-500 border border-slate-800 text-sm text-slate-300 leading-relaxed space-y-3">
             <p>
-              {currentTopicData.subtitle}. Understanding how data and execution flow through each architectural layer is essential for scalable system design and senior technical interviews.
+              {(currentTopicData?.subtitle || "")}. Understanding how data and execution flow through each architectural layer is essential for scalable system design and senior technical interviews.
             </p>
             <div className="grid sm:grid-cols-3 gap-3 pt-2">
               {frameworksList.map((fw) => {
-                const cb = currentTopicData.codebases[fw.id];
+                const cb = (currentTopicData?.codebases || {})[fw.id];
                 return (
                   <div key={fw.id} className="p-3 bg-slate-950/60 rounded border border-slate-800">
                     <div className="text-xs font-bold text-orange-400 flex items-center gap-1.5 mb-1">
@@ -411,7 +411,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
               <div className="flex items-center gap-3">
                 <button
                   id="stepper-prev-btn"
-                  onClick={() => setStepIndex((prev) => (prev > 0 ? prev - 1 : currentTopicData.flowSteps.length - 1))}
+                  onClick={() => setStepIndex((prev) => (prev > 0 ? prev - 1 : (currentTopicData?.flowSteps?.length || 1) - 1))}
                   className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono-ref rounded border border-slate-700 flex items-center gap-1 transition-colors"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
@@ -433,7 +433,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
 
                 <button
                   id="stepper-next-btn"
-                  onClick={() => setStepIndex((prev) => (prev + 1) % currentTopicData.flowSteps.length)}
+                  onClick={() => setStepIndex((prev) => (prev + 1) % (currentTopicData?.flowSteps?.length || 1))}
                   className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono-ref rounded border border-slate-700 flex items-center gap-1 transition-colors"
                 >
                   <span>Next</span>
@@ -441,7 +441,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
                 </button>
 
                 <span className="font-mono-ref text-xs text-slate-400">
-                  Step {stepIndex + 1} of {currentTopicData.flowSteps.length}
+                  Step {stepIndex + 1} of {(currentTopicData?.flowSteps?.length || 1)}
                 </span>
               </div>
 
@@ -469,7 +469,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
                 <span>Codebases: Complete Real-World Implementation</span>
               </h3>
               <p className="text-xs text-slate-400">
-                Understand and compare the exact code implementation for {currentTopicData.title}
+                Understand and compare the exact code implementation for {(currentTopicData?.title || "")}
               </p>
             </div>
           </div>
@@ -512,10 +512,10 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
           {/* CODE PANELS CONTAINER */}
           <div className="space-y-6">
             {(selectedFramework === 'all'
-              ? Object.keys(currentTopicData.codebases)
+              ? Object.keys((currentTopicData?.codebases || {}))
               : [selectedFramework]
             ).map((fwKey) => {
-              const codebase: WorkflowCodebase = currentTopicData.codebases[fwKey];
+              const codebase: WorkflowCodebase = (currentTopicData?.codebases || {})[fwKey];
               if (!codebase) return null;
               return (
                 <div
@@ -599,7 +599,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/80 font-sans">
-                {currentTopicData.comparisonPoints.map((row, idx) => (
+                {(currentTopicData?.comparisonPoints || []).map((row, idx) => (
                   <tr key={idx} className="hover:bg-slate-800/40 transition-colors">
                     <td className="p-3.5 font-medium text-slate-200 whitespace-nowrap bg-slate-950/40">
                       {row.feature}
@@ -654,14 +654,14 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
                   </span>
                 </div>
                 <h4 className="text-sm font-semibold text-slate-100 mb-4">
-                  {currentTopicData.quiz.question}
+                  {(currentTopicData?.quiz).question}
                 </h4>
 
                 <div className="space-y-2 mb-4">
-                  {currentTopicData.quiz.options.map((opt, optIdx) => {
+                  {(currentTopicData?.quiz).options.map((opt, optIdx) => {
                     const quizState = quizResults[selectedTopic];
                     const isSelected = quizState?.selectedIndex === optIdx;
-                    const isCorrectOpt = optIdx === currentTopicData.quiz.correctIndex;
+                    const isCorrectOpt = optIdx === (currentTopicData?.quiz).correctIndex;
                     let btnStyle = 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700';
 
                     if (quizState) {
@@ -679,7 +679,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
                           handleQuizAnswer(
                             selectedTopic,
                             optIdx,
-                            optIdx === currentTopicData.quiz.correctIndex
+                            optIdx === (currentTopicData?.quiz).correctIndex
                           )
                         }
                         className={`w-full text-left p-2.5 rounded-lg border text-xs font-sans transition-all flex items-start gap-2 ${btnStyle}`}
@@ -706,7 +706,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
                   <div className="font-bold mb-1">
                     {quizResults[selectedTopic].isCorrect ? 'Correct!' : 'Incorrect'}
                   </div>
-                  <div>{currentTopicData.quiz.explanation}</div>
+                  <div>{(currentTopicData?.quiz).explanation}</div>
                 </div>
               )}
             </div>
@@ -719,7 +719,7 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
               </div>
 
               <div className="space-y-3">
-                {currentTopicData.commonMistakes.map((item, idx) => (
+                {(currentTopicData?.commonMistakes || []).map((item, idx) => (
                   <div
                     key={idx}
                     className="p-3 bg-slate-950/80 rounded-lg border border-slate-800 text-xs space-y-1.5"
@@ -745,10 +745,10 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
         <div className="p-6 rounded-xl bg-slate-900/60 border border-slate-800">
           <h4 className="text-sm font-semibold font-mono-ref uppercase tracking-wider text-slate-300 mb-3 flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-orange-400" />
-            <span>Golden Architectural Best Practices for {currentTopicData.title}</span>
+            <span>Golden Architectural Best Practices for {(currentTopicData?.title || "")}</span>
           </h4>
           <ul className="grid sm:grid-cols-2 gap-2 text-xs text-slate-400">
-            {currentTopicData.bestPractices.map((bp, i) => (
+            {(currentTopicData?.bestPractices || []).map((bp, i) => (
               <li key={i} className="flex items-start gap-2">
                 <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
                 <span>{bp}</span>
