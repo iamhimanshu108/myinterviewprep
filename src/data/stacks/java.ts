@@ -1,4 +1,4 @@
-import { Question } from '../../types';
+﻿import { Question } from '../../types';
 
 export const JAVA_QUESTIONS: Question[] = [
   // ==========================================
@@ -445,5 +445,230 @@ public class MemoryLeakDemo {
     ],
     interviewTip: 'Mention ThreadLocal.remove(). Because thread pool threads (like Tomcat worker threads) are reused across requests, failing to call remove() leaks request-scoped data to future requests and prevents GC.',
     tags: ['JVM', 'Garbage Collection', 'G1GC', 'ZGC', 'Memory Leak']
+  },
+  {
+    id: 'java-9',
+    stack: 'java',
+    topic: 'Generics & Type Safety',
+    title: 'How do Java Generics work and what is type erasure? Explain bounded wildcards.',
+    difficulty: 'Intermediate',
+    summary: 'Java Generics provide compile-time type safety. Type erasure removes generic type information at runtime. Bounded wildcards (? extends T, ? super T) enable flexible API design using the PECS principle.',
+    explanation: [
+      'Type Erasure: Generic type parameters exist only at compile time. After compilation, List<String> and List<Integer> are both just List at runtime.',
+      '? extends T (Upper Bound): Accepts T or any subtype. Use when reading from a collection (Producer). Cannot add elements.',
+      '? super T (Lower Bound): Accepts T or any supertype. Use when writing to a collection (Consumer). PECS: Producer Extends, Consumer Super.'
+    ],
+    codeExample: {
+      language: 'java',
+      filename: 'Generics.java',
+      code: `import java.util.*;
+
+public class NumberUtils {
+    public static <T extends Number & Comparable<T>> T findMax(List<T> list) {
+        return list.stream().max(Comparator.naturalOrder()).orElseThrow();
+    }
+}
+
+class Transfer {
+    public static <T> void copy(List<? extends T> src, List<? super T> dst) {
+        for (T item : src) {
+            dst.add(item);
+        }
+    }
+}
+
+List<Integer> ints = Arrays.asList(3, 1, 4, 1, 5);
+List<Number> numbers = new ArrayList<>();
+Transfer.copy(ints, numbers);
+System.out.println("Max: " + NumberUtils.findMax(ints));`,
+      output: `Max: 5`,
+      executionSteps: [
+        { line: 4, explanation: '<T extends Number & Comparable<T>> constrains T to numeric comparable types' },
+        { line: 10, explanation: '? extends T: read-only producer view of the collection' },
+        { line: 11, explanation: '? super T: write-only consumer view — safe to add T values' }
+      ]
+    },
+    keyPoints: [
+      'Cannot create generic arrays: new T[10] is a compile error due to type erasure.',
+      'Generic types are invariant: List<Dog> is NOT a subtype of List<Animal> unlike arrays.',
+      'Raw types suppress type safety — never use them in modern Java.'
+    ],
+    interviewTip: 'PECS: Producer Extends, Consumer Super. Vending machine (producer) gives drinks — extends. Recycling bin (consumer) accepts bottles — super.',
+    tags: ['Generics', 'Type Erasure', 'Wildcards', 'PECS', 'Type Safety']
+  },
+  {
+    id: 'java-10',
+    stack: 'java',
+    topic: 'Design Patterns in Java',
+    title: 'Implement thread-safe Singleton and explain the double-checked locking pitfall.',
+    difficulty: 'Intermediate',
+    summary: 'Singleton ensures one instance exists. Enum singleton is the safest approach. Double-checked locking requires volatile to prevent instruction reordering during object construction.',
+    explanation: [
+      'Naive implementation: Two threads can simultaneously check (instance == null) before either creates it, resulting in two instances.',
+      'Double-Checked Locking: volatile prevents CPU instruction reordering. Without it, JVM may publish a partially constructed object reference.',
+      'Best approach: Enum singleton is thread-safe by JVM class loading and protected against reflection and serialization attacks.'
+    ],
+    codeExample: {
+      language: 'java',
+      filename: 'Singleton.java',
+      code: `// BEST: Enum Singleton
+public enum DatabasePool {
+    INSTANCE;
+    public void query(String sql) { System.out.println("Running: " + sql); }
+}
+
+// GOOD: Static Holder — lazy + thread-safe
+public class ConfigManager {
+    private static class Holder {
+        static final ConfigManager INSTANCE = new ConfigManager();
+    }
+    private ConfigManager() {}
+    public static ConfigManager getInstance() { return Holder.INSTANCE; }
+}
+
+// DCL — volatile REQUIRED
+public class ServiceRegistry {
+    private static volatile ServiceRegistry instance;
+    public static ServiceRegistry getInstance() {
+        if (instance == null) {
+            synchronized (ServiceRegistry.class) {
+                if (instance == null) { instance = new ServiceRegistry(); }
+            }
+        }
+        return instance;
+    }
+}
+
+DatabasePool.INSTANCE.query("SELECT * FROM users");`,
+      output: `Running: SELECT * FROM users`,
+      executionSteps: [
+        { line: 2, explanation: 'Enum constants initialized once by JVM class loading — inherently thread-safe' },
+        { line: 9, explanation: 'Holder class loaded lazily on first getInstance() call' },
+        { line: 16, explanation: 'volatile prevents instruction reordering — prevents partially initialized object' }
+      ]
+    },
+    keyPoints: [
+      'Enum singleton immune to reflection attacks.',
+      'Without volatile in DCL: JVM reorders assign reference before initialize object — publishes half-built object.',
+      'Spring @Component beans are singleton-scoped by default.'
+    ],
+    interviewTip: 'DCL without volatile failure: new Singleton() has 3 JVM steps: allocate memory → initialize → assign reference. JVM reorders steps 2 and 3, publishing an uninitialized reference to waiting threads.',
+    tags: ['Singleton', 'Design Patterns', 'Thread Safety', 'volatile', 'DCL']
+  },
+  {
+    id: 'java-11',
+    stack: 'java',
+    topic: 'Design Patterns in Java',
+    title: 'Explain Builder, Factory Method, and Strategy patterns with Java examples.',
+    difficulty: 'Intermediate',
+    summary: 'Builder constructs complex objects step-by-step. Factory decouples creation. Strategy defines interchangeable algorithms — all applying the Open/Closed Principle.',
+    explanation: [
+      'Builder: Eliminates telescoping constructors. The builder fluently accumulates options and creates the immutable object on build(). Lombok @Builder auto-generates this.',
+      'Factory Method: Defines an interface for creating objects; subclasses decide which concrete class to create. New types added without modifying client code.',
+      'Strategy: Encapsulates a family of algorithms implementing a common interface; swappable at runtime.'
+    ],
+    codeExample: {
+      language: 'java',
+      filename: 'Patterns.java',
+      code: `// BUILDER
+public final class HttpRequest {
+    private final String url, method;
+    private HttpRequest(Builder b) { this.url = b.url; this.method = b.method; }
+    public static class Builder {
+        private String url; private String method = "GET";
+        public Builder url(String u) { url = u; return this; }
+        public Builder method(String m) { method = m; return this; }
+        public HttpRequest build() { return new HttpRequest(this); }
+    }
+}
+
+// STRATEGY
+interface PaymentStrategy { void pay(double amount); }
+class CreditCard implements PaymentStrategy {
+    public void pay(double a) { System.out.println("Card: $" + a); }
+}
+class UPI implements PaymentStrategy {
+    public void pay(double a) { System.out.println("UPI: Rs." + a); }
+}
+class Checkout {
+    private PaymentStrategy s;
+    public Checkout(PaymentStrategy s) { this.s = s; }
+    public void setStrategy(PaymentStrategy s) { this.s = s; }
+    public void complete(double amount) { s.pay(amount); }
+}
+
+Checkout c = new Checkout(new CreditCard());
+c.complete(99.95);
+c.setStrategy(new UPI());
+c.complete(500.0);`,
+      output: `Card: $99.95\nUPI: Rs.500.0`,
+      executionSteps: [
+        { line: 7, explanation: 'Fluent API: each method returns this for method chaining' },
+        { line: 14, explanation: 'CreditCard and UPI are interchangeable behind PaymentStrategy' },
+        { line: 23, explanation: 'setStrategy swaps algorithm at runtime without changing Checkout' }
+      ]
+    },
+    keyPoints: [
+      'Open/Closed Principle: Strategy enables new payment methods without modifying Checkout.',
+      'Lombok @Builder annotation generates Builder boilerplate automatically.',
+      'Java SDK uses these patterns: StringBuilder (Builder), Executors (Factory), Collections.sort (Strategy).'
+    ],
+    interviewTip: 'Connect patterns to real APIs: Stream.sorted(comparator) is Strategy. Executors.newFixedThreadPool() is Factory Method. This shows pattern recognition in existing frameworks.',
+    tags: ['Design Patterns', 'Builder', 'Factory', 'Strategy', 'SOLID']
+  },
+  {
+    id: 'java-12',
+    stack: 'java',
+    topic: 'Java 8+ Modern Features',
+    title: 'What is Optional<T> and how does it help eliminate NullPointerExceptions?',
+    difficulty: 'Beginner',
+    summary: 'Optional<T> is a container that may or may not hold a non-null value. It forces callers to explicitly handle the absent case, turning implicit NPEs into explicit documented contracts.',
+    explanation: [
+      'The Problem: Returning null forces callers to remember null-checks. Forgotten checks result in NPE crashes far from the null source.',
+      'Optional makes absence explicit: The return type Optional<User> tells callers this might have no value. Accessing requires explicit handling.',
+      'Functional API: map(), filter(), orElse(), orElseGet(), orElseThrow() enable clean functional pipelines without nested null checks.'
+    ],
+    codeExample: {
+      language: 'java',
+      filename: 'OptionalDemo.java',
+      code: `import java.util.Optional;
+
+public class UserService {
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
+    public String getDisplayName(Long userId) {
+        return findById(userId)
+            .filter(User::isActive)
+            .map(u -> u.getFirstName() + " " + u.getLastName())
+            .map(String::trim)
+            .orElse("Anonymous");
+    }
+
+    public User getOrThrow(Long id) {
+        return findById(id).orElseThrow(() ->
+            new RuntimeException("User " + id + " not found")
+        );
+    }
+}
+
+// Anti-patterns:
+// optional.get() without isPresent() — same as null dereference
+// Optional as field type — use @Nullable instead`,
+      output: `getDisplayName(1L) -> "Alice Smith"\ngetDisplayName(999L) -> "Anonymous"`,
+      executionSteps: [
+        { line: 4, explanation: 'Return Optional<User> — type signature communicates possible absence' },
+        { line: 10, explanation: 'filter passes Optional through only if user is active' },
+        { line: 13, explanation: 'orElse provides safe fallback when Optional is empty' }
+      ]
+    },
+    keyPoints: [
+      'Optional.of() throws NPE if null. Use Optional.ofNullable() for nullable values.',
+      'orElseGet(() -> compute()) is lazy — only runs if Optional is empty.',
+      'Design intent: Optional for return types only — not fields or parameters.'
+    ],
+    interviewTip: 'Optional is not about eliminating null everywhere. It specifically signals to callers that absence is a legitimate state, forcing them to handle it in a type-safe way.',
+    tags: ['Optional', 'NullPointerException', 'Java 8', 'Functional', 'Null Safety']
   }
 ];

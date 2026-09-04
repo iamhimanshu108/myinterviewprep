@@ -2,1189 +2,2693 @@ import { Question } from '../../types';
 
 export const JAVASCRIPT_QUESTIONS: Question[] = [
   // ==========================================
-  // BEGINNER
+  // Topic 1: Data Types, Coercion & Memory Management
   // ==========================================
   {
     id: 'js-1',
     stack: 'javascript',
-    topic: 'Scope & Hoisting',
-    title: 'What are the precise differences between var, let, and const, and what is the Temporal Dead Zone?',
+    topic: 'Data Types, Coercion & Memory Management',
+    title: 'What are the primitive and non-primitive data types in JavaScript?',
     difficulty: 'Beginner',
-    summary: 'var is function-scoped and hoisted with undefined, while let and const are block-scoped and live in the Temporal Dead Zone (TDZ) until initialized.',
+    summary: 'Primitives are stored directly by value and are immutable: String, Number, BigInt, Boolean, Undefined, Null, and Symbol. Non-Primitives are stored by reference: Object (including Arrays, Functions, and Dates). Note: typeof null returns "object" due to a legacy bug in JavaScript engines.',
     explanation: [
-      'Scope: "var" is scoped to the nearest enclosing function (or global object). "let" and "const" are block-scoped, respecting any block delimited by curly braces {}.',
-      'Hoisting & TDZ: While all three are hoisted during compile phase, "var" is initialized immediately with "undefined". Variables declared with "let" and "const" enter the Temporal Dead Zone from the start of the block until the declaration line is reached. Accessing them beforehand throws a ReferenceError.',
-      'Global Object Property: Global variables declared with "var" become properties of the global window object (window.a). Variables declared with "let" and "const" in global scope do not attach to window.',
-      'Reassignment: "var" and "let" can be reassigned. "const" creates an immutable identifier binding; it cannot be reassigned, but properties of an object assigned to const can still be mutated.'
+      'Primitives (7 types): String, Number, BigInt, Boolean, Undefined, Null, and Symbol. They are immutable and stored directly by value in stack memory.',
+      'Non-Primitives: Object, Array, Function, Date, Map, Set, RegExp. They are mutable and stored in heap memory; variables store only the memory reference pointer.',
+      'typeof null quirk: In early JavaScript implementations, values were stored with type tags (objects had tag 0, null was NULL pointer 0x00), which causes typeof null to return "object".',
+      'Mutability: Modifying a primitive variable creates a new value in memory, whereas mutating a non-primitive updates the shared heap object directly.'
     ],
     codeExample: {
       language: 'javascript',
-      filename: 'scope-and-hoisting.js',
-      code: `console.log(a); // undefined (hoisted & initialized)
-// console.log(b); // ReferenceError: Cannot access 'b' before initialization (TDZ)
+      filename: 'primitives-vs-nonprimitives.js',
+      code: `// 1. Primitives (Stored by value & immutable)
+let str = "hello";
+let num = 42;
+let bool = true;
+let n = null;
+let u = undefined;
+let sym = Symbol("id");
+let big = 9007199254740991n;
 
-var a = 10;
-let b = 20;
-const config = { mode: 'dark' };
+console.log(typeof str);  // "string"
+console.log(typeof num);  // "number"
+console.log(typeof null); // "object" (legacy engine bug)
 
-config.mode = 'light'; // Allowed: property mutation
-// config = {};        // TypeError: Assignment to constant variable
-
-{
-  var blockVar = 'leaks out';
-  let blockLet = 'stays inside';
-}
-console.log(blockVar); // 'leaks out'
-// console.log(blockLet); // ReferenceError: blockLet is not defined`,
-      output: `undefined
-leaks out`,
+// 2. Non-Primitives (Stored by reference pointer)
+let obj = { name: "Alice" };
+let arr = [1, 2, 3];
+console.log(typeof obj);  // "object"
+console.log(Array.isArray(arr)); // true`,
+      output: `string
+number
+object
+object
+true`,
       executionSteps: [
-        { line: 1, explanation: 'var a hoisted with undefined; prints undefined without error' },
-        { line: 4, explanation: 'var a initialized to 10' },
-        { line: 5, explanation: 'let b exits Temporal Dead Zone and initializes to 20' },
-        { line: 6, explanation: 'const config binding created in memory' },
-        { line: 8, explanation: 'Object property mutation permitted on const object reference' },
-        { line: 15, explanation: 'blockVar leaks outside block because var lacks block scope' }
+        { line: 2, explanation: 'Primitive string "hello" allocated by value' },
+        { line: 11, explanation: 'typeof null evaluated: returns "object" due to historic type-tag bug' },
+        { line: 15, explanation: 'Object allocated in heap; obj holds memory reference' },
+        { line: 18, explanation: 'Array.isArray confirms array instance type' }
       ]
     },
     keyPoints: [
-      'var: Function-scoped, can be redeclared and reassigned, hoisted as undefined, binds to window.',
-      'let: Block-scoped, cannot be redeclared in same scope, can be reassigned, TDZ protected.',
-      'const: Block-scoped, cannot be redeclared or reassigned, requires immediate initialization.'
+      '7 Primitive types: string, number, bigint, boolean, undefined, null, symbol.',
+      'Non-primitives: objects, arrays, and functions stored by reference in heap memory.',
+      'typeof null === "object" is an unfixable legacy bug in the ECMAScript spec.'
     ],
-    interviewTip: 'Interviewers often test this using a "for" loop with setTimeout. "var i" shares a single mutable variable printing 3, 3, 3; "let i" binds a fresh lexical scope for every iteration, correctly printing 0, 1, 2.',
-    tags: ['ES6', 'Variables', 'TDZ', 'Execution Context', 'InterviewBit']
+    interviewTip: 'Always use Array.isArray(val) or Object.prototype.toString.call(val) instead of typeof when distinguishing arrays or null from generic objects.',
+    tags: ['Primitives', 'Data Types', 'Memory', 'typeof', 'JavaScript Basics']
   },
   {
     id: 'js-2',
     stack: 'javascript',
-    topic: 'Data Types & Coercion',
-    title: 'Explain JavaScript Primitive vs Reference types, and the difference between "==" and "===".',
+    topic: 'Data Types, Coercion & Memory Management',
+    title: 'Is JavaScript statically typed or dynamically typed?',
     difficulty: 'Beginner',
-    summary: 'Primitives are stored directly by value in stack memory, while Reference types store memory pointers to heap objects. "===" checks value and type without coercion.',
+    summary: 'JavaScript is dynamically typed. Types are bound to values rather than variable declarations, and type checking occurs at runtime.',
     explanation: [
-      'Primitives (7 types): string, number, bigint, boolean, undefined, symbol, and null. Stored by value and immutable.',
-      'Reference Types: Object, Array, Function, Date, Map, Set. Stored on the heap; variables hold memory addresses (references). Modifying one reference affects all variables referencing that object.',
-      'Type Coercion (== vs ===): Strict equality (===) performs no type conversion and returns false if types differ. Loose equality (==) follows the Abstract Equality Comparison Algorithm, coercing operands (e.g. "5" == 5 is true, null == undefined is true, [] == 0 is true).'
+      'Dynamic Typing: Variables do not hold type declarations. The JavaScript engine determines the type at runtime based on the value currently assigned.',
+      'Reassignment: A variable declared with let or var can hold a number, then be reassigned to a string, object, or boolean during execution.',
+      'Runtime vs Compile-time: Statically typed languages (TypeScript, Java, C++) check types during compilation, catching errors early. JavaScript catches type errors (e.g., calling non-functions) during runtime.',
+      'Weakly Typed: JavaScript also allows implicit coercion between unrelated types during operations (e.g., "5" - 1).'
     ],
     codeExample: {
       language: 'javascript',
-      filename: 'types-and-equality.js',
-      code: `// 1. Primitive: Copied by Value
-let num1 = 10;
-let num2 = num1;
-num2 = 20;
-console.log(num1); // 10 (Original unaffected)
+      filename: 'dynamic-typing.js',
+      code: `let data = 42; // Currently a number
+console.log(typeof data); // "number"
 
-// 2. Reference: Copied by Reference Pointer
-let obj1 = { name: 'Dev' };
-let obj2 = obj1;
-obj2.name = 'Architect';
-console.log(obj1.name); // 'Architect' (Mutated!)
+data = "Interview Prep"; // Reassigned to a string
+console.log(typeof data); // "string"
 
-// 3. Equality Quirks
-console.log(0 == '');        // true (coerced to numbers)
-console.log(0 === '');       // false (number !== string)
-console.log(null == undefined);  // true
-console.log(null === undefined); // false`,
-      output: `10
-Architect
-true
-false
-true
-false`,
+data = { id: 101, active: true }; // Reassigned to an object
+console.log(typeof data); // "object"`,
+      output: `number
+string
+object`,
       executionSteps: [
-        { line: 2, explanation: 'Primitive number 10 allocated by value in memory' },
-        { line: 7, explanation: 'Object created in heap memory; obj1 and obj2 share reference pointer' },
-        { line: 9, explanation: 'Mutating obj2.name alters shared heap object' },
-        { line: 13, explanation: 'Loose equality coerces empty string to 0' },
-        { line: 14, explanation: 'Strict equality verifies number !== string' }
+        { line: 1, explanation: 'Variable data initialized with number 42' },
+        { line: 4, explanation: 'Variable data dynamically re-bound to string literal' },
+        { line: 7, explanation: 'Variable data re-bound to object reference' }
       ]
     },
     keyPoints: [
-      'Primitive values are immutable and copied by value.',
-      'Objects and arrays are reference types copied by memory address.',
-      'Always default to strict equality (===) to prevent unexpected type coercion bugs.'
+      'Types belong to values, not variable bindings.',
+      'Type verification occurs entirely at runtime, not during compile time.',
+      'Provides high flexibility, but requires runtime validation or TypeScript for enterprise safety.'
     ],
-    interviewTip: 'When asked about typeof null returning "object", explain that this is a legacy bug in the initial JavaScript implementation from 1995 where object type tags were 0 and null was represented as a NULL pointer (0x00).',
-    tags: ['Primitives', 'Reference Types', 'Coercion', 'Equality', 'InterviewBit']
+    interviewTip: 'Mention that while JavaScript is dynamically typed, tools like TypeScript add compile-time static type checking on top of JS.',
+    tags: ['Typing', 'Runtime', 'Basics', 'Dynamic Typing']
   },
   {
     id: 'js-3',
     stack: 'javascript',
-    topic: 'Functions & "this"',
-    title: 'How do Arrow Functions differ from Regular Functions, especially regarding "this" binding?',
+    topic: 'Data Types, Coercion & Memory Management',
+    title: 'Explain Implicit Type Coercion.',
     difficulty: 'Beginner',
-    summary: 'Regular functions determine "this" dynamically based on how they are called. Arrow functions do not have their own "this" and capture it lexically from their enclosing scope.',
+    summary: 'Automatic conversion of values between data types during operations. The binary + operator coerces operands to strings if any operand is a string (e.g., "5" + 2 evaluates to "52"). Arithmetic operators like -, *, and / coerce string values to numbers (e.g., "5" - 2 evaluates to 3).',
     explanation: [
-      '"this" Binding: In regular functions, "this" depends on caller context (global, object method, or new instance). In arrow functions, "this" is lexically resolved from the surrounding outer scope at definition time.',
-      'Arguments Object: Regular functions have an "arguments" array-like object; arrow functions do not (use rest parameters ...args instead).',
-      'Constructors: Regular functions can be used with the "new" operator to construct instances. Arrow functions do not have a [[Construct]] internal method or a prototype property and throw a TypeError if called with "new".',
-      'Duplicate Parameters: Regular non-strict functions allow duplicate parameter names; arrow functions forbid them.'
-    ],
-    codeExample: {
-      language: 'javascript',
-      filename: 'arrow-vs-regular-this.js',
-      code: `const timer = {
-  seconds: 0,
-  startRegular: function() {
-    setTimeout(function() {
-      // Regular function: "this" defaults to global window/undefined in strict mode
-      console.log('Regular this.seconds:', this.seconds);
-    }, 50);
-  },
-  startArrow: function() {
-    setTimeout(() => {
-      // Arrow function: Lexically inherits "this" from startArrow (timer object)
-      console.log('Arrow this.seconds:', ++this.seconds);
-    }, 50);
-  }
-};
-
-timer.startRegular(); // Regular this.seconds: undefined
-timer.startArrow();   // Arrow this.seconds: 1`,
-      output: `Regular this.seconds: undefined
-Arrow this.seconds: 1`,
-      executionSteps: [
-        { line: 3, explanation: 'timer object defined with methods' },
-        { line: 5, explanation: 'Regular function callback invoked by browser timer context; "this" lost' },
-        { line: 11, explanation: 'Arrow function callback lexically captures timer as "this"' },
-        { line: 19, explanation: 'Executes timers; arrow cleanly increments timer.seconds' }
-      ]
-    },
-    keyPoints: [
-      'Arrow functions have lexical "this", lexical "arguments", and no "prototype".',
-      'Cannot use arrow functions as object methods if you need "this" to refer to that object.',
-      'Cannot use arrow functions as constructors with "new".'
-    ],
-    interviewTip: 'Never define Mongoose methods or Vue/React class methods as arrow functions if you expect "this" to refer to the model or component instance.',
-    tags: ['Arrow Functions', 'this', 'ES6', 'Functions', 'InterviewBit']
-  },
-  {
-    id: 'js-9',
-    stack: 'javascript',
-    topic: 'Type Coercion',
-    title: 'Explain Implicit Type Coercion in JavaScript with +, -, Logical Operators, and NaN checks.',
-    difficulty: 'Beginner',
-    summary: 'Implicit type coercion is the automatic conversion of a value from one type to another during expression evaluation. The "+" operator prefers string concatenation, whereas "-" coerces operands to numbers.',
-    explanation: [
-      'String Coercion: When the "+" operator has at least one string operand, JavaScript converts all other operands to strings and performs concatenation (e.g. 1 + "2" = "12", "Hello" + 78 = "Hello78").',
-      'Numeric Coercion: Arithmetic operators like "-", "*", and "/" convert operands to numbers (e.g. "6" - 2 = 4). If a string cannot be parsed into a valid number, it evaluates to NaN ("A" - 1 = NaN).',
-      'Boolean Coercion: Falsy values are false, 0, -0, 0n, "", null, undefined, and NaN. All other values (including [], {}, and "false") are truthy.',
-      'Logical Operators Short-Circuiting: Unlike other languages, && and || in JavaScript return the actual operand value, not a boolean: "a" || "b" returns "a"; "a" && "b" returns "b".',
-      'NaN Quirks: typeof NaN is "number". NaN is the only value in JavaScript that is not equal to itself (NaN === NaN is false). Use Number.isNaN() to reliably check for NaN.'
+      'String Coercion with +: If either operand is a string, JavaScript converts the other operand to a string and performs concatenation ("5" + 2 = "52").',
+      'Numeric Coercion with Arithmetic Operators: Operators like -, *, /, and % only make sense mathematically, so JavaScript coerces string values to numbers ("5" - 2 = 3). If conversion fails, NaN is returned.',
+      'Boolean Coercion: Logical contexts (if statements, !, ||, &&) automatically coerce values to booleans (falsy values: 0, "", null, undefined, NaN, false).',
+      'Object to Primitive: Objects are coerced using their [Symbol.toPrimitive], valueOf(), or toString() methods.'
     ],
     codeExample: {
       language: 'javascript',
       filename: 'implicit-coercion.js',
-      code: `// 1. String Coercion with '+'
-console.log("1" + 1);             // "11"
-console.log(2 + "-2" + "2");       // "2-22"
+      code: `// String coercion with binary +
+console.log("5" + 2);     // "52"
+console.log("5" + true);  // "5true"
 
-// 2. Numeric Coercion with '-'
-console.log("6" - 2);              // 4
-console.log("A" - 1);              // NaN
-console.log("Hello" - "World" + 78); // NaN
+// Numeric coercion with arithmetic operators
+console.log("5" - 2);     // 3
+console.log("6" * "2");   // 12
+console.log("10" / "2");  // 5
 
-// 3. Logical Operators return the operand
-console.log(220 || "Hello");       // 220 (first truthy)
-console.log(0 || "Hello");         // "Hello"
-console.log("Hi" && "World");      // "World" (both truthy, returns last)
-console.log(null && "World");      // null
-
-// 4. NaN validation
-console.log(typeof NaN);           // "number"
-console.log(NaN === NaN);          // false
-console.log(Number.isNaN("str" - 1)); // true`,
-      output: `11
-2-22
-4
-NaN
-NaN
-220
-Hello
-World
-null
-number
-false
-true`,
-      executionSteps: [
-        { line: 2, explanation: '"1" + 1 converts 1 to string "1", yielding "11"' },
-        { line: 3, explanation: '2 + "-2" becomes "2-2", then + "2" yields "2-22"' },
-        { line: 6, explanation: '"6" - 2 converts "6" to number 6, subtracting 2 to give 4' },
-        { line: 7, explanation: '"A" cannot be parsed as a number, so numeric conversion produces NaN' },
-        { line: 12, explanation: 'OR operator returns first truthy operand (220)' },
-        { line: 14, explanation: 'AND operator checks both operands and returns the second truthy value' },
-        { line: 19, explanation: 'NaN is of type number and is unique in not equaling itself' }
-      ]
-    },
-    keyPoints: [
-      '+ concatenates if any operand is a string; -, *, / always coerce to numbers.',
-      '|| returns the first truthy value or the last value; && returns the first falsy value or the last value.',
-      'Always use Number.isNaN() rather than global isNaN(), as isNaN("abc") coerces its input to NaN and returns true.'
-    ],
-    interviewTip: 'InterviewBit classic trap: What is 2 + "-2" + "2"? Answer: "2-22". The evaluation proceeds left-to-right: 2 + "-2" becomes "2-2", and "2-2" + "2" becomes "2-22".',
-    tags: ['Coercion', 'Data Types', 'NaN', 'Operators', 'InterviewBit']
-  },
-  {
-    id: 'js-10',
-    stack: 'javascript',
-    topic: 'Functions & "this"',
-    title: 'Explain call(), apply(), and bind() methods: Differences, syntax, and explicit "this" binding.',
-    difficulty: 'Beginner',
-    summary: 'call() and apply() invoke a function immediately with an explicit "this" context. bind() returns a new function with "this" permanently bound for later execution.',
-    explanation: [
-      'call(thisArg, arg1, arg2, ...): Invokes the function immediately. Arguments are passed individually as a comma-separated list.',
-      'apply(thisArg, [argsArray]): Invokes the function immediately. Arguments are passed as an array (or array-like object). Mnemonic: "A" for Array.',
-      'bind(thisArg, arg1, arg2, ...): Does NOT invoke the function immediately. Instead, it returns a new bound function with the specified "this" context and optional preset arguments (currying/partial application).',
-      'Function Borrowing: These methods allow an object to borrow methods from another object without copying or inheriting them.'
-    ],
-    codeExample: {
-      language: 'javascript',
-      filename: 'call-apply-bind.js',
-      code: `const car = {
-  brand: 'Tesla',
-  getDetails: function(year, color) {
-    return \`\${this.brand} (\${year}) in \${color}\`;
-  }
-};
-
-const bike = { brand: 'Ducati' };
-
-// 1. call(): Arguments passed individually
-console.log(car.getDetails.call(bike, 2024, 'Red'));
-// -> "Ducati (2024) in Red"
-
-// 2. apply(): Arguments passed as an array
-console.log(car.getDetails.apply(bike, [2023, 'Matte Black']));
-// -> "Ducati (2023) in Matte Black"
-
-// 3. bind(): Returns a reusable function bound to bike
-const ducatiDetails = car.getDetails.bind(bike, 2025);
-console.log(ducatiDetails('Metallic Blue'));
-// -> "Ducati (2025) in Metallic Blue"`,
-      output: `Ducati (2024) in Red
-Ducati (2023) in Matte Black
-Ducati (2025) in Metallic Blue`,
-      executionSteps: [
-        { line: 1, explanation: 'car object defined with getDetails method referencing this.brand' },
-        { line: 8, explanation: 'bike object defined with brand: "Ducati"' },
-        { line: 11, explanation: 'call() invokes getDetails with this=bike and comma-separated arguments' },
-        { line: 15, explanation: 'apply() invokes getDetails with this=bike and array of arguments' },
-        { line: 19, explanation: 'bind() returns a new partially applied function with year fixed to 2025' },
-        { line: 20, explanation: 'Invoking bound function supplies remaining color parameter' }
-      ]
-    },
-    keyPoints: [
-      'call() and apply() execute immediately; bind() returns a function for later invocation.',
-      'call takes comma-separated arguments: fn.call(ctx, 1, 2, 3).',
-      'apply takes an array of arguments: fn.apply(ctx, [1, 2, 3]).',
-      'bind cannot be overridden by a subsequent call, apply, or bind.'
-    ],
-    interviewTip: 'Remember the acronym: C for Comma (call), A for Array (apply), B for Beforehand / Bound function (bind).',
-    tags: ['call', 'apply', 'bind', 'this', 'InterviewBit']
-  },
-  {
-    id: 'js-11',
-    stack: 'javascript',
-    topic: 'Functions & Scope',
-    title: 'What is an Immediately Invoked Function Expression (IIFE) and why are two sets of parentheses required?',
-    difficulty: 'Beginner',
-    summary: 'An IIFE is a function expression that executes immediately upon definition. The outer parentheses convert the function into an expression, and the trailing parentheses invoke it.',
-    explanation: [
-      'Why the first set of parentheses? In JavaScript, when a statement starts with the word "function", the parser expects a function declaration which requires a name. Wrapping it in () tells the engine to treat it as a function expression instead.',
-      'Why the second set of parentheses? The second set () immediately invokes the function expression that was just evaluated.',
-      'Encapsulation & Scope Isolation: Before ES6 block-scoped let and const, IIFEs were the primary mechanism to create private scopes and prevent variable leakage into the global window object.',
-      'Module Pattern: IIFEs form the foundation of the classic JavaScript Module Pattern by returning public interfaces while keeping state enclosed.'
-    ],
-    codeExample: {
-      language: 'javascript',
-      filename: 'iife-pattern.js',
-      code: `// Classic IIFE Syntax
-(function() {
-  var privateToken = 'secret_xyz_890';
-  console.log('IIFE executed immediately!');
-})();
-
-// console.log(privateToken); // ReferenceError: privateToken is not defined
-
-// IIFE with arguments and returned public API (Module Pattern)
-const counterModule = (function(initialCount) {
-  let count = initialCount; // private state
-
-  return {
-    increment: () => ++count,
-    decrement: () => --count,
-    getCount: () => count
-  };
-})(10);
-
-console.log(counterModule.increment()); // 11
-console.log(counterModule.increment()); // 12
-console.log(counterModule.getCount());  // 12`,
-      output: `IIFE executed immediately!
-11
+// Boolean coercion
+console.log(!0);          // true
+console.log(Boolean("")); // false`,
+      output: `52
+5true
+3
 12
-12`,
+5
+true
+false`,
       executionSteps: [
-        { line: 2, explanation: 'Outer parentheses (function() { ... }) evaluate function as an expression' },
-        { line: 4, explanation: 'Trailing (); immediately invokes the function expression' },
-        { line: 5, explanation: 'privateToken is scoped entirely inside IIFE and does not leak globally' },
-        { line: 10, explanation: 'counterModule IIFE invoked with argument 10' },
-        { line: 14, explanation: 'Returns public object exposing increment, decrement, and getCount' }
+        { line: 2, explanation: 'Binary + sees string operand "5", coerces 2 to "2", concatenating to "52"' },
+        { line: 6, explanation: 'Minus operator coerces string "5" to number 5, resulting in 3' },
+        { line: 11, explanation: '0 is falsy, !0 coerces to true' }
       ]
     },
     keyPoints: [
-      'IIFE syntax: (function() { /* code */ })(); or (() => { /* code */ })();',
-      'Prevents global scope pollution by creating a self-contained execution context.',
-      'Forms the foundation of UMD (Universal Module Definition) and jQuery-era plugins.'
+      '+ favors string concatenation if at least one operand is a string.',
+      '-, *, /, % coerce operands to numbers.',
+      'Falsy values: 0, -0, 0n, "", null, undefined, NaN, false.'
     ],
-    interviewTip: 'InterviewBit interview question: How does an arrow function IIFE look? Answer: (() => { console.log("Hello"); })();',
-    tags: ['IIFE', 'Scope', 'Module Pattern', 'Functions', 'InterviewBit']
+    interviewTip: 'A popular question is console.log([] + []). Both arrays coerce to empty strings (""), returning ""!',
+    tags: ['Coercion', 'Operators', 'Type Conversion', 'Beginner']
   },
-  {
-    id: 'js-12',
-    stack: 'javascript',
-    topic: 'ES6 Features',
-    title: 'Explain Rest Parameters vs Spread Operator: Syntax, placement rules, and use cases.',
-    difficulty: 'Beginner',
-    summary: 'Both use three dots (...), but Rest gathers multiple individual arguments into a single array, while Spread unpacks an array or object into individual elements.',
-    explanation: [
-      'Rest Parameter (...args): Used in function parameter declarations. It collects any remaining arguments into a true JavaScript Array instance (replacing the legacy arguments object). It must ALWAYS be the last parameter in the function signature.',
-      'Spread Operator (...iterable): Used in function calls, array literals, and object literals. It expands or spreads elements of an array or properties of an object into distinct values.',
-      'Key Difference: Rest condenses multiple elements into one array; Spread expands one array or object into multiple individual elements.'
-    ],
-    codeExample: {
-      language: 'javascript',
-      filename: 'rest-vs-spread.js',
-      code: `// 1. Rest Parameter: Collects arguments into an array
-function calculateTotal(discount, ...prices) {
-  const sum = prices.reduce((acc, curr) => acc + curr, 0);
-  return sum * (1 - discount);
-}
-console.log(calculateTotal(0.1, 100, 200, 300)); // 540 (sum=600 - 10%)
-
-// 2. Spread Operator: Unpacks array into arguments
-const items = [50, 75, 125];
-console.log(Math.max(...items)); // 125 (spread into Math.max(50, 75, 125))
-
-// 3. Spread in Object & Array Cloning / Merging
-const baseUser = { name: 'Sarah', role: 'Engineer' };
-const fullProfile = { ...baseUser, city: 'San Francisco', active: true };
-console.log(fullProfile);
-
-const arr1 = [1, 2];
-const arr2 = [3, 4];
-const combined = [...arr1, ...arr2, 5];
-console.log(combined); // [1, 2, 3, 4, 5]`,
-      output: `540
-125
-{ name: 'Sarah', role: 'Engineer', city: 'San Francisco', active: true }
-[ 1, 2, 3, 4, 5 ]`,
-      executionSteps: [
-        { line: 2, explanation: 'calculateTotal receives discount = 0.1, prices = [100, 200, 300]' },
-        { line: 3, explanation: 'prices is a genuine Array with .reduce() and .map() available' },
-        { line: 9, explanation: 'Math.max(...items) unpacks items into individual positional arguments' },
-        { line: 14, explanation: 'Object spread shallow-clones baseUser properties into new fullProfile object' },
-        { line: 19, explanation: 'Array spread merges arr1 and arr2 into a single new array' }
-      ]
-    },
-    keyPoints: [
-      'Rest parameter must be the last parameter in a function definition: fn(a, b, ...rest).',
-      'Spread creates shallow copies of objects and arrays, not deep copies.',
-      'Unlike the arguments object, Rest parameters create a genuine Array with array methods.'
-    ],
-    interviewTip: 'Common syntax trap: "function test(...a, b)" throws a SyntaxError: Rest parameter must be last formal parameter.',
-    tags: ['Rest', 'Spread', 'ES6', 'Arrays', 'InterviewBit']
-  },
-
-  // ==========================================
-  // INTERMEDIATE
-  // ==========================================
   {
     id: 'js-4',
     stack: 'javascript',
-    topic: 'Closures & Lexical Scope',
-    title: 'What is a Closure, how does it preserve lexical state, and what is a practical real-world use case?',
-    difficulty: 'Intermediate',
-    summary: 'A closure is a function bundled with references to its surrounding lexical environment, allowing it to remember outer variables even after the outer function has returned.',
+    topic: 'Data Types, Coercion & Memory Management',
+    title: 'What is the difference between == and ===?',
+    difficulty: 'Beginner',
+    summary: '== (Loose Equality) compares values after applying implicit type coercion. === (Strict Equality) compares both value and data type without conversion.',
     explanation: [
-      'Lexical Scope: Scope is determined statically at code authoring time based on where functions are physically defined.',
-      'Closure Mechanics: When an inner function is created inside an outer function, the inner function holds a reference to the outer environment record. When the outer function returns, that variable scope is retained in memory because an active reference persists.',
-      'Use Cases: Data privacy (private instance variables), memoization caches, currying, and function factory patterns.'
+      'Loose Equality (==): Converts operands to common types before comparing following ECMAScript Abstract Equality algorithm. E.g., 5 == "5" is true, 0 == false is true.',
+      'Strict Equality (===): Checks both value and type without coercion. If types differ, it returns false immediately.',
+      'Null and Undefined: null == undefined is true, but null === undefined is false.',
+      'Object Comparison: Both == and === check reference pointers when comparing objects, not properties.'
     ],
     codeExample: {
       language: 'javascript',
-      filename: 'closure-private-state.js',
-      code: `function createBankAccount(initialBalance) {
-  // Private variable encapsulated by closure
-  let balance = initialBalance;
+      filename: 'equality-comparison.js',
+      code: `// Loose equality (==) coerces types
+console.log(5 == "5");           // true
+console.log(0 == false);         // true
+console.log(null == undefined);  // true
 
-  return {
-    deposit: (amount) => {
-      balance += amount;
-      return balance;
-    },
-    withdraw: (amount) => {
-      if (amount > balance) throw new Error('Insufficient funds');
-      balance -= amount;
-      return balance;
-    },
-    getBalance: () => balance
-  };
-}
+// Strict equality (===) checks value and type
+console.log(5 === "5");          // false
+console.log(0 === false);        // false
+console.log(null === undefined); // false
 
-const account = createBankAccount(100);
-account.deposit(50);
-console.log(account.getBalance()); // 150
-console.log(account.balance);       // undefined (Completely private!)`,
-      output: `150
-undefined`,
+// Objects compared by reference
+console.log([] == []);           // false (distinct memory pointers)
+console.log({} === {});          // false`,
+      output: `true
+true
+true
+false
+false
+false
+false
+false`,
       executionSteps: [
-        { line: 1, explanation: 'createBankAccount invoked with initialBalance = 100' },
-        { line: 3, explanation: 'balance variable stored in lexical environment record' },
-        { line: 5, explanation: 'Returns object containing 3 methods enclosing "balance"' },
-        { line: 20, explanation: 'Direct access account.balance returns undefined; state is safe' }
+        { line: 2, explanation: '== coerces string "5" to number 5, evaluating to true' },
+        { line: 7, explanation: '=== verifies type: number !== string, evaluating to false' },
+        { line: 12, explanation: 'Empty arrays have unique heap memory pointers, evaluating to false' }
       ]
     },
     keyPoints: [
-      'Closures give functions access to outer function scope from an inner function.',
-      'Closures stay in memory as long as the returned inner function reference is held.',
-      'Watch out for memory leaks if closures retain large data structures no longer needed.'
+      '== permits type coercion before comparing.',
+      '=== verifies both type and value without coercion.',
+      'Always prefer === to avoid subtle bugs in production.'
     ],
-    interviewTip: 'Mention that modern JavaScript private class fields (#field) now provide native language-level encapsulation alongside closures.',
-    tags: ['Closures', 'Lexical Scope', 'Encapsulation', 'Memory', 'InterviewBit']
+    interviewTip: 'Remember that NaN === NaN is false! Use Number.isNaN(x) or Object.is(NaN, NaN) to check NaN.',
+    tags: ['Equality', 'Coercion', 'Best Practices', 'Comparison']
   },
   {
     id: 'js-5',
     stack: 'javascript',
-    topic: 'Event Loop & Concurrency',
-    title: 'How does the JavaScript Event Loop work? Explain Call Stack, Web APIs, Microtask Queue, and Macrotask Queue.',
+    topic: 'Data Types, Coercion & Memory Management',
+    title: 'What is NaN, and how does isNaN() differ from Number.isNaN()?',
     difficulty: 'Intermediate',
-    summary: 'JavaScript is single-threaded. Synchronous code executes on the Call Stack; async tasks offload to Web APIs. The Event Loop prioritizes Microtasks over Macrotasks before every render.',
+    summary: 'NaN ("Not-a-Number") represents an invalid mathematical operation; typeof NaN is "number". isNaN(value) coerces the argument to a number first before checking. Number.isNaN(value) strictly checks if the passed value is of type Number and evaluates to NaN without type coercion.',
     explanation: [
-      'Call Stack: LIFO stack where execution contexts are pushed and popped as functions execute.',
-      'Web APIs / Node APIs: Background threads handling timers, HTTP requests, and DOM events.',
-      'Microtask Queue: High-priority queue for Promise callbacks (.then, .catch, .finally), queueMicrotask(), and MutationObserver. Processed until completely empty before any macrotask runs.',
-      'Macrotask Queue (Callback Queue): Low-priority queue for setTimeout, setInterval, setImmediate (Node), and I/O callbacks.',
-      'Event Loop Cycle: 1) Execute synchronous script on Call Stack. 2) Drain the ENTIRE Microtask queue. 3) Perform UI render paint if needed. 4) Dequeue ONE Macrotask and repeat.'
+      'What is NaN: NaN is a special numeric value produced when a mathematical operation yields an undefined or unrepresentable result (e.g., 0 / 0 or Math.sqrt(-1)).',
+      'typeof NaN: Returns "number" because it is an IEEE 754 floating-point standard representation.',
+      'Global isNaN(): Converts the argument to a number first. Hence, isNaN("hello") is true because Number("hello") is NaN.',
+      'Number.isNaN(): Introduced in ES6, it does NOT coerce. It returns true if and only if the argument is actually of type number AND its value is NaN.'
     ],
     codeExample: {
       language: 'javascript',
-      filename: 'event-loop-puzzle.js',
-      code: `console.log('1: Synchronous start');
+      filename: 'nan-comparison.js',
+      code: `console.log(typeof NaN); // "number"
+console.log(NaN === NaN); // false (NaN is never equal to itself)
 
-setTimeout(() => {
-  console.log('4: Macrotask (setTimeout)');
-}, 0);
+// Global isNaN() coerces to number first:
+console.log(isNaN("hello")); // true (Number("hello") is NaN)
+console.log(isNaN("123"));   // false (Number("123") is 123)
 
-Promise.resolve().then(() => {
-  console.log('2: Microtask 1 (Promise)');
-}).then(() => {
-  console.log('3: Microtask 2 (Chained Promise)');
-});
-
-console.log('5: Synchronous end');`,
-      output: `1: Synchronous start
-5: Synchronous end
-2: Microtask 1 (Promise)
-3: Microtask 2 (Chained Promise)
-4: Macrotask (setTimeout)`,
+// Number.isNaN() strictly checks without coercion:
+console.log(Number.isNaN("hello")); // false (type is string, not NaN)
+console.log(Number.isNaN(0 / 0));   // true (result of 0/0 is NaN)`,
+      output: `number
+false
+true
+false
+false
+true`,
       executionSteps: [
-        { line: 1, explanation: 'Call Stack runs: prints "1: Synchronous start"' },
-        { line: 3, explanation: 'setTimeout(0) offloads to Web API; callback enqueued to Macrotask queue' },
-        { line: 7, explanation: 'Promise resolves immediately; .then callback enqueued to Microtask queue' },
-        { line: 13, explanation: 'Call Stack runs: prints "5: Synchronous end"' },
-        { line: 8, explanation: 'Event loop empties Microtasks: prints Microtask 1 & 2' },
-        { line: 4, explanation: 'Event loop picks next Macrotask: prints "4: Macrotask"' }
+        { line: 1, explanation: 'typeof NaN returns "number" according to IEEE 754 spec' },
+        { line: 2, explanation: 'NaN is unique in that it never equals itself' },
+        { line: 5, explanation: 'isNaN("hello") coerces "hello" to NaN, returning true' },
+        { line: 9, explanation: 'Number.isNaN("hello") checks type without coercion, returning false' }
       ]
     },
     keyPoints: [
-      'Microtasks ALWAYS preempt Macrotasks.',
-      'Starvation risk: An infinite chain of recursive Promise.resolve().then() calls will starve macrotasks and freeze the UI.',
-      'UI rendering occurs after the microtask queue is exhausted, before the next macrotask.'
+      'typeof NaN is "number".',
+      'NaN is the only value in JavaScript not equal to itself (NaN !== NaN).',
+      'Number.isNaN() is safe and does not perform implicit type coercion.'
     ],
-    interviewTip: 'Interviewers love asking the exact output sequence of mixed setTimeout and Promise code. Walk through the Call Stack -> Microtask -> Macrotask sequence step-by-step.',
-    tags: ['Event Loop', 'Microtasks', 'Macrotasks', 'Promises', 'Asynchronous', 'InterviewBit']
+    interviewTip: 'To check if a value is strictly NaN without Number.isNaN, you can test value !== value.',
+    tags: ['NaN', 'Numbers', 'Type Checking', 'ES6']
   },
   {
     id: 'js-6',
     stack: 'javascript',
-    topic: 'Prototypes & Inheritance',
-    title: 'Explain the Prototype Chain in JavaScript and how ES6 "class" syntax maps to prototypical inheritance.',
+    topic: 'Data Types, Coercion & Memory Management',
+    title: 'Is JavaScript pass-by-value or pass-by-reference?',
     difficulty: 'Intermediate',
-    summary: 'Every JavaScript object has an internal [[Prototype]] link (__proto__). Property lookups traverse this chain until finding the property or reaching null. ES6 classes are syntactic sugar over prototypes.',
+    summary: 'Strictly pass-by-value. For objects and arrays, the value that is passed into a function is the memory reference itself. Mutating an object property reflects outside, but reassigning the parameter variable does not break the original reference outside.',
     explanation: [
-      'Prototype Chain: When accessing obj.prop, JavaScript checks if prop exists on obj. If not, it checks obj.__proto__, then obj.__proto__.__proto__, continuing up to Object.prototype, whose prototype is null.',
-      'Function prototype: Functions have a "prototype" property used as the prototype for instances created with "new Func()".',
-      'ES6 Classes: "class User {}" is not a new object-oriented model; it is syntactic sugar that configures Function.prototype and prototype methods under the hood.'
+      'Call-by-sharing / Pass-by-value: In JavaScript, everything is passed by value.',
+      'Primitives: The value itself is copied. Changes inside the function do not affect the outer variable.',
+      'Objects and Arrays: The value passed is the memory address pointer. When you mutate a property (obj.name = "X"), the shared object is modified.',
+      'Reassignment: If you reassign the parameter (obj = { ... }), you only overwrite the local copy of the pointer. The external reference remains pointing to the original object.'
     ],
     codeExample: {
       language: 'javascript',
-      filename: 'prototypes-under-the-hood.js',
-      code: `function Person(name) {
-  this.name = name;
+      filename: 'pass-by-value.js',
+      code: `function modify(obj, primitive) {
+  primitive = 100;         // Local copy, caller unaffected
+  obj.name = "Mutated";     // Mutates object via shared reference
+  obj = { name: "NewObj" }; // Reassigning local pointer does NOT affect outer user!
 }
 
-// Attach method to prototype so instances share single function in memory
-Person.prototype.greet = function() {
-  return \`Hello, my name is \${this.name}\`;
-};
+let num = 10;
+let user = { name: "Original" };
 
-const dev = new Person('Alex');
+modify(user, num);
 
-console.log(dev.greet()); // "Hello, my name is Alex"
-console.log(dev.hasOwnProperty('name'));  // true (Own property)
-console.log(dev.hasOwnProperty('greet')); // false (Inherited via prototype!)
-console.log(Object.getPrototypeOf(dev) === Person.prototype); // true
-console.log(Person.prototype.__proto__ === Object.prototype); // true
-console.log(Object.prototype.__proto__); // null (End of chain)`,
-      output: `Hello, my name is Alex
-true
-false
-true
-true
-null`,
-      executionSteps: [
-        { line: 1, explanation: 'Person constructor function defined' },
-        { line: 6, explanation: 'greet method attached to Person.prototype memory object' },
-        { line: 10, explanation: 'new operator creates object with internal [[Prototype]] pointing to Person.prototype' },
-        { line: 12, explanation: 'dev.greet() delegates through prototype chain' },
-        { line: 17, explanation: 'Object.prototype.__proto__ terminates at null' }
-      ]
-    },
-    keyPoints: [
-      'Methods defined on Function.prototype are shared across all instances, saving significant memory.',
-      'Object.create(proto) creates a new object with an explicit prototype link.',
-      'Always prefer Object.getPrototypeOf(obj) and Object.setPrototypeOf() over modifying __proto__ directly.'
-    ],
-    interviewTip: 'Explain that in ES6 classes, methods defined inside the class body are non-enumerable on the prototype, whereas manual prototype assignments are enumerable by default.',
-    tags: ['Prototypes', 'Inheritance', 'ES6 Classes', 'OOP', 'InterviewBit']
-  },
-  {
-    id: 'js-13',
-    stack: 'javascript',
-    topic: 'Currying & Functional Programming',
-    title: 'What is Currying in JavaScript? Implement an infinite/flexible currying function.',
-    difficulty: 'Intermediate',
-    summary: 'Currying transforms a function f(a, b, c) into a series of unary functions f(a)(b)(c). It enables partial application, reusable configuration functions, and clean composition.',
-    explanation: [
-      'Definition: Currying is a technique where a function that takes multiple arguments is evaluated into a sequence of functions, each taking a single argument.',
-      'Benefits: 1) Helps create reusable specialized functions from general ones. 2) Avoids repeatedly passing the same parameters. 3) Integrates seamlessly with function composition pipelines.',
-      'Infinite Currying: A classic interview pattern where add(1)(2)(3)...() accumulates values until called with no arguments.'
-    ],
-    codeExample: {
-      language: 'javascript',
-      filename: 'currying-examples.js',
-      code: `// 1. Basic Currying (2 arguments)
-function multiply(a, b) {
-  return a * b;
-}
-
-function curry(fn) {
-  return function(a) {
-    return function(b) {
-      return fn(a, b);
-    };
-  };
-}
-
-const curriedMultiply = curry(multiply);
-const double = curriedMultiply(2); // Partial application
-console.log(double(5));  // 10
-console.log(double(12)); // 24
-
-// 2. Infinite Currying: add(1)(2)(3)(4)()
-function infiniteAdd(a) {
-  return function(b) {
-    if (b !== undefined) {
-      return infiniteAdd(a + b);
-    }
-    return a; // Terminate when called as ()
-  };
-}
-
-console.log(infiniteAdd(1)(2)(3)(4)()); // 10`,
+console.log(num);       // 10 (unchanged)
+console.log(user.name); // "Mutated" (property mutated via shared reference)`,
       output: `10
-24
-10`,
+Mutated`,
       executionSteps: [
-        { line: 2, explanation: 'multiply function takes two arguments' },
-        { line: 6, explanation: 'curry takes fn and returns nested unary functions' },
-        { line: 15, explanation: 'curriedMultiply(2) creates specialized "double" function via closure' },
-        { line: 17, explanation: 'double(5) evaluates 2 * 5 = 10' },
-        { line: 21, explanation: 'infiniteAdd returns inner function that recurses until empty invocation ()' }
+        { line: 9, explanation: 'Primitive number 10 and object reference created' },
+        { line: 11, explanation: 'modify called; copies primitive value 10 and copies reference pointer of user' },
+        { line: 3, explanation: 'obj.name modified through reference; visible outside' },
+        { line: 4, explanation: 'obj reassigned to new object; outer user reference remains unchanged' }
       ]
     },
     keyPoints: [
-      'Currying breaks n-argument functions into n nested 1-argument functions.',
-      'Relies heavily on closures to retain earlier arguments in memory.',
-      'Used extensively in libraries like Lodash (curry) and Redux middleware.'
+      'JavaScript is strictly pass-by-value at all times.',
+      'For objects, the reference pointer is passed as the value.',
+      'Mutating properties affects the original; reassigning the parameter does not.'
     ],
-    interviewTip: 'InterviewBit frequently asks candidates to implement `add(2)(3)` or `sum(1)(2)(3)...()`. Explain the termination condition: either an empty call () or overriding valueOf / Symbol.toPrimitive.',
-    tags: ['Currying', 'Functional Programming', 'Closures', 'InterviewBit']
-  },
-  {
-    id: 'js-14',
-    stack: 'javascript',
-    topic: 'Data Structures',
-    title: 'What are WeakMap and WeakSet in JavaScript, and how do they prevent memory leaks compared to Map and Set?',
-    difficulty: 'Intermediate',
-    summary: 'WeakMap and WeakSet hold weak references to objects, allowing unreferenced objects to be garbage collected automatically without causing memory leaks.',
-    explanation: [
-      'Weak Reference: In regular Map and Set, storing an object reference prevents the garbage collector (GC) from reclaiming that object, even if all other external references are gone.',
-      'Keys Must Be Objects: WeakMap keys and WeakSet elements MUST be objects (or registered symbols in ES2023). Primitives cannot be used because primitives cannot be garbage collected.',
-      'No Enumeration: Because garbage collection is non-deterministic, WeakMap and WeakSet are NOT iterable and have no .size property or .keys(), .values(), or .entries() methods.',
-      'Supported Methods: WeakMap only supports get(), set(), has(), and delete(). WeakSet only supports add(), has(), and delete().',
-      'Use Cases: Caching DOM metadata, private object data, and tracking object visit state without modifying original objects.'
-    ],
-    codeExample: {
-      language: 'javascript',
-      filename: 'weakmap-weakset.js',
-      code: `// 1. WeakSet Example: Tracking active user sessions
-const activeSessions = new WeakSet();
-
-let user1 = { id: 101, name: 'Alice' };
-let user2 = { id: 102, name: 'Bob' };
-
-activeSessions.add(user1);
-activeSessions.add(user2);
-console.log(activeSessions.has(user1)); // true
-
-// When user1 is dereferenced, it becomes eligible for Garbage Collection
-user1 = null; 
-// Memory is reclaimed; activeSessions no longer keeps user1 alive
-
-// 2. WeakMap Example: Associating private metadata with DOM nodes
-const clickTracker = new WeakMap();
-
-let button = { id: 'btn-submit', label: 'Submit' };
-clickTracker.set(button, { clickCount: 15 });
-
-console.log(clickTracker.get(button)); // { clickCount: 15 }
-
-// If button is removed from DOM:
-button = null; // Automatically cleaned up from clickTracker memory!`,
-      output: `true
-{ clickCount: 15 }`,
-      executionSteps: [
-        { line: 2, explanation: 'WeakSet initialized; can only contain objects' },
-        { line: 7, explanation: 'user1 and user2 added to WeakSet via weak references' },
-        { line: 12, explanation: 'Setting user1 = null allows JavaScript GC engine to sweep the object' },
-        { line: 16, explanation: 'WeakMap associates metadata with button object' },
-        { line: 23, explanation: 'Zero memory leaks occur because WeakMap does not prevent GC' }
-      ]
-    },
-    keyPoints: [
-      'Keys of WeakMap and values of WeakSet must be objects.',
-      'Objects held weakly are automatically garbage collected when no other strong references exist.',
-      'Not iterable: No .size property, no for..of loops, no clear() method.'
-    ],
-    interviewTip: 'Mention WeakMap as the premier pattern for implementing true private fields in ES5/ES6 prior to the introduction of the native #hash private field syntax.',
-    tags: ['WeakMap', 'WeakSet', 'Memory Management', 'Garbage Collection', 'InterviewBit']
-  },
-  {
-    id: 'js-15',
-    stack: 'javascript',
-    topic: 'Generators & Async Flow',
-    title: 'What are Generator Functions in JavaScript? How do function*, yield, and next() work together?',
-    difficulty: 'Intermediate',
-    summary: 'Generator functions can pause execution midway with "yield" and resume later with "next()", returning an iterator object with { value, done } properties.',
-    explanation: [
-      'Declaration: Defined using the "function*" syntax. When called, they do NOT execute immediately; they return a Generator Object that adheres to both the Iterable and Iterator protocols.',
-      'yield Keyword: Pauses the generator function execution and emits a value to the caller.',
-      'next() Method: Resumes execution until the next yield or return statement. Returns an object: { value: Any, done: Boolean }.',
-      'Two-way Communication: You can pass values back into the generator by supplying an argument to generator.next(value), which replaces the paused yield expression with that value.',
-      'Foundation for Async/Await: Before ES2017 async/await, generators combined with promises (like co library) powered asynchronous coroutines in Node.js.'
-    ],
-    codeExample: {
-      language: 'javascript',
-      filename: 'generator-functions.js',
-      code: `// 1. ID Generator Function
-function* idGenerator(start = 1) {
-  let id = start;
-  while (true) {
-    const step = yield id; // Yields id; receives optional step on next()
-    id += (step || 1);
-  }
-}
-
-const gen = idGenerator(100);
-console.log(gen.next()); // { value: 100, done: false }
-console.log(gen.next()); // { value: 101, done: false }
-console.log(gen.next(10)); // { value: 111, done: false } (stepped by 10)
-
-// 2. Finite Iterator Generator
-function* range(from, to) {
-  for (let i = from; i <= to; i++) {
-    yield i;
-  }
-}
-
-console.log([...range(1, 4)]); // [1, 2, 3, 4] via spread iteration`,
-      output: `{ value: 100, done: false }
-{ value: 101, done: false }
-{ value: 111, done: false }
-[ 1, 2, 3, 4 ]`,
-      executionSteps: [
-        { line: 2, explanation: 'idGenerator declared with function* syntax' },
-        { line: 10, explanation: 'idGenerator(100) returns Generator Object without running body' },
-        { line: 11, explanation: 'gen.next() runs to first yield: emits 100, pauses execution' },
-        { line: 12, explanation: 'gen.next() resumes, increments id to 101, pauses at next yield' },
-        { line: 13, explanation: 'gen.next(10) injects 10 into step variable, jumping id to 111' },
-        { line: 23, explanation: 'Spread operator [...range()] drains iterator until done: true' }
-      ]
-    },
-    keyPoints: [
-      'Generators are pauseable functions returning { value, done } iterators.',
-      'Can generate infinite sequences on demand with O(1) memory consumption.',
-      'Calling return() on a generator forces { done: true } and terminates execution.'
-    ],
-    interviewTip: 'Explain that async/await is effectively an automated generator function driven by a Promise resolution engine (syntactic sugar over generators + promises).',
-    tags: ['Generators', 'Iterators', 'yield', 'ES6', 'InterviewBit']
-  },
-  {
-    id: 'js-16',
-    stack: 'javascript',
-    topic: 'ES6 Features',
-    title: 'Explain Object and Array Destructuring: Default values, aliases, nested extraction, and rest properties.',
-    difficulty: 'Intermediate',
-    summary: 'Destructuring provides a concise syntax to unpack properties from objects or values from arrays into distinct variables, supporting aliases, defaults, and rest elements.',
-    explanation: [
-      'Object Destructuring: Matches properties by key name: const { name, age } = user. Aliasing allows renaming keys: const { name: userName } = user.',
-      'Default Values: Fallbacks can be assigned in case the target property is undefined: const { role = "Viewer" } = user.',
-      'Array Destructuring: Matches values by position / index: const [first, second, , fourth] = list. Easily skip elements using commas.',
-      'Nested Destructuring: Deep values can be extracted in a single statement: const { address: { city } } = user.',
-      'Rest Property: Captures remaining unmatched properties into a new object or array: const { id, ...details } = user.'
-    ],
-    codeExample: {
-      language: 'javascript',
-      filename: 'destructuring-patterns.js',
-      code: `const employee = {
-  id: 402,
-  profile: {
-    fullName: 'David Chen',
-    department: 'DevOps'
-  },
-  skills: ['Docker', 'K8s', 'Terraform', 'Go']
-};
-
-// 1. Nested destructuring with aliases & default values
-const {
-  id: empId, // Aliased to empId
-  profile: { fullName, office = 'Remote' }, // Nested + default value
-  skills: [primarySkill, secondarySkill, ...otherSkills] // Array destructure + rest
-} = employee;
-
-console.log('ID:', empId);
-console.log('Name:', fullName);
-console.log('Office:', office);
-console.log('Primary Skill:', primarySkill);
-console.log('Other Skills:', otherSkills);
-
-// 2. Swapping variables without a temporary variable
-let a = 1, b = 2;
-[a, b] = [b, a];
-console.log('Swapped:', a, b); // 2 1`,
-      output: `ID: 402
-Name: David Chen
-Office: Remote
-Primary Skill: Docker
-Other Skills: [ 'Terraform', 'Go' ]
-Swapped: 2 1`,
-      executionSteps: [
-        { line: 1, explanation: 'employee object with nested profile and skills array declared' },
-        { line: 11, explanation: 'Destructures id and renames it to empId' },
-        { line: 12, explanation: 'Unpacks nested profile.fullName and provides default for office' },
-        { line: 13, explanation: 'Pulls index 0 and 1, gathers remaining skills into otherSkills' },
-        { line: 24, explanation: '[a, b] = [b, a] creates tuple and swaps bindings in one step' }
-      ]
-    },
-    keyPoints: [
-      'Use colon (:) to rename: { originalKey: newVariableName }.',
-      'Use equals (=) for default value: { key = defaultValue }.',
-      'Defaults only apply when property value is strictly undefined (not null or false).'
-    ],
-    interviewTip: 'InterviewBit question: How do you swap two variables without a temporary variable? Answer: [a, b] = [b, a];',
-    tags: ['Destructuring', 'ES6', 'Objects', 'Arrays', 'InterviewBit']
-  },
-  {
-    id: 'js-17',
-    stack: 'javascript',
-    topic: 'Object Methods',
-    title: 'How many ways can you create an object in JavaScript, and how do you convert an object into an array?',
-    difficulty: 'Intermediate',
-    summary: 'Objects can be created via literals, Object.create(), constructors, classes, or factory functions. Objects convert to arrays using Object.keys(), Object.values(), and Object.entries().',
-    explanation: [
-      'Ways to create an Object (InterviewBit Q36):',
-      '1. Object Literal: const obj = { a: 1 }; (Most common, fastest).',
-      '2. Object.create(proto): Creates a new object with specified prototype.',
-      '3. Constructor Function: new Person("Alice") with PascalCase function and "this".',
-      '4. ES6 Class: class Animal {} instantiated with new.',
-      '5. Object.assign() or Object constructor: new Object().',
-      'Converting Object to Array (InterviewBit Q63):',
-      '• Object.keys(obj): Returns array of own enumerable property names [ "id", "name" ].',
-      '• Object.values(obj): Returns array of own enumerable property values [ 1, "Alice" ].',
-      '• Object.entries(obj): Returns array of key-value tuples [ ["id", 1], ["name", "Alice"] ].'
-    ],
-    codeExample: {
-      language: 'javascript',
-      filename: 'object-creation-conversion.js',
-      code: `const user = {
-  id: 101,
-  username: 'coder99',
-  role: 'admin',
-  verified: true
-};
-
-// 1. Converting Object to Arrays (InterviewBit Q63)
-const keys = Object.keys(user);
-const values = Object.values(user);
-const entries = Object.entries(user);
-
-console.log('Keys:', keys);
-console.log('Values:', values);
-console.log('Entries:', entries);
-
-// 2. Transforming Entries back to an Object
-const filtered = Object.fromEntries(
-  entries.filter(([key, val]) => typeof val !== 'boolean')
-);
-console.log('Filtered (No Booleans):', filtered);
-
-// 3. Object.create with custom prototype (InterviewBit Q36)
-const proto = { greet() { return 'Hello!'; } };
-const customObj = Object.create(proto);
-console.log(customObj.greet()); // "Hello!" (Inherited)`,
-      output: `Keys: [ 'id', 'username', 'role', 'verified' ]
-Values: [ 101, 'coder99', 'admin', true ]
-Entries: [ [ 'id', 101 ], [ 'username', 'coder99' ], [ 'role', 'admin' ], [ 'verified', true ] ]
-Filtered (No Booleans): { id: 101, username: 'coder99', role: 'admin' }
-Hello!`,
-      executionSteps: [
-        { line: 1, explanation: 'user object defined with multiple primitive properties' },
-        { line: 9, explanation: 'Object.keys extracts property names into string array' },
-        { line: 10, explanation: 'Object.values extracts property values into array' },
-        { line: 11, explanation: 'Object.entries returns 2D array of [key, value] pairs' },
-        { line: 18, explanation: 'Object.fromEntries reconstructs an object after filtering entries' },
-        { line: 24, explanation: 'Object.create sets up prototype inheritance link' }
-      ]
-    },
-    keyPoints: [
-      'Object.entries(obj) is ideal for filtering or mapping over object properties with array methods.',
-      'Object.fromEntries(entries) transforms an array of [key, value] pairs back into an object.',
-      'Object.create(null) creates a dictionary object with NO prototype (no toString, hasOwnProperty).'
-    ],
-    interviewTip: 'Object.create(null) is popular for hash map caches because it prevents prototype pollution attacks and has no inherited keys.',
-    tags: ['Objects', 'Object.entries', 'Object.create', 'InterviewBit']
+    interviewTip: 'Use this question to explain why shallow copies or deep copies are necessary when modifying nested state in React.',
+    tags: ['Memory', 'Pass by Value', 'References', 'Execution Context']
   },
 
   // ==========================================
-  // ADVANCED
+  // Topic 2: Variable Declarations, Scoping & Hoisting
   // ==========================================
   {
     id: 'js-7',
     stack: 'javascript',
-    topic: 'Performance & Optimization',
-    title: 'Implement production-grade Debounce and Throttle functions from scratch, and contrast their use cases.',
-    difficulty: 'Advanced',
-    summary: 'Debounce delays execution until after a period of inactivity (e.g. search inputs). Throttle limits execution to at most once per specified time interval (e.g. scroll listeners).',
+    topic: 'Variable Declarations, Scoping & Hoisting',
+    title: 'Differences between var, let, and const',
+    difficulty: 'Beginner',
+    summary: 'var: Function-scoped, hoisted to the top initialized as undefined, allows re-declaration and re-assignment. let: Block-scoped ({}), hoisted into the Temporal Dead Zone (TDZ) uninitialized, allows re-assignment but forbids re-declaration in the same scope. const: Block-scoped, hoisted into the TDZ, forbids both re-assignment and re-declaration.',
     explanation: [
-      'Debounce: Resets its timer every time the event fires. The target function executes only after the user stops triggering events for N milliseconds. Ideal for autocomplete search queries and window resize listeners.',
-      'Throttle: Guarantees the target function executes at regular intervals (at most once every N milliseconds), regardless of how many times the user fires the event. Ideal for scroll position tracking, drag-and-drop, and FPS game loops.'
+      'Scope: var is function-scoped (or global if outside any function). let and const are strictly block-scoped within {}.',
+      'Hoisting: var is hoisted and initialized with undefined. let and const are hoisted but remain uninitialized in the TDZ until execution reaches the declaration.',
+      'Re-declaration: var allows declaring the same identifier multiple times in one scope. let and const throw a SyntaxError.',
+      'Re-assignment: var and let can be reassigned. const creates an immutable identifier binding, though object properties can still be mutated.'
     ],
     codeExample: {
       language: 'javascript',
-      filename: 'debounce-throttle.js',
-      code: `// 1. Debounce Implementation
-function debounce(fn, delay) {
-  let timerId = null;
-  return function(...args) {
-    clearTimeout(timerId);
-    timerId = setTimeout(() => {
-      fn.apply(this, args);
-    }, delay);
-  };
+      filename: 'var-let-const.js',
+      code: `// var: function-scoped, leaks out of block
+if (true) {
+  var a = 10;
+  let b = 20;
+  const c = 30;
 }
+console.log(a); // 10
+// console.log(b); // ReferenceError: b is not defined
+// console.log(c); // ReferenceError: c is not defined
 
-// 2. Throttle Implementation
-function throttle(fn, limit) {
-  let inThrottle = false;
-  return function(...args) {
-    if (!inThrottle) {
-      fn.apply(this, args);
-      inThrottle = true;
-      setTimeout(() => {
-        inThrottle = false;
-      }, limit);
-    }
-  };
-}
-
-// Usage:
-const handleSearch = debounce((text) => console.log('Searching API:', text), 300);
-const handleScroll = throttle(() => console.log('Scroll tick'), 100);`,
-      output: 'Executes optimized event callbacks without overloading CPU or network',
+// const binding is immutable, but properties can mutate
+const obj = { x: 1 };
+obj.x = 2; // Allowed: mutating object property
+// obj = {}; // TypeError: Assignment to constant variable`,
+      output: `10`,
       executionSteps: [
-        { line: 2, explanation: 'debounce captures timerId within outer closure' },
-        { line: 5, explanation: 'clearTimeout resets countdown on subsequent rapid keypresses' },
-        { line: 14, explanation: 'throttle uses inThrottle flag to gate invocation rate' },
-        { line: 19, explanation: 'Unblocks inThrottle lock after interval elapsed' }
+        { line: 3, explanation: 'var a hoisted to enclosing function or global scope' },
+        { line: 4, explanation: 'let b scoped strictly to the if block' },
+        { line: 8, explanation: 'console.log(a) prints 10 because var leaks outside block' }
       ]
     },
     keyPoints: [
-      'Debounce: Clusters multiple events into one single call at the end of the burst.',
-      'Throttle: Enforces maximum execution frequency over time.',
-      'Always preserve "this" context and forward arguments using fn.apply(this, args).'
+      'var: Function-scoped, hoisted as undefined, binds to window.',
+      'let: Block-scoped, re-assignable, TDZ protected.',
+      'const: Block-scoped, constant binding (non-reassignable), TDZ protected.'
     ],
-    interviewTip: 'Bonus points for implementing "leading" and "trailing" edge options (like Lodash) where debounce can fire immediately on first click and wait before allowing another.',
-    tags: ['Debounce', 'Throttle', 'Performance', 'Closures', 'InterviewBit']
+    interviewTip: 'Highlight that const protects the variable binding, NOT the contents of arrays or objects. Use Object.freeze() for object immutability.',
+    tags: ['var', 'let', 'const', 'Scope', 'TDZ']
   },
   {
     id: 'js-8',
     stack: 'javascript',
-    topic: 'Polyfills & Deep Dive',
-    title: 'Implement a complete Polyfill for Array.prototype.reduce and Promise.all from scratch.',
-    difficulty: 'Advanced',
-    summary: 'Writing polyfills demonstrates mastery of edge cases, array iteration semantics, accumulator initialization, and Promise concurrency tracking.',
+    topic: 'Variable Declarations, Scoping & Hoisting',
+    title: 'Explain Hoisting in JavaScript.',
+    difficulty: 'Beginner',
+    summary: 'The engine scans declarations during compilation and allocates memory for them before executing code. Function declarations are hoisted completely with definitions intact. Variable declarations with var are initialized as undefined.',
     explanation: [
-      'Array.prototype.reduce: Iterates an array and reduces it to a single accumulator value. Edge case: If initialValue is not provided, the first element becomes the accumulator, and iteration begins at index 1.',
-      'Promise.all: Accepts an iterable of promises and returns a single Promise that resolves with an array of resolved values, or rejects immediately with the reason of the first rejected promise (fail-fast behavior).',
-      'Promise concurrency: Must count resolved promises, NOT array index, to ensure all async tasks settle before resolving.'
+      'Compilation Phase: Before executing JavaScript line by line, the V8 engine compiles code into bytecode, registering variable and function declarations in lexical memory.',
+      'Function Declarations: Hoisted with their full implementation, so they can be invoked anywhere in their scope before their textual declaration.',
+      'var Declarations: Memory is allocated and initialized to undefined immediately.',
+      'let & const Declarations: Hoisted into the environment record but remain uninitialized until their declaration statement is evaluated.'
     ],
     codeExample: {
       language: 'javascript',
-      filename: 'polyfills.js',
-      code: `// Polyfill: Custom Promise.all
-function promiseAllPolyfill(promises) {
-  return new Promise((resolve, reject) => {
-    if (!Array.isArray(promises)) {
-      return reject(new TypeError('Argument must be an array'));
-    }
-    const results = [];
-    let completedCount = 0;
-
-    if (promises.length === 0) return resolve(results);
-
-    promises.forEach((item, index) => {
-      // Promise.resolve handles primitives passed into promises array
-      Promise.resolve(item)
-        .then((val) => {
-          results[index] = val; // Preserves original array ordering!
-          completedCount++;
-          if (completedCount === promises.length) {
-            resolve(results);
-          }
-        })
-        .catch(reject); // Fail fast on first error
-    });
-  });
+      filename: 'hoisting-mechanism.js',
+      code: `console.log(greet()); // "Hello!" (Function declaration hoisted completely)
+function greet() {
+  return "Hello!";
 }
 
-// Test
-promiseAllPolyfill([
-  Promise.resolve(10),
-  Promise.resolve(20),
-  30
-]).then(console.log); // [10, 20, 30]`,
-      output: '[10, 20, 30]',
+console.log(x); // undefined (var hoisted, initialized as undefined)
+var x = 5;
+
+// Function expressions are NOT hoisted as functions:
+// sayHi(); // TypeError: sayHi is not a function
+var sayHi = function() { return "Hi!"; };`,
+      output: `Hello!
+undefined`,
       executionSteps: [
-        { line: 2, explanation: 'Returns new Promise instance wrapping async concurrency' },
-        { line: 9, explanation: 'Handles empty array edge case immediately' },
-        { line: 13, explanation: 'Promise.resolve wraps non-promise primitive values' },
-        { line: 15, explanation: 'Assigns by index to preserve input ordering regardless of resolution speed' },
-        { line: 21, explanation: 'Catches first rejection and fails fast' }
+        { line: 1, explanation: 'greet() executed successfully due to full function hoisting' },
+        { line: 6, explanation: 'console.log(x) outputs undefined because var x is hoisted with undefined' },
+        { line: 7, explanation: 'x assigned value 5' }
       ]
     },
     keyPoints: [
-      'Preserve input index ordering in Promise.all even if promise at index 2 resolves before index 0.',
-      'Wrap all elements with Promise.resolve() to handle non-Promise values seamlessly.',
-      'Always throw TypeError if invalid inputs are passed.'
+      'Hoisting is a compile-time memory allocation phase.',
+      'Function declarations are hoisted with their body.',
+      'Function expressions (assigned to var or let) are not hoisted as functions.'
     ],
-    interviewTip: 'Contrast Promise.all (fail-fast) with Promise.allSettled (never rejects, returns status objects: { status: "fulfilled" | "rejected" }).',
-    tags: ['Polyfills', 'Promise.all', 'Array.reduce', 'Async', 'InterviewBit']
+    interviewTip: 'Arrow functions assigned to variables behave like variable declarations, not function declarations.',
+    tags: ['Hoisting', 'Execution Context', 'Compilation', 'Functions']
+  },
+  {
+    id: 'js-9',
+    stack: 'javascript',
+    topic: 'Variable Declarations, Scoping & Hoisting',
+    title: 'What is the Temporal Dead Zone (TDZ)?',
+    difficulty: 'Intermediate',
+    summary: 'The phase between entering a block scope and the line where a let or const variable is declared and initialized. Accessing the identifier in this state throws a ReferenceError.',
+    explanation: [
+      'Temporal Span: TDZ is temporal (time-based) rather than purely positional. It represents the time window from scope entry to initialization.',
+      'ReferenceError: Unlike var which returns undefined, accessing a let or const variable in its TDZ throws: ReferenceError: Cannot access variable before initialization.',
+      'typeof Check: In the TDZ, even typeof myVar throws a ReferenceError. (typeof on undeclared variables returns "undefined").',
+      'Purpose: Designed in ES6 to prevent accessing variables before their intended definition, reducing subtle bugs.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'temporal-dead-zone.js',
+      code: `{
+  // TDZ for myVar starts here at scope entrance
+  // console.log(myVar); // ReferenceError: Cannot access 'myVar' before initialization
+  
+  let irrelevant = 10;
+  // TDZ continues...
+  
+  let myVar = 42; // TDZ ends here for myVar!
+  console.log(myVar); // 42
+}`,
+      output: `42`,
+      executionSteps: [
+        { line: 1, explanation: 'Block scope entered; myVar enters TDZ uninitialized' },
+        { line: 7, explanation: 'let myVar = 42 reached; myVar exits TDZ' },
+        { line: 8, explanation: 'console.log(myVar) prints 42 safely' }
+      ]
+    },
+    keyPoints: [
+      'TDZ is active from block entry until the variable declaration line executes.',
+      'Accessing variables in TDZ throws a ReferenceError.',
+      'let, const, and class declarations are all subject to the TDZ.'
+    ],
+    interviewTip: 'A common trick: function foo(x = y, y = 2) { return [x, y]; } Calling foo() throws ReferenceError because y is in TDZ when default parameter x evaluates!',
+    tags: ['TDZ', 'ES6', 'let', 'const', 'Scope']
+  },
+  {
+    id: 'js-10',
+    stack: 'javascript',
+    topic: 'Variable Declarations, Scoping & Hoisting',
+    title: 'What is Scope and the Scope Chain?',
+    difficulty: 'Beginner',
+    summary: 'Scope defines the accessibility boundaries of variables (Global, Function, Block). The Scope Chain is the resolution lookup mechanism: if a variable is not found in the local execution context, the engine searches outer lexical environments until reaching the global scope.',
+    explanation: [
+      'Global Scope: Variables defined outside any function or block, accessible anywhere in the application.',
+      'Function Scope: Variables declared with var, let, or const inside a function are private to that function.',
+      'Block Scope: Variables declared with let and const inside curly braces {} are accessible only within that block.',
+      'Scope Chain: Every execution context has a reference to its outer lexical environment. When an identifier is referenced, the engine traverses upward along the scope chain. If not found in global scope, a ReferenceError is thrown.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'scope-chain.js',
+      code: `const globalVar = "global";
+
+function outer() {
+  const outerVar = "outer";
+
+  function inner() {
+    const innerVar = "inner";
+    // Resolves innerVar locally, outerVar from parent, globalVar from global scope
+    console.log(\`\${innerVar} -> \${outerVar} -> \${globalVar}\`);
+  }
+  inner();
+}
+outer();`,
+      output: `inner -> outer -> global`,
+      executionSteps: [
+        { line: 1, explanation: 'globalVar declared in global lexical environment' },
+        { line: 3, explanation: 'outer() invoked; creates outer execution context' },
+        { line: 6, explanation: 'inner() invoked; creates inner execution context linked to outer' },
+        { line: 9, explanation: 'Variables resolved via lexical Scope Chain' }
+      ]
+    },
+    keyPoints: [
+      'Lexical Scoping: JavaScript scopes are determined by where functions are written in the source code.',
+      'Lookup is one-way: inner scopes can access outer variables, but outer scopes cannot access inner variables.',
+      'Failing to find a variable across the entire chain results in a ReferenceError.'
+    ],
+    interviewTip: 'Emphasize that JavaScript uses LEXICAL scoping (static scoping), meaning scope is determined at author time, not call time.',
+    tags: ['Scope', 'Scope Chain', 'Lexical Environment', 'Basics']
+  },
+  {
+    id: 'js-11',
+    stack: 'javascript',
+    topic: 'Variable Declarations, Scoping & Hoisting',
+    title: 'What is JavaScript Strict Mode?',
+    difficulty: 'Beginner',
+    summary: 'Activated with "use strict"; at the top of a script or function. Throws errors on silent bugs, disallows undeclared variables, prevents duplicate function parameter names, and leaves this as undefined in standalone functions.',
+    explanation: [
+      'Enabling Strict Mode: Placed at the top of a file or function body via "use strict";. ES6 modules and classes enable strict mode automatically.',
+      'Prevents Accidental Globals: Assigning to an undeclared variable throws a ReferenceError instead of creating a global variable on window.',
+      'Eliminates Silent Errors: Assigning to non-writable properties or deleting undeletable properties throws TypeErrors.',
+      'Standalone this Binding: In regular mode, this in standalone functions defaults to window/global. In strict mode, this remains undefined.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'strict-mode.js',
+      code: `"use strict";
+
+// 1. Undeclared variable assignment throws ReferenceError
+// x = 10; // ReferenceError: x is not defined
+
+// 2. Standalone function 'this' is undefined instead of window
+function checkThis() {
+  return this;
+}
+console.log(checkThis()); // undefined`,
+      output: `undefined`,
+      executionSteps: [
+        { line: 1, explanation: '"use strict" enables ECMAScript strict mode' },
+        { line: 7, explanation: 'Standalone function executed without context' },
+        { line: 10, explanation: 'this evaluates to undefined instead of window' }
+      ]
+    },
+    keyPoints: [
+      'Enforces cleaner code and throws errors on previously silent failures.',
+      'Prevents implicit global variable creation.',
+      'Sets this to undefined in standalone function calls.',
+      'Automatically enabled in ES6 modules and classes.'
+    ],
+    interviewTip: 'Mention that modern bundlers and ES Modules enable strict mode by default, so explicit "use strict" is rarely needed in modern frameworks.',
+    tags: ['Strict Mode', 'Error Handling', 'Best Practices']
+  },
+
+  // ==========================================
+  // Topic 3: Functions, 'this' Context & Closures
+  // ==========================================
+  {
+    id: 'js-12',
+    stack: 'javascript',
+    topic: "Functions, 'this' Context & Closures",
+    title: 'What is an IIFE (Immediately Invoked Function Expression)?',
+    difficulty: 'Beginner',
+    summary: 'A function that executes immediately after definition. Used to prevent variables from polluting the global scope.',
+    explanation: [
+      'Syntax: Wrapped in grouping parentheses (function() { ... })() to turn a function declaration into an expression, followed by invocation parentheses ().',
+      'Scope Isolation: Variables declared with var inside an IIFE remain private to the function and do not leak to window or global scope.',
+      'Pre-ES6 Module Pattern: Before ES6 let/const and modules (import/export), IIFEs were the primary mechanism for encapsulating private state in libraries (e.g., jQuery).',
+      'Return Value: An IIFE can return objects containing public methods while keeping inner helper variables private.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'iife-pattern.js',
+      code: `(function() {
+  var privateKey = "secure_token";
+  console.log("IIFE executed, privateKey protected:", privateKey);
+})();
+
+// console.log(privateKey); // ReferenceError: privateKey is not defined`,
+      output: `IIFE executed, privateKey protected: secure_token`,
+      executionSteps: [
+        { line: 1, explanation: 'Function expression evaluated and invoked immediately' },
+        { line: 2, explanation: 'privateKey allocated inside isolated function scope' },
+        { line: 3, explanation: 'Prints message safely from within the IIFE' }
+      ]
+    },
+    keyPoints: [
+      'Executes immediately upon definition.',
+      'Prevents global namespace pollution.',
+      'Foundation of the classic JavaScript module pattern.'
+    ],
+    interviewTip: 'Explain that with ES6 block scoping ({ let x = 1; }) and ES Modules, the necessity for IIFEs has decreased, though they remain useful in asynchronous self-executing code.',
+    tags: ['IIFE', 'Functions', 'Encapsulation', 'Scope']
+  },
+  {
+    id: 'js-13',
+    stack: 'javascript',
+    topic: "Functions, 'this' Context & Closures",
+    title: 'What are Higher-Order Functions?',
+    difficulty: 'Beginner',
+    summary: 'Functions that accept other functions as arguments (callbacks) or return a function as their result (e.g., map(), filter(), reduce()).',
+    explanation: [
+      'First-Class Citizens: In JavaScript, functions are first-class objects—they can be assigned to variables, passed into arguments, and returned from functions.',
+      'Accepting Callbacks: Methods like Array.prototype.map, filter, reduce, and forEach are higher-order functions because they receive callback functions.',
+      'Returning Functions: Higher-order functions can create specialized functions (factories, currying, decorators, or middleware).',
+      'Declarative Code: Enables functional programming paradigms, improving readability and testability.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'higher-order-functions.js',
+      code: `// 1. Accepting a callback
+const numbers = [1, 2, 3, 4];
+const doubled = numbers.map(n => n * 2);
+console.log(doubled); // [2, 4, 6, 8]
+
+// 2. Returning a function (function factory)
+function multiplier(factor) {
+  return num => num * factor;
+}
+const triple = multiplier(3);
+console.log(triple(5)); // 15`,
+      output: `[ 2, 4, 6, 8 ]
+15`,
+      executionSteps: [
+        { line: 3, explanation: 'Array.map takes n => n * 2 callback and executes for each item' },
+        { line: 7, explanation: 'multiplier returns a new closure function capturing factor' },
+        { line: 11, explanation: 'triple(5) invokes returned function: 5 * 3 = 15' }
+      ]
+    },
+    keyPoints: [
+      'Takes one or more functions as arguments, or returns a function.',
+      'Central to functional programming in JavaScript.',
+      'Standard array methods (map, filter, reduce) are built-in higher-order functions.'
+    ],
+    interviewTip: 'Connect higher-order functions to React Higher-Order Components (HOCs) or custom React hooks.',
+    tags: ['Higher-Order Functions', 'Functional Programming', 'Callbacks']
+  },
+  {
+    id: 'js-14',
+    stack: 'javascript',
+    topic: "Functions, 'this' Context & Closures",
+    title: 'Explain Closures with a use case.',
+    difficulty: 'Intermediate',
+    summary: 'A closure is created when an inner function maintains access to its outer lexical scope variables even after the outer function has finished executing. Ideal for data privacy.',
+    explanation: [
+      'How Closures Work: When an outer function executes, its variables reside in memory. If an inner function references them and is returned, JavaScript preserves that lexical environment on the heap.',
+      'Data Privacy: Closures allow emulating private variables that cannot be altered or accessed directly from outside code.',
+      'Stateful Functions: Used in memoization, function factories, debouncing, and React hooks (useState).',
+      'Garbage Collection: Variables captured in closures are kept alive as long as the returned inner function remains referenced.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'closure-wallet.js',
+      code: `function makeWallet() {
+  let balance = 0; // Private variable encapsulated by closure
+  return {
+    add: amt => balance += amt,
+    get: () => balance
+  };
+}
+
+const wallet = makeWallet();
+wallet.add(50);
+console.log(wallet.get()); // 50
+// balance is completely inaccessible from the outside!`,
+      output: `50`,
+      executionSteps: [
+        { line: 1, explanation: 'makeWallet() invoked; initializes private balance = 0' },
+        { line: 3, explanation: 'Returns object containing add and get closures' },
+        { line: 9, explanation: 'wallet.add(50) updates encapsulated balance' },
+        { line: 10, explanation: 'wallet.get() reads private balance through closure' }
+      ]
+    },
+    keyPoints: [
+      'Inner function retains access to outer lexical scope variables.',
+      'Enables true data privacy and encapsulation.',
+      'Forms the underlying mechanism behind React hooks like useState and useEffect.'
+    ],
+    interviewTip: 'Interviewers often ask what happens if closures hold references to heavy DOM elements—warn them about potential memory leaks if not cleaned up.',
+    tags: ['Closures', 'Data Privacy', 'Scope', 'Intermediate']
+  },
+  {
+    id: 'js-15',
+    stack: 'javascript',
+    topic: "Functions, 'this' Context & Closures",
+    title: 'How is the this keyword determined?',
+    difficulty: 'Intermediate',
+    summary: 'Standalone call: Points to window (or undefined in strict mode). Object method: Points to the object preceding the dot. new keyword: Points to the newly instantiated instance. Arrow functions: Bound lexically to the enclosing parent scope.',
+    explanation: [
+      'Default Binding: Standalone function invocation (fn()) binds this to global (window/global), or undefined in strict mode.',
+      'Implicit Binding: When called as an object method (obj.fn()), this refers to the object preceding the dot.',
+      'Explicit Binding: Using .call(), .apply(), or .bind() explicitly forces this to a specified object.',
+      'Constructor Binding: When called with new Fn(), this points to the newly created instance object.',
+      'Lexical Binding (Arrow Functions): Arrow functions do NOT have their own this; they inherit this from their enclosing lexical context at definition time.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'this-binding-rules.js',
+      code: `const user = {
+  name: "Alex",
+  showName() { return this.name; }
+};
+
+console.log(user.showName()); // "Alex" (Implicit binding)
+
+const detached = user.showName;
+console.log(detached()); // undefined (Default binding in strict mode)
+
+function Person(n) { this.name = n; }
+const p = new Person("Sarah"); // Constructor binding
+console.log(p.name); // "Sarah"`,
+      output: `Alex
+undefined
+Sarah`,
+      executionSteps: [
+        { line: 6, explanation: 'user.showName() called: this bound to user object' },
+        { line: 8, explanation: 'detached function reference called without context: this is undefined' },
+        { line: 12, explanation: 'new Person creates new object and binds this to it' }
+      ]
+    },
+    keyPoints: [
+      '4 primary rules: Default, Implicit, Explicit, and "new" constructor binding.',
+      'Arrow functions ignore standard binding rules and inherit lexical this.',
+      'Precedence order: new > Explicit (bind/call/apply) > Implicit > Default.'
+    ],
+    interviewTip: 'Remember: Arrow functions cannot be bound with call, apply, or bind—their lexical this is immutable.',
+    tags: ['this', 'Context', 'Binding', 'Objects']
+  },
+  {
+    id: 'js-16',
+    stack: 'javascript',
+    topic: "Functions, 'this' Context & Closures",
+    title: 'Differences between call(), apply(), and bind()',
+    difficulty: 'Intermediate',
+    summary: 'fn.call(context, arg1, arg2): Executes immediately with comma-separated arguments. fn.apply(context, [arg1, arg2]): Executes immediately with arguments as an array. fn.bind(context, arg1, arg2): Returns a new function with this permanently bound.',
+    explanation: [
+      'call(): Invokes the function immediately. The first argument sets this; subsequent arguments are passed individually separated by commas.',
+      'apply(): Invokes the function immediately. The first argument sets this; subsequent arguments are passed as an array (or array-like object).',
+      'bind(): Does NOT execute the function immediately. Instead, it returns a new function with this permanently bound to the provided object, and optional preset arguments (partial application).',
+      'Memory: bind() creates a new function object in memory, whereas call() and apply() execute existing functions directly.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'call-apply-bind.js',
+      code: `function introduce(greeting, punct) {
+  return \`\${greeting}, I am \${this.name}\${punct}\`;
+}
+
+const dev = { name: "Himanshu" };
+
+// 1. call: comma-separated arguments
+console.log(introduce.call(dev, "Hello", "!"));
+
+// 2. apply: array of arguments
+console.log(introduce.apply(dev, ["Hi", "."]));
+
+// 3. bind: returns a new bound function
+const boundIntro = introduce.bind(dev, "Greetings");
+console.log(boundIntro("!!"));`,
+      output: `Hello, I am Himanshu!
+Hi, I am Himanshu.
+Greetings, I am Himanshu!!`,
+      executionSteps: [
+        { line: 8, explanation: 'introduce.call executes immediately with dev as this' },
+        { line: 11, explanation: 'introduce.apply unpacks argument array and executes immediately' },
+        { line: 14, explanation: 'introduce.bind returns new bound function with preset "Greetings"' }
+      ]
+    },
+    keyPoints: [
+      'call: executes immediately with comma-separated args.',
+      'apply: executes immediately with array of args.',
+      'bind: returns a new function with permanent this binding.'
+    ],
+    interviewTip: 'A mnemonic: "C" for Call = Comma-separated; "A" for Apply = Array.',
+    tags: ['call', 'apply', 'bind', 'this', 'Functions']
+  },
+  {
+    id: 'js-17',
+    stack: 'javascript',
+    topic: "Functions, 'this' Context & Closures",
+    title: 'What are Arrow Functions, and how do they differ from regular functions?',
+    difficulty: 'Beginner',
+    summary: 'Provide concise syntax, have lexical this resolution, lack their own arguments object, and cannot be used as constructors with new.',
+    explanation: [
+      'Syntax: Compact syntax () => {}, with implicit return for single expressions.',
+      'No this Binding: Arrow functions capture this from the surrounding lexical scope at declaration time. They do not have their own this.',
+      'No arguments Object: Regular functions have access to the arguments pseudo-array. Arrow functions do not; use rest parameters (...args) instead.',
+      'No Constructor: Arrow functions lack a [[Construct]] method and .prototype property, so invoking them with new throws a TypeError.',
+      'No duplicate parameters: In non-strict mode regular functions allowed duplicate parameter names; arrow functions always disallow them.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'arrow-vs-regular.js',
+      code: `const regular = function() {
+  return arguments.length; // has arguments object
+};
+
+const arrow = (...args) => {
+  // arguments is not defined; use rest parameters (...args)
+  return args.length;
+};
+
+console.log(regular(1, 2, 3)); // 3
+console.log(arrow(1, 2, 3));   // 3
+
+// Arrow functions cannot be constructors:
+// new arrow(); // TypeError: arrow is not a constructor`,
+      output: `3
+3`,
+      executionSteps: [
+        { line: 1, explanation: 'Regular function has implicit arguments array-like object' },
+        { line: 5, explanation: 'Arrow function captures parameters via rest parameter (...args)' },
+        { line: 10, explanation: 'Invoking both functions outputs length 3' }
+      ]
+    },
+    keyPoints: [
+      'Lexical this (inherits from outer scope).',
+      'No arguments object; use ...args.',
+      'Cannot be used as constructors with new.'
+    ],
+    interviewTip: 'Do not use arrow functions for object methods that rely on this.propertyName, as this will point to window/module rather than the object.',
+    tags: ['Arrow Functions', 'ES6', 'Functions', 'this']
   },
   {
     id: 'js-18',
     stack: 'javascript',
-    topic: 'Tricky Output & Edge Cases',
-    title: 'Top 4 Tricky JavaScript Output Questions: Object Key Coercion, Inner Hoisting, and Scope Traps.',
-    difficulty: 'Advanced',
-    summary: 'Mastering classic interview output puzzles: object key string conversion [object Object], inner function var hoisting shadowing, and setTimeout variable scope.',
+    topic: "Functions, 'this' Context & Closures",
+    title: 'What is Function Currying?',
+    difficulty: 'Intermediate',
+    summary: 'The technique of transforming a function that takes multiple arguments f(a, b, c) into a chain of unary functions f(a)(b)(c).',
     explanation: [
-      'Puzzle 1 (Object Key Stringification): Objects used as property keys are automatically coerced via toString(), turning every plain object into the string "[object Object]". Thus x[y] = 1 and x[z] = 2 write to the EXACT SAME property key x["[object Object]"]!',
-      'Puzzle 2 (Inner Function Hoisting): In an inner function, declaring "var x = 21" hoists the variable x to the top of that function with undefined. Any operation like x++ before the assignment operates on undefined, resulting in NaN!',
-      'Puzzle 3 (setTimeout in Loop): Using "var i" shares one variable across iterations. When the callbacks run 1 second later, the loop has finished and i equals 3, printing 3 three times. Using "let i" creates a fresh lexical binding per iteration, printing 0, 1, 2.',
-      'Puzzle 4 (Arrow Function this): Arrow functions do not bind "this". An arrow method inside an object inherits "this" from the parent enclosing execution context (usually the global window), NOT the enclosing object.'
+      'Currying Definition: Translating a function of arity N into a sequence of N functions that each accept a single argument.',
+      'Implementation: Accomplished through closures, where each function captures an argument in its lexical environment until all required arguments are collected.',
+      'Partial Application: Currying allows creating specialized variants of general functions by supplying arguments step-by-step.',
+      'Composition: Extremely common in functional programming libraries (Ramda, Lodash/fp) and event handler setups.'
     ],
     codeExample: {
       language: 'javascript',
-      filename: 'interviewbit-tricky-outputs.js',
-      code: `// --- Puzzle 1: Object Keys Coercion (InterviewBit Q54) ---
-let x = {}, y = { name: "Ronny" }, z = { name: "John" };
-x[y] = { name: "Vivek" }; // x["[object Object]"] = { name: "Vivek" }
-x[z] = { name: "Akki" };  // Overwrites x["[object Object]"]!
-console.log(x[y]);        // { name: "Akki" }
+      filename: 'currying-pattern.js',
+      code: `// Standard multi-argument function
+function sum(a, b, c) {
+  return a + b + c;
+}
 
-// --- Puzzle 2: Inner Hoisting Trap (InterviewBit Q55) ---
-var val = 23;
-(function() {
-  var val = 43;
-  (function random() {
-    val++;               // val is hoisted locally as undefined! undefined + 1 = NaN
-    console.log(val);    // NaN
-    var val = 21;
-  })();
-})();
+// Curried version using arrow functions & closures
+const curriedSum = a => b => c => a + b + c;
 
-// --- Puzzle 3: Closure & Loop Fix (InterviewBit Q57) ---
-for (let i = 0; i < 3; i++) {
-  setTimeout(() => console.log('let index:', i), 10); // 0, 1, 2 (Correct!)
-}`,
-      output: `{ name: 'Akki' }
-NaN
-let index: 0
-let index: 1
-let index: 2`,
+console.log(curriedSum(1)(2)(3)); // 6
+
+// Practical use case: Reusable loggers
+const log = level => msg => \`[\${level.toUpperCase()}]: \${msg}\`;
+const logError = log("error");
+console.log(logError("Database connection failed"));`,
+      output: `6
+[ERROR]: Database connection failed`,
       executionSteps: [
-        { line: 2, explanation: 'x[y] evaluates y.toString() -> "[object Object]", setting x["[object Object]"]' },
-        { line: 4, explanation: 'x[z] evaluates z.toString() -> "[object Object]", overwriting the same property' },
-        { line: 5, explanation: 'x[y] reads x["[object Object]"], returning { name: "Akki" }' },
-        { line: 11, explanation: 'Inside random(), var val declaration is hoisted to top as undefined' },
-        { line: 12, explanation: 'val++ evaluates undefined + 1 -> NaN' },
-        { line: 19, explanation: 'let i binds a new lexical scope for each iteration, preserving 0, 1, 2' }
+        { line: 7, explanation: 'curriedSum defined as chain of unary arrow functions' },
+        { line: 9, explanation: 'curriedSum(1)(2)(3) resolves step-by-step to 6' },
+        { line: 12, explanation: 'log("error") pre-configures logError function' }
       ]
     },
     keyPoints: [
-      'Object keys in standard objects are ALWAYS coerced to strings (or Symbols). Use Map for object keys.',
-      'A local var declaration shadows outer variables from the very first line of the function.',
-      'let in a for loop header creates a new lexical environment record for every single iteration.'
+      'Transforms f(a, b, c) into f(a)(b)(c).',
+      'Leverages closures to remember arguments across calls.',
+      'Great for code reuse, configurable utilities, and partial application.'
     ],
-    interviewTip: 'If an interviewer asks: "How can you fix x[y] overwriting x[z]?", answer: "Use ES6 Map (new Map()), which allows actual object references as distinct keys without string coercion."',
-    tags: ['Tricky Questions', 'Output Questions', 'Hoisting', 'Coercion', 'InterviewBit']
+    interviewTip: 'Interviewers often ask to write an infinite currying function: const add = a => b => b ? add(a + b) : a.',
+    tags: ['Currying', 'Closures', 'Functional Programming', 'Intermediate']
   },
   {
     id: 'js-19',
     stack: 'javascript',
-    topic: 'Performance & Caching',
-    title: 'Implement Generic Memoization in JavaScript and optimize expensive function executions.',
-    difficulty: 'Advanced',
-    summary: 'Memoization caches function outputs based on input arguments using closures. Subsequent calls with identical arguments return the cached result in O(1) time.',
+    topic: "Functions, 'this' Context & Closures",
+    title: 'What are Pure Functions and Side Effects?',
+    difficulty: 'Beginner',
+    summary: 'Pure functions produce the exact same return value for identical arguments and have no observable side effects (no DOM changes, API requests, or external variable mutations).',
     explanation: [
-      'Concept: Memoization is an optimization technique where the return value of an expensive function is cached in an internal dictionary indexed by its serialized arguments.',
-      'Closure Mechanism: The cache dictionary is encapsulated within the outer memoize function, remaining private and inaccessible from outside code.',
-      'Memory Tradeoff: Memoization trades memory space for execution speed. It is ideal for pure deterministic functions (e.g. recursive Fibonacci, factorial, complex calculations, or regex parsers).',
-      'InterviewBit Code Modification (Q57 Code 2): Demonstrates preventing the repeated creation of large arrays on every function call by creating it once and caching it in a closure.'
+      'Deterministic: Given inputs A and B, a pure function will ALWAYS return the exact same output, with zero dependency on external state.',
+      'No Side Effects: It does not mutate external variables, make HTTP calls, modify the DOM, or log to the console.',
+      'Referential Transparency: A call to a pure function can be replaced with its return value without altering program behavior.',
+      'Benefits: Highly predictable, easy to test, straightforward to cache (memoization), and concurrency-safe.'
     ],
     codeExample: {
       language: 'javascript',
-      filename: 'memoization-utility.js',
-      code: `// Generic Memoization Higher-Order Function
-function memoize(fn) {
-  const cache = new Map();
+      filename: 'pure-functions.js',
+      code: `// Pure function: deterministic & zero side effects
+function add(a, b) {
+  return a + b;
+}
+console.log(add(2, 3)); // Always 5
 
+// Impure function: modifies external state (side effect)
+let count = 0;
+function impureAdd(val) {
+  count += val; // Side effect: mutates external variable
+  return count;
+}
+console.log(impureAdd(2)); // 2
+console.log(impureAdd(2)); // 4 (different output for same input!)`,
+      output: `5
+2
+4`,
+      executionSteps: [
+        { line: 2, explanation: 'add(a, b) returns sum directly without side effects' },
+        { line: 8, explanation: 'impureAdd modifies global count variable' },
+        { line: 14, explanation: 'Second call to impureAdd(2) returns 4 instead of 2' }
+      ]
+    },
+    keyPoints: [
+      'Pure functions are deterministic (same input = same output).',
+      'Zero side effects (no DOM manipulation, network requests, or global state mutations).',
+      'Crucial foundation of React reducers and functional state management.'
+    ],
+    interviewTip: 'In React, Redux reducers and React component rendering functions MUST be pure to avoid unexpected re-rendering bugs.',
+    tags: ['Pure Functions', 'Functional Programming', 'React', 'Basics']
+  },
+
+  // ==========================================
+  // Topic 4: Objects, Prototypes & Classes
+  // ==========================================
+  {
+    id: 'js-20',
+    stack: 'javascript',
+    topic: 'Objects, Prototypes & Classes',
+    title: 'What is Prototypal Inheritance and the Prototype Chain?',
+    difficulty: 'Intermediate',
+    summary: 'Objects inherit properties and methods directly from other objects via an internal prototype link ([[Prototype]]). If a property is not on the instance, the engine traverses upward along the chain until finding it or hitting null.',
+    explanation: [
+      '[[Prototype]] Link: In JavaScript, every object has an internal link to another object called its prototype. This link is accessible via Object.getPrototypeOf(obj) or the __proto__ accessor.',
+      'Prototype Chain: When accessing obj.prop, the engine checks obj. If absent, it checks obj’s prototype, then that prototype’s prototype, all the way up to Object.prototype.',
+      'Chain Terminator: Object.prototype.[[Prototype]] is null. If a property is not found before reaching null, JavaScript returns undefined.',
+      'Memory Efficiency: Methods defined on prototypes are shared across all instances rather than re-created for each object.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'prototype-chain.js',
+      code: `const vehicle = {
+  hasWheels: true,
+  drive() { return "Driving..."; }
+};
+
+const car = Object.create(vehicle);
+car.doors = 4;
+
+console.log(car.doors);     // 4 (own property)
+console.log(car.hasWheels);  // true (inherited via prototype)
+console.log(car.drive());    // "Driving..." (from prototype chain)
+console.log(Object.getPrototypeOf(vehicle) === Object.prototype); // true
+console.log(Object.getPrototypeOf(Object.prototype)); // null (end of chain)`,
+      output: `4
+true
+Driving...
+true
+null`,
+      executionSteps: [
+        { line: 6, explanation: 'car created with vehicle as its prototype' },
+        { line: 10, explanation: 'car.hasWheels not found on car; engine traverses to vehicle prototype' },
+        { line: 13, explanation: 'Object.prototype prototype evaluated: returns null' }
+      ]
+    },
+    keyPoints: [
+      'Objects inherit directly from other objects via [[Prototype]].',
+      'The chain terminates at Object.prototype.[[Prototype]] === null.',
+      'Provides shared methods without duplicating functions in memory.'
+    ],
+    interviewTip: 'Differentiate between Constructor.prototype (the template object attached to constructors) and instance.__proto__ (the actual link on instances).',
+    tags: ['Prototypes', 'Inheritance', 'OOP', 'Prototype Chain']
+  },
+  {
+    id: 'js-21',
+    stack: 'javascript',
+    topic: 'Objects, Prototypes & Classes',
+    title: 'What happens behind the scenes with the new keyword?',
+    difficulty: 'Intermediate',
+    summary: 'Creates a new empty object: {}. Binds the new object\'s prototype to the constructor\'s .prototype. Executes the constructor function with this referencing the new object. Returns the object automatically.',
+    explanation: [
+      'Step 1 (Creation): An empty, plain JavaScript object is allocated in memory: {}.',
+      'Step 2 (Prototype Linking): The new object’s internal [[Prototype]] is linked to the constructor function’s .prototype property.',
+      'Step 3 (Execution): The constructor function is executed with this bound to the newly created object.',
+      'Step 4 (Return): If the constructor explicitly returns a non-primitive object, that object is returned; otherwise, the newly created object from Step 1 is returned.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'new-keyword-simulation.js',
+      code: `function User(name) {
+  this.name = name;
+}
+User.prototype.sayHi = function() {
+  return \`Hi, I am \${this.name}\`;
+};
+
+// Custom implementation simulating the 4 steps of 'new':
+function customNew(Constructor, ...args) {
+  const obj = {}; // 1. Create empty object
+  Object.setPrototypeOf(obj, Constructor.prototype); // 2. Link prototype
+  const result = Constructor.apply(obj, args); // 3. Execute with 'this'
+  return result instanceof Object ? result : obj; // 4. Return object
+}
+
+const u = customNew(User, "Himanshu");
+console.log(u.sayHi()); // "Hi, I am Himanshu"`,
+      output: `Hi, I am Himanshu`,
+      executionSteps: [
+        { line: 10, explanation: 'Step 1: Empty object obj created' },
+        { line: 11, explanation: 'Step 2: Prototype linked to Constructor.prototype' },
+        { line: 12, explanation: 'Step 3: Constructor executed with obj as this' },
+        { line: 13, explanation: 'Step 4: Returns new obj' }
+      ]
+    },
+    keyPoints: [
+      'Creates empty object, links prototype, binds this, returns instance.',
+      'If constructor returns an object explicitly, that object overrides the return.',
+      'Functions called without new have this bound to global/undefined.'
+    ],
+    interviewTip: 'Mention new.target: ES6 introduced new.target to detect whether a function was invoked with new or called normally.',
+    tags: ['new', 'OOP', 'Constructors', 'Prototypes']
+  },
+  {
+    id: 'js-22',
+    stack: 'javascript',
+    topic: 'Objects, Prototypes & Classes',
+    title: 'How do ES6 Classes work with super()?',
+    difficulty: 'Intermediate',
+    summary: 'Classes are syntactic sugar over prototypes. In subclassing, super() invokes the parent class constructor to initialize this. Accessing this before calling super() throws a ReferenceError.',
+    explanation: [
+      'Syntactic Sugar: ES6 classes do not introduce a new object-oriented inheritance model; they are modern syntax over JavaScript\'s existing prototypal inheritance.',
+      'Derived Classes (extends): When a class extends a parent class, its constructor must call super() before accessing any property on this.',
+      'Parent Constructor Call: super(...args) invokes the parent constructor and initializes this in derived classes.',
+      'Method Overriding: In subclass methods, super.methodName() can be used to call the parent class\'s version of the method.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'es6-classes-super.js',
+      code: `class Animal {
+  constructor(name) {
+    this.name = name;
+  }
+  speak() {
+    return \`\${this.name} makes a noise.\`;
+  }
+}
+
+class Dog extends Animal {
+  constructor(name, breed) {
+    super(name); // Must call super before accessing 'this'!
+    this.breed = breed;
+  }
+  speak() {
+    return \`\${super.speak()} Specifically barks!\`;
+  }
+}
+
+const d = new Dog("Rex", "German Shepherd");
+console.log(d.speak());`,
+      output: `Rex makes a noise. Specifically barks!`,
+      executionSteps: [
+        { line: 12, explanation: 'Dog constructor invokes super(name) to initialize parent Animal properties' },
+        { line: 13, explanation: 'Dog initializes its own breed property on this' },
+        { line: 16, explanation: 'super.speak() calls parent speak method from prototype' }
+      ]
+    },
+    keyPoints: [
+      'super() invokes the parent constructor.',
+      'In derived classes, this cannot be accessed before calling super().',
+      'ES6 classes are syntactic sugar over prototypal inheritance.'
+    ],
+    interviewTip: 'Unlike traditional prototype inheritance where child creates this, in ES6 class inheritance the parent constructor creates this and child constructor modifies it.',
+    tags: ['ES6 Classes', 'super', 'OOP', 'Inheritance']
+  },
+  {
+    id: 'js-23',
+    stack: 'javascript',
+    topic: 'Objects, Prototypes & Classes',
+    title: 'How do you convert Objects into Arrays?',
+    difficulty: 'Beginner',
+    summary: 'Object.keys(obj) returns property names. Object.values(obj) returns property values. Object.entries(obj) returns nested [key, value] pairs.',
+    explanation: [
+      'Object.keys(obj): Returns an array of an object\'s own enumerable string-keyed property names.',
+      'Object.values(obj): Returns an array of an object\'s own enumerable property values in the same order as for...in.',
+      'Object.entries(obj): Returns an array of an object\'s own enumerable string-keyed key-value pairs as [key, value] tuples.',
+      'Object.fromEntries(): The inverse of Object.entries(), converting a list of key-value pairs back into an object.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'object-to-array.js',
+      code: `const user = { name: "Himanshu", role: "Developer", exp: 5 };
+
+console.log(Object.keys(user));
+// Output: ["name", "role", "exp"]
+
+console.log(Object.values(user));
+// Output: ["Himanshu", "Developer", 5]
+
+console.log(Object.entries(user));
+// Output: [["name", "Himanshu"], ["role", "Developer"], ["exp", 5]]`,
+      output: `[ 'name', 'role', 'exp' ]
+[ 'Himanshu', 'Developer', 5 ]
+[ [ 'name', 'Himanshu' ], [ 'role', 'Developer' ], [ 'exp', 5 ] ]`,
+      executionSteps: [
+        { line: 3, explanation: 'Object.keys extracts property names into an array' },
+        { line: 6, explanation: 'Object.values extracts property values into an array' },
+        { line: 9, explanation: 'Object.entries extracts [key, value] tuples' }
+      ]
+    },
+    keyPoints: [
+      'Object.keys(obj) -> array of keys.',
+      'Object.values(obj) -> array of values.',
+      'Object.entries(obj) -> array of [key, value] pairs.'
+    ],
+    interviewTip: 'Use Object.entries(obj) combined with Array.prototype.filter or map and Object.fromEntries to easily transform objects.',
+    tags: ['Objects', 'Arrays', 'ES6', 'Object.entries']
+  },
+  {
+    id: 'js-24',
+    stack: 'javascript',
+    topic: 'Objects, Prototypes & Classes',
+    title: 'Difference between Object.freeze() and Object.seal()',
+    difficulty: 'Intermediate',
+    summary: 'Object.freeze(): Makes the object completely immutable (no adding, deleting, or editing properties). Object.seal(): Prevents adding or deleting properties, but existing writable properties can still be modified.',
+    explanation: [
+      'Object.seal(): Prevents new properties from being added and marks all existing properties as non-configurable (cannot be deleted). Existing writable properties CAN still be changed.',
+      'Object.freeze(): Does everything Object.seal() does, AND additionally marks all existing properties as writable: false (cannot edit existing properties).',
+      'Shallow by Nature: Both methods are shallow! Nested child objects inside frozen or sealed objects remain mutable unless deeply frozen recursively.',
+      'Detection: Object.isFrozen(obj) and Object.isSealed(obj) check object freeze/seal status.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'freeze-vs-seal.js',
+      code: `// 1. Object.seal
+const sealed = { score: 10 };
+Object.seal(sealed);
+sealed.score = 20;  // Allowed: modifying existing property
+delete sealed.score; // Forbidden: cannot delete
+sealed.bonus = 5;    // Forbidden: cannot add
+console.log(sealed); // { score: 20 }
+
+// 2. Object.freeze
+const frozen = { score: 10 };
+Object.freeze(frozen);
+frozen.score = 20;   // Forbidden: cannot edit
+console.log(frozen.score); // 10`,
+      output: `{ score: 20 }
+10`,
+      executionSteps: [
+        { line: 3, explanation: 'Object.seal applied: existing property modification permitted' },
+        { line: 4, explanation: 'sealed.score updated to 20' },
+        { line: 11, explanation: 'Object.freeze applied: property mutation ignored (or throws TypeError in strict mode)' }
+      ]
+    },
+    keyPoints: [
+      'Object.seal allows modifying existing properties, but disallows adding or deleting.',
+      'Object.freeze disallows adding, deleting, AND modifying properties.',
+      'Both operations are shallow and only affect top-level keys.'
+    ],
+    interviewTip: 'In strict mode ("use strict"), attempting to modify a frozen object or add to a sealed object throws a TypeError instead of silently failing.',
+    tags: ['Object.freeze', 'Object.seal', 'Immutability', 'Security']
+  },
+
+  // ==========================================
+  // Topic 5: ES6+ Modern JavaScript Features
+  // ==========================================
+  {
+    id: 'js-25',
+    stack: 'javascript',
+    topic: 'ES6+ Modern JavaScript Features',
+    title: 'Rest Parameter vs. Spread Operator (...)',
+    difficulty: 'Beginner',
+    summary: 'Rest gathers remaining function arguments into an array: function sum(...nums). Spread expands an array or object into individual elements: [...arr1, ...arr2].',
+    explanation: [
+      'Same Syntax (...): Both use three dots, but perform opposite actions based on context.',
+      'Rest Parameter: Used in function parameter declarations to condense an indefinite number of arguments into a single genuine array (e.g. fn(a, ...rest)). Must be the last parameter.',
+      'Spread Operator: Used in expressions to unpack/expand iterable elements (arrays, strings) or object properties into separate elements (e.g. [...arr], {...obj}).',
+      'Replacement: Rest replaces the older arguments object with a real array; Spread replaces Function.prototype.apply and Object.assign.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'rest-vs-spread.js',
+      code: `// 1. Rest Parameter (Condenses elements into an array)
+function sum(...nums) {
+  return nums.reduce((total, n) => total + n, 0);
+}
+console.log(sum(1, 2, 3, 4)); // 10
+
+// 2. Spread Operator (Expands array/object into items)
+const arr1 = [1, 2];
+const arr2 = [3, 4];
+const combined = [...arr1, ...arr2];
+console.log(combined); // [1, 2, 3, 4]`,
+      output: `10
+[ 1, 2, 3, 4 ]`,
+      executionSteps: [
+        { line: 2, explanation: 'Rest parameter collects 1, 2, 3, 4 into array [1, 2, 3, 4]' },
+        { line: 11, explanation: 'Spread operator unpacks arr1 and arr2 into new array' }
+      ]
+    },
+    keyPoints: [
+      'Rest: gathers elements into an array (in function parameters or destructuring).',
+      'Spread: expands an array or object into individual elements.',
+      'Rest parameters must always be at the end of the argument list.'
+    ],
+    interviewTip: 'Spread performs a SHALLOW copy of objects and arrays. Nested objects still share reference pointers.',
+    tags: ['Rest', 'Spread', 'ES6', 'Arrays']
+  },
+  {
+    id: 'js-26',
+    stack: 'javascript',
+    topic: 'ES6+ Modern JavaScript Features',
+    title: 'What is Destructuring Assignment?',
+    difficulty: 'Beginner',
+    summary: 'Syntax to unpack values from arrays or properties from objects directly into distinct variables.',
+    explanation: [
+      'Object Destructuring: Matches properties by name: const { name, age } = user. Can rename variables ({ name: userName }) and assign fallback defaults ({ age = 18 }).',
+      'Array Destructuring: Matches elements by positional index: const [first, second] = list. Can skip items using empty commas: const [first, , third] = list.',
+      'Nested Destructuring: Deep values can be extracted in one statement: const { address: { city } } = user.',
+      'Function Parameters: Functions can destructure incoming object arguments directly in the parameter signature.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'destructuring-syntax.js',
+      code: `// Object destructuring with default value and renaming
+const user = { name: "Himanshu", age: 25 };
+const { name: userName, age, city = "Delhi" } = user;
+console.log(userName, age, city); // "Himanshu" 25 "Delhi"
+
+// Array destructuring with item skipping
+const items = ["React", "Vue", "Angular"];
+const [first, , third] = items;
+console.log(first, third); // "React" "Angular"`,
+      output: `Himanshu 25 Delhi
+React Angular`,
+      executionSteps: [
+        { line: 3, explanation: 'name renamed to userName; city gets default value "Delhi"' },
+        { line: 8, explanation: 'first extracts index 0 ("React"), third extracts index 2 ("Angular")' }
+      ]
+    },
+    keyPoints: [
+      'Unpacks values from arrays by index, and from objects by property key.',
+      'Supports default fallback values and variable renaming.',
+      'Extensively used in React props and state hook declarations.'
+    ],
+    interviewTip: 'Destructuring null or undefined throws a TypeError: Cannot destructure property of null/undefined.',
+    tags: ['Destructuring', 'ES6', 'Syntax', 'Clean Code']
+  },
+  {
+    id: 'js-27',
+    stack: 'javascript',
+    topic: 'ES6+ Modern JavaScript Features',
+    title: 'What are Generator Functions?',
+    difficulty: 'Advanced',
+    summary: 'Declared with function*, generators can pause execution with yield and resume when the iterator\'s .next() is called.',
+    explanation: [
+      'Definition: Declared using function* syntax. When called, a generator function does not execute its body immediately; it returns a Generator iterator object.',
+      'yield Keyword: Pauses generator execution and sends a value back to the caller: { value: x, done: false }.',
+      'next() Method: Resumes execution from where it was paused until the next yield or return statement.',
+      'Two-Way Communication: Values can be passed into .next(val), which replaces the current yield expression inside the generator.',
+      'Use Cases: Infinite sequences, async orchestration (precursor to async/await), Redux Saga.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'generator-functions.js',
+      code: `function* idGenerator() {
+  let id = 1;
+  while (id <= 3) {
+    yield id++;
+  }
+}
+
+const gen = idGenerator();
+console.log(gen.next()); // { value: 1, done: false }
+console.log(gen.next()); // { value: 2, done: false }
+console.log(gen.next()); // { value: 3, done: false }
+console.log(gen.next()); // { value: undefined, done: true }`,
+      output: `{ value: 1, done: false }
+{ value: 2, done: false }
+{ value: 3, done: false }
+{ value: undefined, done: true }`,
+      executionSteps: [
+        { line: 8, explanation: 'idGenerator invoked; returns generator iterator' },
+        { line: 9, explanation: 'gen.next() yields 1 and pauses execution' },
+        { line: 12, explanation: 'Generator completes; done is set to true' }
+      ]
+    },
+    keyPoints: [
+      'Declared with function* and controlled using yield.',
+      'Execution pauses at yield and resumes with .next().',
+      'Produces standard ES6 Iterators compatible with for...of and spread.'
+    ],
+    interviewTip: 'Explain how async/await is built conceptually on top of generator functions combined with promises (like the "co" library).',
+    tags: ['Generators', 'Iterators', 'ES6', 'Advanced']
+  },
+  {
+    id: 'js-28',
+    stack: 'javascript',
+    topic: 'ES6+ Modern JavaScript Features',
+    title: 'Explain Set, Map, WeakSet, and WeakMap',
+    difficulty: 'Intermediate',
+    summary: 'Set: Stores unique values of any type. Map: Stores key-value pairs where keys can be any type. WeakSet: Stores only objects; entries are weakly referenced, permitting garbage collection. WeakMap: Stores key-value pairs where keys must be objects, held weakly for garbage collection.',
+    explanation: [
+      'Set: Collection of unique values of any type. Duplicate additions are ignored. Preserves insertion order.',
+      'Map: Ordered dictionary of [key, value] pairs. Unlike regular objects whose keys must be strings/symbols, Map keys can be anything—objects, functions, or primitives.',
+      'WeakSet: Only holds object references. Objects are held weakly, meaning if no other references exist, the object can be garbage collected.',
+      'WeakMap: Keys must be objects and are held weakly. Values can be anything. Not iterable, no .size property, preventing memory leaks for DOM metadata or private fields.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'collections-comparison.js',
+      code: `// 1. Set: unique values only
+const set = new Set([1, 2, 2, 3]);
+console.log([...set]); // [1, 2, 3]
+
+// 2. Map: any type can be a key
+const map = new Map();
+const keyObj = { id: 1 };
+map.set(keyObj, "User Metadata");
+console.log(map.get(keyObj)); // "User Metadata"
+
+// 3. WeakMap: keys must be objects, enables garbage collection
+const wm = new WeakMap();
+let obj = { temp: true };
+wm.set(obj, "cached");
+console.log(wm.has(obj)); // true`,
+      output: `[ 1, 2, 3 ]
+User Metadata
+true`,
+      executionSteps: [
+        { line: 2, explanation: 'Set ignores duplicate 2 and stores unique values' },
+        { line: 7, explanation: 'Map associates object keyObj with metadata string' },
+        { line: 13, explanation: 'WeakMap registers obj without preventing garbage collection' }
+      ]
+    },
+    keyPoints: [
+      'Set stores unique values; Map stores key-value pairs with any key type.',
+      'WeakSet/WeakMap hold weak references to object keys to allow garbage collection.',
+      'Weak collections are not enumerable and have no .size property.'
+    ],
+    interviewTip: 'A primary use case for WeakMap is associating metadata with DOM nodes without causing memory leaks when nodes are removed from the DOM.',
+    tags: ['Set', 'Map', 'WeakMap', 'WeakSet', 'Memory Management']
+  },
+
+  // ==========================================
+  // Topic 6: Array Methods & Handwritten Polyfills
+  // ==========================================
+  {
+    id: 'js-29',
+    stack: 'javascript',
+    topic: 'Array Methods & Handwritten Polyfills',
+    title: 'Differences among map(), filter(), reduce(), and forEach()',
+    difficulty: 'Beginner',
+    summary: 'map(): Returns a new array with callback transformations applied to every element. filter(): Returns a new array containing elements that evaluate to truthy against the test condition. reduce(): Accumulates array values into a single return value. forEach(): Iterates through elements without returning a new array (returns undefined).',
+    explanation: [
+      'map(): Pure transformation. Returns a new array of the same length where each element is the return value of the callback.',
+      'filter(): Selective copying. Returns a new array containing only elements where the callback returned a truthy value.',
+      'reduce(): Folding / Aggregation. Iterates through the array and returns a single accumulated result (number, object, array, etc.).',
+      'forEach(): Imperative loop. Calls the callback for each element solely for side effects; always returns undefined and cannot be chained.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'array-methods.js',
+      code: `const nums = [1, 2, 3, 4];
+
+// map transforms each item
+console.log(nums.map(x => x * 2)); // [2, 4, 6, 8]
+
+// filter tests each item
+console.log(nums.filter(x => x % 2 === 0)); // [2, 4]
+
+// reduce aggregates into one value
+console.log(nums.reduce((acc, x) => acc + x, 0)); // 10
+
+// forEach performs side effects, returns undefined
+const sideEffect = nums.forEach(x => {});
+console.log(sideEffect); // undefined`,
+      output: `[ 2, 4, 6, 8 ]
+[ 2, 4 ]
+10
+undefined`,
+      executionSteps: [
+        { line: 4, explanation: 'map produces new array with doubled numbers' },
+        { line: 7, explanation: 'filter checks even numbers, returning [2, 4]' },
+        { line: 10, explanation: 'reduce computes sum 1 + 2 + 3 + 4 = 10' }
+      ]
+    },
+    keyPoints: [
+      'map, filter, reduce return new values and are chainable.',
+      'forEach returns undefined and is intended for side effects.',
+      'None of these methods mutate the original array by default.'
+    ],
+    interviewTip: 'Remember that you cannot break or return early from a forEach loop. Use for...of or Array.prototype.some() instead if early exit is required.',
+    tags: ['Array Methods', 'Functional Programming', 'map', 'filter', 'reduce']
+  },
+  {
+    id: 'js-30',
+    stack: 'javascript',
+    topic: 'Array Methods & Handwritten Polyfills',
+    title: 'Difference between slice() and splice()',
+    difficulty: 'Beginner',
+    summary: 'slice(start, end): Non-mutating; returns a shallow copy of a portion of the array. splice(start, deleteCount, ...items): Mutates the original array by deleting or inserting elements, returning the removed items.',
+    explanation: [
+      'slice(start, end): Pure method. Does NOT modify the original array. Returns a shallow copy from start index up to, but not including, end index.',
+      'splice(start, deleteCount, ...items): Impure method. Modifies (mutates) the original array in place by removing, replacing, or inserting items. Returns an array of deleted items.',
+      'Negative Indices: Both accept negative indices counting backwards from the end of the array.',
+      'Immutability: In React state management, always prefer slice over splice to maintain immutable state.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'slice-vs-splice.js',
+      code: `const arr = ["a", "b", "c", "d"];
+
+// slice(start, end) -> does NOT mutate original array
+const sliced = arr.slice(1, 3);
+console.log(sliced); // ["b", "c"]
+console.log(arr);    // ["a", "b", "c", "d"] (unchanged)
+
+// splice(start, deleteCount, insertItem) -> MUTATES original array
+const spliced = arr.splice(1, 2, "X");
+console.log(spliced); // ["b", "c"] (deleted elements)
+console.log(arr);     // ["a", "X", "d"] (mutated original array!)`,
+      output: `[ 'b', 'c' ]
+[ 'a', 'b', 'c', 'd' ]
+[ 'b', 'c' ]
+[ 'a', 'X', 'd' ]`,
+      executionSteps: [
+        { line: 4, explanation: 'arr.slice(1, 3) extracts elements at index 1 and 2 without modifying arr' },
+        { line: 9, explanation: 'arr.splice(1, 2, "X") deletes 2 items starting from index 1 and inserts "X"' }
+      ]
+    },
+    keyPoints: [
+      'slice is non-mutating and returns a new shallow copy.',
+      'splice mutates the original array and returns the removed items.',
+      'slice takes (start, end); splice takes (start, deleteCount, ...insertItems).'
+    ],
+    interviewTip: 'To remember which one mutates: "splice" has a "p" for "Permanent" change (mutates original).',
+    tags: ['Arrays', 'slice', 'splice', 'Immutability']
+  },
+  {
+    id: 'js-31',
+    stack: 'javascript',
+    topic: 'Array Methods & Handwritten Polyfills',
+    title: 'Hand-written Polyfill: Array.prototype.map()',
+    difficulty: 'Intermediate',
+    summary: 'Custom polyfill for Array.prototype.map using prototype method binding, handling sparse arrays and callback invocation.',
+    explanation: [
+      'Type Check: Validates that the provided callback is an executable function, throwing a TypeError if not.',
+      'Context Binding: Supports binding this context through an optional thisArg parameter if supplied.',
+      'Sparse Array Handling: Uses i in this check to handle empty/deleted slots in sparse arrays appropriately.',
+      'Return Value: Pushes callback outputs into a new array and returns it, leaving the original array intact.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'polyfill-map.js',
+      code: `Array.prototype.myMap = function(callback) {
+  if (typeof callback !== "function") throw new TypeError(callback + " is not a function");
+  const result = [];
+  for (let i = 0; i < this.length; i++) {
+    if (i in this) result.push(callback(this[i], i, this));
+  }
+  return result;
+};
+
+const nums = [1, 2, 3];
+console.log(nums.myMap(x => x * 10)); // [10, 20, 30]`,
+      output: `[ 10, 20, 30 ]`,
+      executionSteps: [
+        { line: 1, explanation: 'myMap attached to Array.prototype' },
+        { line: 2, explanation: 'Validates that callback is a function' },
+        { line: 4, explanation: 'Iterates through indices, invoking callback with (element, index, array)' },
+        { line: 11, explanation: 'Output: [10, 20, 30]' }
+      ]
+    },
+    keyPoints: [
+      'Throws TypeError if callback is not a function.',
+      'Passes (element, index, array) to the callback.',
+      'Handles sparse arrays using the "in" operator.'
+    ],
+    interviewTip: 'Mentioning the "i in this" check shows senior-level awareness of sparse array edge cases in JavaScript engines.',
+    tags: ['Polyfills', 'Array.prototype.map', 'Arrays', 'Machine Coding']
+  },
+  {
+    id: 'js-32',
+    stack: 'javascript',
+    topic: 'Array Methods & Handwritten Polyfills',
+    title: 'Hand-written Polyfill: Array.prototype.filter()',
+    difficulty: 'Intermediate',
+    summary: 'Custom polyfill for Array.prototype.filter checking elements against a predicate callback function.',
+    explanation: [
+      'Validation: Ensures the callback is a callable function.',
+      'Filtering Logic: Evaluates callback(this[i], i, this). If truthy, the current item is appended to the result array.',
+      'Non-Mutating: Does not alter the original this array.',
+      'Sparse Arrays: Checks i in this to skip empty array indices.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'polyfill-filter.js',
+      code: `Array.prototype.myFilter = function(callback) {
+  if (typeof callback !== "function") throw new TypeError(callback + " is not a function");
+  const result = [];
+  for (let i = 0; i < this.length; i++) {
+    if (i in this && callback(this[i], i, this)) result.push(this[i]);
+  }
+  return result;
+};
+
+const nums = [1, 2, 3, 4, 5];
+console.log(nums.myFilter(x => x > 2)); // [3, 4, 5]`,
+      output: `[ 3, 4, 5 ]`,
+      executionSteps: [
+        { line: 1, explanation: 'myFilter registered on Array.prototype' },
+        { line: 5, explanation: 'Evaluates predicate: pushes item if truthy' },
+        { line: 11, explanation: 'Returns filtered array [3, 4, 5]' }
+      ]
+    },
+    keyPoints: [
+      'Evaluates predicate callback for each array item.',
+      'Returns a new array with elements that passed the test.',
+      'Leaves original array unchanged.'
+    ],
+    interviewTip: 'Make sure not to use arrow functions when implementing prototype methods, as arrow functions lack dynamic this binding.',
+    tags: ['Polyfills', 'filter', 'Arrays', 'Machine Coding']
+  },
+  {
+    id: 'js-33',
+    stack: 'javascript',
+    topic: 'Array Methods & Handwritten Polyfills',
+    title: 'Hand-written Polyfill: Array.prototype.reduce()',
+    difficulty: 'Advanced',
+    summary: 'Custom polyfill for Array.prototype.reduce supporting initial accumulator values and empty array safety checks.',
+    explanation: [
+      'Initial Value Handling: If initialValue is passed, accumulator starts with that value and loop starts at index 0. If omitted, accumulator defaults to this[0] and loop starts at index 1.',
+      'Empty Array Error: If an empty array is reduced without an initialValue, a TypeError is thrown according to the ECMAScript spec.',
+      'Sparse Array Support: Checks i in this to ensure skipped indexes do not cause unexpected operations.',
+      'Return Value: Returns the single accumulated value after processing all elements.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'polyfill-reduce.js',
+      code: `Array.prototype.myReduce = function(callback, initialValue) {
+  if (typeof callback !== "function") throw new TypeError(callback + " is not a function");
+  let acc = initialValue;
+  let startIndex = 0;
+  if (arguments.length < 2) {
+    if (this.length === 0) throw new TypeError("Reduce of empty array with no initial value");
+    acc = this[0];
+    startIndex = 1;
+  }
+  for (let i = startIndex; i < this.length; i++) {
+    if (i in this) acc = callback(acc, this[i], i, this);
+  }
+  return acc;
+};
+
+const nums = [1, 2, 3, 4];
+console.log(nums.myReduce((acc, curr) => acc + curr, 0)); // 10`,
+      output: `10`,
+      executionSteps: [
+        { line: 5, explanation: 'Checks arguments.length < 2 to detect if initialValue was passed' },
+        { line: 6, explanation: 'Throws TypeError if empty array reduced without initialValue' },
+        { line: 11, explanation: 'Iterates and accumulates return values from callback' },
+        { line: 17, explanation: 'Returns final sum 10' }
+      ]
+    },
+    keyPoints: [
+      'Detects whether initialValue was provided using arguments.length.',
+      'Handles empty array error per ECMAScript specification.',
+      'Accumulates values through callback(acc, curr, index, array).'
+    ],
+    interviewTip: 'The key interview trap in reduce polyfills is checking arguments.length < 2 rather than if (!initialValue), because initialValue could be valid falsy values like 0 or null!',
+    tags: ['Polyfills', 'reduce', 'Arrays', 'Advanced']
+  },
+
+  // ==========================================
+  // Topic 7: Asynchronous JavaScript & The Event Loop
+  // ==========================================
+  {
+    id: 'js-34',
+    stack: 'javascript',
+    topic: 'Asynchronous JavaScript & The Event Loop',
+    title: 'How does the Event Loop manage Microtasks vs. Macrotasks?',
+    difficulty: 'Intermediate',
+    summary: 'The Call Stack runs synchronous code first. When the Call Stack clears, the engine drains all jobs in the Microtask Queue (Promises, queueMicrotask, MutationObserver). Once microtasks are complete, the engine processes one task from the Macrotask Queue (setTimeout, setInterval, I/O) per turn.',
+    explanation: [
+      'Call Stack: Executes synchronous JavaScript code in a single-threaded execution context.',
+      'Microtask Queue: Higher priority queue. Includes Promise callbacks (.then, .catch, .finally), queueMicrotask(), and MutationObserver. The engine empties the ENTIRE microtask queue before moving forward.',
+      'Macrotask (Task) Queue: Lower priority queue. Includes setTimeout, setInterval, setImmediate, I/O events, and UI rendering. Only ONE macrotask is executed per event loop iteration.',
+      'Rendering Opportunity: Browser rendering and layout updates happen between the draining of microtasks and the start of the next macrotask.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'event-loop-queues.js',
+      code: `console.log("1. Stack Sync");
+
+setTimeout(() => {
+  console.log("4. Macrotask (setTimeout)");
+}, 0);
+
+Promise.resolve().then(() => {
+  console.log("3. Microtask (Promise)");
+});
+
+console.log("2. Stack Sync End");`,
+      output: `1. Stack Sync
+2. Stack Sync End
+3. Microtask (Promise)
+4. Macrotask (setTimeout)`,
+      executionSteps: [
+        { line: 1, explanation: 'Synchronous "1. Stack Sync" logs immediately' },
+        { line: 3, explanation: 'setTimeout callback queued to Macrotask Queue' },
+        { line: 7, explanation: 'Promise.then callback queued to Microtask Queue' },
+        { line: 11, explanation: 'Synchronous "2. Stack Sync End" logs' },
+        { line: 7, explanation: 'Call stack empty: drains Microtask Queue (logs 3)' },
+        { line: 3, explanation: 'Drains next macrotask (logs 4)' }
+      ]
+    },
+    keyPoints: [
+      'Microtasks (Promises) take strict priority over macrotasks (setTimeout).',
+      'The entire microtask queue is emptied before the next macrotask is executed.',
+      'Single-threaded event loop coordinates asynchronous I/O and UI rendering.'
+    ],
+    interviewTip: 'Starving the event loop: Recursively queuing microtasks will starve the macrotask queue and UI rendering, freezing the page!',
+    tags: ['Event Loop', 'Microtasks', 'Macrotasks', 'Async', 'Promises']
+  },
+  {
+    id: 'js-35',
+    stack: 'javascript',
+    topic: 'Asynchronous JavaScript & The Event Loop',
+    title: 'What are the Promise combinators?',
+    difficulty: 'Intermediate',
+    summary: 'Promise.all(): Resolves when all succeed; fails immediately if any single promise rejects. Promise.allSettled(): Waits for all promises to settle, returning status objects for each. Promise.race(): Settles as soon as the first promise resolves or rejects. Promise.any(): Resolves as soon as the first promise fulfills; rejects if all promises fail.',
+    explanation: [
+      'Promise.all(): "All or nothing". Takes an iterable of promises. Resolves when all resolve; rejects immediately if any single promise rejects.',
+      'Promise.allSettled(): "Wait for all". Introduced in ES2020. Always resolves after all promises settle, returning an array of objects with { status: "fulfilled", value } or { status: "rejected", reason }.',
+      'Promise.race(): "First to settle". Resolves or rejects as soon as the first promise resolves or rejects.',
+      'Promise.any(): "First to fulfill". Introduced in ES2021. Resolves as soon as any single promise succeeds. Rejects with an AggregateError only if ALL promises reject.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'promise-combinators.js',
+      code: `const p1 = Promise.resolve(10);
+const p2 = Promise.resolve(20);
+const p3 = Promise.reject("Failed");
+
+// allSettled waits for all outcomes regardless of rejection
+Promise.allSettled([p1, p3]).then(results => {
+  console.log(results[0].status); // "fulfilled"
+  console.log(results[1].status); // "rejected"
+});
+
+// race returns first settled promise
+Promise.race([p1, p2]).then(val => {
+  console.log("Race winner:", val); // 10
+});`,
+      output: `fulfilled
+rejected
+Race winner: 10`,
+      executionSteps: [
+        { line: 5, explanation: 'Promise.allSettled monitors both p1 and p3 to completion' },
+        { line: 12, explanation: 'Promise.race resolves with 10 as p1 wins the race' }
+      ]
+    },
+    keyPoints: [
+      'Promise.all: fail-fast on first rejection.',
+      'Promise.allSettled: never rejects; gives status of all promises.',
+      'Promise.race: settles with the first resolved or rejected outcome.',
+      'Promise.any: resolves with first fulfillment; rejects if all fail.'
+    ],
+    interviewTip: 'Use Promise.allSettled() when you need partial successes (e.g. fetching independent dashboard widgets).',
+    tags: ['Promises', 'Async', 'Promise Combinators', 'ES2020']
+  },
+  {
+    id: 'js-36',
+    stack: 'javascript',
+    topic: 'Asynchronous JavaScript & The Event Loop',
+    title: 'Proper Error Handling with async/await and fetch()',
+    difficulty: 'Beginner',
+    summary: 'fetch() does not reject on HTTP 404 or 500 status codes; check response.ok.',
+    explanation: [
+      'Fetch Quirks: The fetch() API only rejects a promise on network failures (e.g., offline, DNS lookup failure, CORS blockage).',
+      'HTTP Error Statuses: A 404 Not Found or 500 Internal Server Error is considered a successful HTTP transaction by fetch, meaning the promise fulfills!',
+      'response.ok: Always inspect response.ok (true for status codes 200–299) and throw an error manually if false.',
+      'try/catch with async/await: Wrap fetch inside try/catch blocks to gracefully handle both network disconnects and manually thrown HTTP errors.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'fetch-error-handling.js',
+      code: `async function loadData(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP error " + res.status);
+    return await res.json();
+  } catch (err) {
+    console.error(err.message);
+  }
+}
+
+// Simulated inspection of non-ok response:
+const mockRes = { ok: false, status: 404 };
+if (!mockRes.ok) console.log("HTTP error " + mockRes.status);`,
+      output: `HTTP error 404`,
+      executionSteps: [
+        { line: 3, explanation: 'Awaits fetch network request' },
+        { line: 4, explanation: 'Verifies res.ok status to catch 4xx/5xx HTTP errors' },
+        { line: 7, explanation: 'catches both network errors and thrown HTTP status errors' }
+      ]
+    },
+    keyPoints: [
+      'fetch does not reject on HTTP 404 or 500 errors.',
+      'Always verify response.ok before parsing response.json().',
+      'Use try/catch with async/await for complete error containment.'
+    ],
+    interviewTip: 'A classic frontend interview bug: candidates forget to check res.ok and wonder why catch blocks don\'t trigger on 404s!',
+    tags: ['fetch', 'async/await', 'Error Handling', 'HTTP']
+  },
+
+  // ==========================================
+  // Topic 8: Browser DOM, BOM & Web APIs
+  // ==========================================
+  {
+    id: 'js-37',
+    stack: 'javascript',
+    topic: 'Browser DOM, BOM & Web APIs',
+    title: 'Event Bubbling, Capturing, and Event Delegation',
+    difficulty: 'Intermediate',
+    summary: 'Events propagate through Capturing (down from window to the target), reach the Target, then proceed to Bubbling (up from target to window). event.stopPropagation() stops the event from traversing further along the chain. event.preventDefault() cancels the browser default action. Event Delegation: Placing a single event listener on a parent wrapper to monitor events from existing and dynamically added child elements via bubbling.',
+    explanation: [
+      'Capturing Phase: The event trickles down through the DOM hierarchy from window -> document -> body -> target element.',
+      'Target Phase: The event reaches the element where the interaction originated (event.target).',
+      'Bubbling Phase: The event bubbles upward from the target back to window. Most standard event listeners attach during bubbling by default.',
+      'stopPropagation vs preventDefault: stopPropagation() prevents the event from bubbling up the DOM; preventDefault() suppresses default browser actions (like following links or submitting forms).',
+      'Event Delegation: Attaching one listener to a parent container instead of hundreds of listeners to child nodes, using event.target to identify which child was clicked.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'event-delegation.js',
+      code: `// Event Delegation on a dynamic list
+// HTML: <ul id="todo-list"><li>Item 1</li><li>Item 2</li></ul>
+
+const list = document.getElementById("todo-list");
+if (list) {
+  list.addEventListener("click", function(e) {
+    // Check if clicked element was an LI element
+    if (e.target && e.target.nodeName === "LI") {
+      console.log("Clicked list item:", e.target.textContent);
+    }
+  });
+}`,
+      output: `Clicked list item: Item 1`,
+      executionSteps: [
+        { line: 4, explanation: 'Single click listener attached to parent #todo-list' },
+        { line: 6, explanation: 'Checks e.target to identify clicked child element' },
+        { line: 7, explanation: 'Works for existing items and dynamically appended items without extra listeners' }
+      ]
+    },
+    keyPoints: [
+      '3 phases: Capturing -> Target -> Bubbling.',
+      'stopPropagation stops bubbling; preventDefault cancels browser defaults.',
+      'Event delegation uses bubbling to manage events efficiently with fewer listeners.'
+    ],
+    interviewTip: 'React uses event delegation under the hood, attaching synthetic event handlers at the root level rather than individual DOM nodes.',
+    tags: ['DOM', 'Events', 'Bubbling', 'Event Delegation']
+  },
+  {
+    id: 'js-38',
+    stack: 'javascript',
+    topic: 'Browser DOM, BOM & Web APIs',
+    title: 'DOM vs. BOM Differences',
+    difficulty: 'Beginner',
+    summary: 'DOM (Document Object Model): The document tree representing the webpage\'s HTML structure (via document). BOM (Browser Object Model): Browser interfaces and window APIs (via window, including navigator, location, history, screen).',
+    explanation: [
+      'DOM (Document Object Model): Standardized by W3C. Represents the structured document tree of HTML/XML elements as nodes. Accessed via the window.document object (e.g., querySelector, createElement).',
+      'BOM (Browser Object Model): Represents the browser application environment outside the document. Not strictly standardized, but universally implemented on the window object.',
+      'BOM Components: window.navigator (device, browser info), window.location (current URL and routing), window.history (session history), window.screen (display metrics), and alert/confirm/prompt.',
+      'Global Scope: In the browser, window is the top-level global object containing both BOM and DOM.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'dom-vs-bom.js',
+      code: `// DOM: Interacting with HTML document elements
+console.log(typeof document.title); // "string"
+
+// BOM: Interacting with the browser environment
+console.log(typeof window.navigator.userAgent); // "string"
+console.log(typeof window.location.href);        // "string"
+console.log(typeof window.history.length);       // "number"`,
+      output: `string
+string
+string
+number`,
+      executionSteps: [
+        { line: 2, explanation: 'document represents DOM document tree' },
+        { line: 5, explanation: 'navigator, location, and history represent browser BOM APIs' }
+      ]
+    },
+    keyPoints: [
+      'DOM represents page content and HTML structure (document).',
+      'BOM provides browser window controls and device APIs (window).',
+      'window encapsulates document as a property.'
+    ],
+    interviewTip: 'In Next.js or SSR frameworks, BOM and DOM objects (window, document) are undefined on the server, requiring typeof window !== "undefined" guards.',
+    tags: ['DOM', 'BOM', 'Browser APIs', 'Window']
+  },
+  {
+    id: 'js-39',
+    stack: 'javascript',
+    topic: 'Browser DOM, BOM & Web APIs',
+    title: 'Script Loading: Default vs. async vs. defer',
+    difficulty: 'Intermediate',
+    summary: 'Default <script>: Pauses HTML parsing while downloading and executing script files. async: Downloads in parallel; executes immediately upon arrival, pausing HTML parsing. Execution order is not preserved. defer: Downloads in parallel; runs only after HTML parsing completes. Preserves document script order.',
+    explanation: [
+      'Default <script>: Blocks HTML parsing. Browser stops DOM construction, downloads the script file over the network, executes it, and only then resumes HTML parsing.',
+      'async: Non-blocking download in parallel with HTML parsing. As soon as download completes, it pauses HTML parsing immediately to execute. Execution order is NOT guaranteed (fastest download executes first).',
+      'defer: Non-blocking parallel download. Does NOT execute until HTML parsing is fully complete (just before DOMContentLoaded). Execution order is strictly preserved according to document order.',
+      'Recommendation: Use defer for application scripts with dependencies; use async for independent third-party utilities (analytics, tracking tags).'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'script-loading.html',
+      code: `<!-- Default: Blocks HTML parser during download & execution -->
+<script src="legacy.js"></script>
+
+<!-- Async: Parallel download, executes ASAP (order NOT guaranteed) -->
+<script async src="analytics.js"></script>
+
+<!-- Defer: Parallel download, executes after DOM ready (preserves order) -->
+<script defer src="app.js"></script>`,
+      output: `defer guarantees DOM is ready and maintains dependency order.`,
+      executionSteps: [
+        { line: 2, explanation: 'Default script pauses HTML parsing' },
+        { line: 5, explanation: 'async downloads in background, executes immediately on finish' },
+        { line: 8, explanation: 'defer downloads in background, executes after HTML parsing completes' }
+      ]
+    },
+    keyPoints: [
+      'default blocks HTML parsing during download and execution.',
+      'async downloads in background and executes immediately (order not guaranteed).',
+      'defer downloads in background and executes after HTML is parsed (order preserved).'
+    ],
+    interviewTip: 'Modern ES modules (<script type="module">) behave like defer by default!',
+    tags: ['Scripts', 'Performance', 'defer', 'async', 'HTML']
+  },
+  {
+    id: 'js-40',
+    stack: 'javascript',
+    topic: 'Browser DOM, BOM & Web APIs',
+    title: 'localStorage vs. sessionStorage vs. Cookies',
+    difficulty: 'Beginner',
+    summary: 'localStorage: ~5–10MB capacity, persists until manually deleted, client-side only. sessionStorage: ~5MB capacity, cleared when the browser tab closes, client-side only. Cookies: ~4KB capacity, configured via expiration dates, sent automatically with every HTTP request header.',
+    explanation: [
+      'localStorage: Persistent key-value storage with ~5-10MB limit. Data survives browser restarts and has no expiration date; persists until cleared programmatically or by user.',
+      'sessionStorage: Same API as localStorage, but data is tied to the current browser tab session. Closing the tab wipes the storage.',
+      'Cookies: Small (~4KB) data storage. Can be configured with HttpOnly (inaccessible to JS, prevents XSS) and Secure flags. Sent automatically to the server on every HTTP request header.',
+      'Scope: localStorage and Cookies are shared across all tabs with the same origin. sessionStorage is isolated to the specific tab.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'storage-comparison.js',
+      code: `// 1. localStorage (persists across sessions)
+localStorage.setItem("theme", "dark");
+console.log(localStorage.getItem("theme")); // "dark"
+
+// 2. sessionStorage (cleared when browser tab closes)
+sessionStorage.setItem("activeTab", "step1");
+console.log(sessionStorage.getItem("activeTab")); // "step1"
+
+// 3. Cookies (sent with HTTP requests, small ~4KB)
+document.cookie = "sessionId=xyz789; max-age=3600; path=/; SameSite=Strict";`,
+      output: `dark
+step1`,
+      executionSteps: [
+        { line: 2, explanation: 'localStorage persists across restarts' },
+        { line: 6, explanation: 'sessionStorage scoped strictly to current browser tab' },
+        { line: 10, explanation: 'Cookies configured with expiration and security policies' }
+      ]
+    },
+    keyPoints: [
+      'localStorage: ~5–10MB, persistent indefinitely.',
+      'sessionStorage: ~5MB, cleared on tab close.',
+      'Cookies: ~4KB, sent automatically to server on every HTTP request.'
+    ],
+    interviewTip: 'Never store sensitive JWT authentication tokens in localStorage due to XSS vulnerability; store them in HttpOnly cookies instead.',
+    tags: ['localStorage', 'sessionStorage', 'Cookies', 'Web Storage', 'Security']
+  },
+
+  // ==========================================
+  // Topic 9: Performance, Copying & Optimization
+  // ==========================================
+  {
+    id: 'js-41',
+    stack: 'javascript',
+    topic: 'Performance, Copying & Optimization',
+    title: 'Deep Copy vs. Shallow Copy',
+    difficulty: 'Intermediate',
+    summary: 'Shallow Copy: Clones only the top level; nested objects maintain original memory references ({...obj}, Object.assign()). Deep Copy: Clones all nested structures recursively: const deep = structuredClone(originalObj);',
+    explanation: [
+      'Shallow Copy: Creates a new outer object, but copies references for nested objects. Modifying shallow.nested.prop directly mutates original.nested.prop.',
+      'Techniques for Shallow Copy: Spread operator ({ ...obj }, [ ...arr ]) or Object.assign({}, obj).',
+      'Deep Copy: Creates completely new independent instances for every nested level. Modifying deep.nested.prop leaves original unaffected.',
+      'Modern Deep Copy Standard: structuredClone(obj) is the native JavaScript standard (handles cyclic references, Maps, Sets, Dates). Avoid JSON.parse(JSON.stringify(obj)) as it loses undefined, functions, and Symbols.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'shallow-vs-deep-copy.js',
+      code: `const original = { user: { name: "Alex" } };
+
+// 1. Shallow copy with spread
+const shallow = { ...original };
+shallow.user.name = "Bob";
+console.log(original.user.name); // "Bob" (Mutated nested reference!)
+
+// 2. Deep copy with native structuredClone
+const deep = structuredClone(original);
+deep.user.name = "Charlie";
+console.log(original.user.name); // "Bob" (Original safely intact!)`,
+      output: `Bob
+Bob`,
+      executionSteps: [
+        { line: 4, explanation: 'Shallow copy created; original and shallow share user memory pointer' },
+        { line: 5, explanation: 'Mutating shallow.user.name alters shared original object' },
+        { line: 9, explanation: 'structuredClone recursively copies all nested levels' },
+        { line: 11, explanation: 'Original remains unaffected by deep mutation' }
+      ]
+    },
+    keyPoints: [
+      'Shallow copy copies references for nested objects.',
+      'Deep copy recursively duplicates all levels of hierarchy.',
+      'Use structuredClone() as the modern native standard for deep copying.'
+    ],
+    interviewTip: 'Mention why JSON.parse(JSON.stringify(obj)) is flawed: it drops undefined, functions, and symbols, and breaks on circular references.',
+    tags: ['Deep Copy', 'Shallow Copy', 'structuredClone', 'Memory']
+  },
+  {
+    id: 'js-42',
+    stack: 'javascript',
+    topic: 'Performance, Copying & Optimization',
+    title: 'Debouncing Implementation',
+    difficulty: 'Intermediate',
+    summary: 'Delays execution until a quiet period has passed since the last event trigger.',
+    explanation: [
+      'Concept: Debouncing clusters multiple sequential calls into a single execution after a specified quiet delay has elapsed.',
+      'Reset Timer: Every new invocation clears the previous timer using clearTimeout and restarts the countdown.',
+      'Use Cases: Search autocomplete inputs, window resize handlers, auto-saving form drafts.',
+      'Implementation: Uses closures to preserve the timer ID across function calls.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'debounce-implementation.js',
+      code: `function debounce(fn, delay) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+const logSearch = debounce(q => console.log("Search query:", q), 300);
+logSearch("Re");
+logSearch("React");
+logSearch("React 19"); // Only this final call fires after 300ms!`,
+      output: `Search query: React 19`,
+      executionSteps: [
+        { line: 1, explanation: 'debounce factory captures timer variable in closure' },
+        { line: 9, explanation: 'Rapid calls clear existing timer and start fresh 300ms countdown' },
+        { line: 12, explanation: 'Only the last invocation executes after 300ms of inactivity' }
+      ]
+    },
+    keyPoints: [
+      'Delays execution until a cooldown period with no calls.',
+      'Clears and restarts the timer on every event trigger.',
+      'Ideal for search inputs and typeahead queries.'
+    ],
+    interviewTip: 'Contrast debouncing with throttling: debounce waits for inactivity; throttle enforces a steady maximum execution rate.',
+    tags: ['Debouncing', 'Performance', 'Closures', 'Machine Coding']
+  },
+  {
+    id: 'js-43',
+    stack: 'javascript',
+    topic: 'Performance, Copying & Optimization',
+    title: 'Throttling Implementation',
+    difficulty: 'Intermediate',
+    summary: 'Enforces that a function executes at most once in a given time interval.',
+    explanation: [
+      'Concept: Throttling ensures that a target function is called at a regular, controlled frequency, ignoring intermediate invocations during the interval.',
+      'Flag Technique: Uses an inThrottle boolean flag captured in a closure. When true, further calls within the limit window are blocked.',
+      'Timer Reset: After limit milliseconds, the flag is reset to false, allowing the next trigger to execute.',
+      'Use Cases: Infinite scrolling, window scroll progress bars, mouse drag/move handlers, gaming tick loops.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'throttle-implementation.js',
+      code: `function throttle(fn, limit) {
+  let inThrottle;
+  return function(...args) {
+    if (!inThrottle) {
+      fn.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+}
+
+const onScroll = throttle(() => console.log("Scroll tick"), 500);
+onScroll(); // Fires immediately
+onScroll(); // Ignored (within 500ms)`,
+      output: `Scroll tick`,
+      executionSteps: [
+        { line: 1, explanation: 'throttle captures inThrottle flag in closure' },
+        { line: 4, explanation: 'First call executes immediately and sets inThrottle = true' },
+        { line: 7, explanation: 'Subsequent calls inside 500ms window are ignored' }
+      ]
+    },
+    keyPoints: [
+      'Executes at most once per specified time interval.',
+      'Ignores intermediate invocations while in throttle cooldown.',
+      'Ideal for scroll events and resize calculations.'
+    ],
+    interviewTip: 'Be prepared to explain leading-edge vs trailing-edge throttling in advanced machine coding interviews.',
+    tags: ['Throttling', 'Performance', 'Closures', 'Machine Coding']
+  },
+  {
+    id: 'js-44',
+    stack: 'javascript',
+    topic: 'Performance, Copying & Optimization',
+    title: 'What is Memoization?',
+    difficulty: 'Intermediate',
+    summary: 'Caching function output for given inputs so repeated calls avoid expensive recalculations.',
+    explanation: [
+      'Concept: An optimization technique where the return value of a pure function is cached corresponding to its input arguments.',
+      'Lookup: When the function is called with previously seen arguments, it returns the cached result in O(1) time instead of recomputing.',
+      'Cache Key: Typically created using JSON.stringify(args) or Map keys.',
+      'Pure Function Prerequisite: Only works safely with pure functions, since output must be deterministic for identical inputs.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'memoization-cache.js',
+      code: `function memoize(fn) {
+  const cache = new Map();
   return function(...args) {
     const key = JSON.stringify(args);
-    if (cache.has(key)) {
-      console.log(\`[CACHE HIT] key: \${key}\`);
-      return cache.get(key);
-    }
-    console.log(\`[COMPUTING] key: \${key}\`);
+    if (cache.has(key)) return cache.get(key);
     const result = fn.apply(this, args);
     cache.set(key, result);
     return result;
   };
 }
 
-// Expensive recursive Fibonacci
-const fibonacci = memoize(function(n) {
-  if (n <= 1) return n;
-  return fibonacci(n - 1) + fibonacci(n - 2);
+const square = memoize(n => {
+  console.log("Computing...");
+  return n * n;
 });
 
-console.log('fib(10):', fibonacci(10)); // Computes in O(n) instead of O(2^n)!
-console.log('fib(10) again:', fibonacci(10)); // Instant O(1) Cache Hit!`,
-      output: `[COMPUTING] key: [10]
-... (cached intermediate subproblems)
-fib(10): 55
-[CACHE HIT] key: [10]
-fib(10) again: 55`,
+console.log(square(5)); // Prints "Computing..." then 25
+console.log(square(5)); // Returns 25 instantly from cache!`,
+      output: `Computing...
+25
+25`,
       executionSteps: [
-        { line: 2, explanation: 'memoize creates private Map instance in outer closure' },
-        { line: 6, explanation: 'JSON.stringify(args) serializes argument array into unique cache key' },
-        { line: 7, explanation: 'Checks cache.has(key); returns cached value immediately if present' },
-        { line: 11, explanation: 'Executes original function fn and saves result to cache' },
-        { line: 23, explanation: 'Second call to fibonacci(10) bypasses all recursion and returns 55 in O(1)' }
+        { line: 2, explanation: 'Initializes Map cache within closure' },
+        { line: 4, explanation: 'Generates serialized key from arguments' },
+        { line: 5, explanation: 'Returns cached value immediately if present in cache' },
+        { line: 7, explanation: 'Stores newly computed result in cache' }
       ]
     },
     keyPoints: [
-      'Only pure functions (same input always produces same output, no side effects) can be memoized safely.',
-      'JSON.stringify serialization has overhead; for single primitive arguments, a direct Map key is faster.',
-      'Consider an LRU (Least Recently Used) cache strategy for memory-sensitive environments.'
+      'Caches results of expensive pure function calculations.',
+      'Provides O(1) instant return for previously encountered inputs.',
+      'Forms the foundation of React.memo, useMemo, and reselect.'
     ],
-    interviewTip: 'InterviewBit Q25 and Q57 emphasize that memoization trades memory for speed. If arguments vary infinitely, an unbounded cache causes a memory leak.',
-    tags: ['Memoization', 'Caching', 'Closures', 'Performance', 'InterviewBit']
+    interviewTip: 'Mention memory trade-offs: unbounded caching can cause memory leaks. Production memoization libraries (like memoize-one or LRU cache) limit cache size.',
+    tags: ['Memoization', 'Caching', 'Performance', 'Optimization']
   },
+
+  // ==========================================
+  // Topic 10: Tricky Output Predictions
+  // ==========================================
   {
-    id: 'js-20',
+    id: 'js-45',
     stack: 'javascript',
-    topic: 'Coding Algorithms',
-    title: 'Essential JavaScript Coding Interview Problems: Anagram Check, Array Right Rotation, and Binary Search.',
-    difficulty: 'Advanced',
-    summary: 'Direct solutions for the three core coding problems featured in the InterviewBit guide: string anagram verification, in-place array rotation, and iterative binary search.',
+    topic: 'Tricky Output Predictions',
+    title: 'Microtask vs. Macrotask Execution Order',
+    difficulty: 'Intermediate',
+    summary: 'Synchronous code (1, 4) runs first. The resolved promise microtask (3) runs next before macrotasks, and the setTimeout callback (2) runs last.',
     explanation: [
-      '1. Anagram Check (InterviewBit Q61): Two strings are anagrams if they contain the exact same characters in the exact same frequencies. Solved by sanitizing casing, sorting characters, and comparing strings, or via O(n) frequency map.',
-      '2. Array Right Rotation by r (InterviewBit Q59): Given an array and rotation count r, each element shifts right. Can be solved using arr.pop() + arr.unshift() or slice-and-concat: arr.slice(-r).concat(arr.slice(0, -r)).',
-      '3. Binary Search (InterviewBit Q58): Given a sorted array, repeatedly divide the search interval in half. Calculates middleIndex = Math.floor((low + high) / 2) to achieve O(log n) time complexity.'
+      'Step 1: console.log(1) executes synchronously on the call stack -> logs 1.',
+      'Step 2: setTimeout() schedules its callback to the Macrotask Queue.',
+      'Step 3: Promise.resolve().then() schedules its callback to the Microtask Queue.',
+      'Step 4: console.log(4) executes synchronously on the call stack -> logs 4.',
+      'Step 5: Call stack clears. The event loop prioritizes draining the Microtask Queue -> logs 3.',
+      'Step 6: Microtask queue is empty. The event loop pulls from the Macrotask Queue -> logs 2.'
     ],
     codeExample: {
       language: 'javascript',
-      filename: 'interviewbit-coding-challenges.js',
-      code: `// Problem 1: Anagram Check (InterviewBit Q61)
-function isAnagram(str1, str2) {
-  const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '').split('').sort().join('');
-  return normalize(str1) === normalize(str2);
-}
-console.log('Anagram ("Debit Card", "Bad Credit"):', isAnagram("Debit Card", "Bad Credit")); // true
+      filename: 'tricky-event-loop.js',
+      code: `console.log(1);
+setTimeout(() => console.log(2), 0);
+Promise.resolve().then(() => console.log(3));
+console.log(4);
 
-// Problem 2: Right Rotate Array by r positions (InterviewBit Q59)
-function rotateRight(arr, r) {
-  const n = arr.length;
-  if (n === 0) return arr;
-  const k = r % n; // Handle rotations > array length
-  return [...arr.slice(n - k), ...arr.slice(0, n - k)];
-}
-console.log('Rotated [2, 3, 4, 5, 7] by 3:', rotateRight([2, 3, 4, 5, 7], 3)); // [4, 5, 7, 2, 3]
-
-// Problem 3: Iterative Binary Search (InterviewBit Q58)
-function binarySearch(sortedArr, target) {
-  let low = 0, high = sortedArr.length - 1;
-  while (low <= high) {
-    const mid = Math.floor((low + high) / 2);
-    if (sortedArr[mid] === target) return mid; // Found index!
-    if (sortedArr[mid] < target) low = mid + 1;
-    else high = mid - 1;
-  }
-  return -1; // Not found
-}
-console.log('Binary Search for 42 in [10, 20, 30, 42, 50]: index', binarySearch([10, 20, 30, 42, 50], 42));`,
-      output: `Anagram ("Debit Card", "Bad Credit"): true
-Rotated [2, 3, 4, 5, 7] by 3: [ 4, 5, 7, 2, 3 ]
-Binary Search for 42 in [10, 20, 30, 42, 50]: index 3`,
+// Output: 1, 4, 3, 2`,
+      output: `1
+4
+3
+2`,
       executionSteps: [
-        { line: 2, explanation: 'isAnagram sanitizes spaces, downcases, sorts characters, and compares' },
-        { line: 9, explanation: 'rotateRight computes k = r % n to handle r > length efficiently' },
-        { line: 12, explanation: 'Slices trailing k elements and prepends to leading elements in O(n)' },
-        { line: 17, explanation: 'binarySearch initializes pointers low = 0 and high = length - 1' },
-        { line: 20, explanation: 'Calculates mid index; finds target 42 at index 3 in O(log n)' }
+        { line: 1, explanation: 'Synchronous log prints 1' },
+        { line: 2, explanation: 'setTimeout queues callback to Macrotask Queue' },
+        { line: 3, explanation: 'Promise.then queues callback to Microtask Queue' },
+        { line: 4, explanation: 'Synchronous log prints 4' },
+        { line: 3, explanation: 'Microtask drains: prints 3' },
+        { line: 2, explanation: 'Macrotask executes: prints 2' }
       ]
     },
     keyPoints: [
-      'Always normalize strings (lowercase + strip non-alphanumerics) when validating anagrams.',
-      'In array rotation, always apply modulo k = r % arr.length to prevent redundant iterations.',
-      'Binary search requires the input array to be sorted and runs in O(log n) time and O(1) space.'
+      'Synchronous code always finishes before asynchronous queues are checked.',
+      'Microtasks drain before macrotasks.',
+      'Output is strictly: 1, 4, 3, 2.'
     ],
-    interviewTip: 'Mention that while array sorting for anagrams runs in O(n log n), an integer frequency counter (hash table) achieves linear O(n) runtime and O(1) auxiliary space (26 characters).',
-    tags: ['Algorithms', 'Binary Search', 'Anagrams', 'Arrays', 'InterviewBit']
+    interviewTip: 'A favorite interview variation: adding async/await functions into the mix. Awaiting a promise queues the code below the await into the microtask queue.',
+    tags: ['Event Loop', 'Output Prediction', 'Async', 'Tricky']
+  },
+  {
+    id: 'js-46',
+    stack: 'javascript',
+    topic: 'Tricky Output Predictions',
+    title: 'Loop with var vs. let in setTimeout',
+    difficulty: 'Intermediate',
+    summary: 'var is function-scoped. By the time callbacks execute, the loop has completed with i = 3. Using let creates a distinct lexical binding per iteration, outputting 0, 1, 2.',
+    explanation: [
+      'Behavior with var: var i is hoisted to function/global scope. There is only one shared variable i in memory. By the time setTimeout callbacks execute after the loop completes, i has incremented to 3. All three callbacks reference this same i -> prints 3, 3, 3.',
+      'Behavior with let: let is block-scoped. JavaScript creates a new lexical scope binding for each iteration of the loop, preserving the specific value of j for each callback -> prints 0, 1, 2.',
+      'Pre-ES6 Fix: Before let, developers fixed this using an IIFE or bind to capture the current value of i.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'loop-var-vs-let.js',
+      code: `// With var:
+for (var i = 0; i < 3; i++) {
+  setTimeout(() => console.log("var:", i), 10);
+}
+// Output: var: 3, var: 3, var: 3
+
+// With let:
+for (let j = 0; j < 3; j++) {
+  setTimeout(() => console.log("let:", j), 10);
+}
+// Output: let: 0, let: 1, let: 2`,
+      output: `var: 3
+var: 3
+var: 3
+let: 0
+let: 1
+let: 2`,
+      executionSteps: [
+        { line: 2, explanation: 'var i increments to 3 before callbacks run' },
+        { line: 8, explanation: 'let j creates a fresh binding per iteration (0, 1, 2)' }
+      ]
+    },
+    keyPoints: [
+      'var shares a single mutable binding across loop iterations.',
+      'let creates a fresh lexical binding for each loop step.',
+      'Classic question testing closures, scope, and asynchronous execution.'
+    ],
+    interviewTip: 'If asked to fix the var loop without using let, use an IIFE: (function(i) { setTimeout(...) })(i).',
+    tags: ['Closures', 'var', 'let', 'Scope', 'Output Prediction']
+  },
+  {
+    id: 'js-47',
+    stack: 'javascript',
+    topic: 'Tricky Output Predictions',
+    title: 'Object Key Stringification Coercion',
+    difficulty: 'Intermediate',
+    summary: 'Plain object keys coerce to strings ("[object Object]"), meaning both assignments point to and overwrite the same key.',
+    explanation: [
+      'Object Key Rules: In standard JavaScript objects, property keys can only be strings or symbols. Non-string keys are implicitly converted to strings via String(key) or .toString().',
+      'Object toString(): Plain objects b and c convert to "[object Object]" when used as property accessors.',
+      'Overwriting: a[b] = 123 sets a["[object Object]"] = 123. Then a[c] = 456 sets the EXACT same key a["[object Object]"] = 456.',
+      'Solution: If you need actual object references as keys, use Map instead of a plain object.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'object-key-coercion.js',
+      code: `let a = {}, b = { key: "b" }, c = { key: "c" };
+
+a[b] = 123; // a["[object Object]"] = 123
+a[c] = 456; // a["[object Object]"] = 456 (overwrites previous!)
+
+console.log(a[b]); // 456
+console.log(Object.keys(a)); // ["[object Object]"]`,
+      output: `456
+[ '[object Object]' ]`,
+      executionSteps: [
+        { line: 3, explanation: 'b coerced to string "[object Object]"; key set to 123' },
+        { line: 4, explanation: 'c also coerced to "[object Object]"; overwrites key to 456' },
+        { line: 6, explanation: 'a[b] resolves to a["[object Object]"] which is 456' }
+      ]
+    },
+    keyPoints: [
+      'Object keys in plain objects are always coerced to strings (or symbols).',
+      'String({ key: "b" }) evaluates to "[object Object]".',
+      'Use Map if object references must be preserved as keys.'
+    ],
+    interviewTip: 'This question tests your understanding of property key coercion and why ES6 Map was introduced.',
+    tags: ['Objects', 'Coercion', 'Output Prediction', 'Tricky']
+  },
+  {
+    id: 'js-48',
+    stack: 'javascript',
+    topic: 'Tricky Output Predictions',
+    title: 'Arithmetic Coercion Quirks',
+    difficulty: 'Intermediate',
+    summary: '"1" + 1 concatenates to "11". "A" - 1 evaluates to NaN. 2 + "-2" + "2" concatenates to "2-22". 0 == false and null == undefined evaluate to true under loose equality rules.',
+    explanation: [
+      '"1" + 1: The + operator encounters a string operand and coerces 1 to "1", resulting in string concatenation: "11".',
+      '"A" - 1: The - operator enforces numeric conversion. Number("A") yields NaN, and NaN - 1 produces NaN.',
+      '2 + "-2" + "2": Evaluates left-to-right: 2 + "-2" -> "2-2". Then "2-2" + "2" -> "2-22".',
+      '0 == false: Boolean false is coerced to number 0; 0 == 0 evaluates to true.',
+      'null == undefined: Per ECMAScript specification §7.2.14, null and undefined loosely equal each other and nothing else.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'coercion-quirks.js',
+      code: `console.log("1" + 1);            // "11" (string concatenation)
+console.log("A" - 1);            // NaN (failed numeric conversion)
+console.log(2 + "-2" + "2");     // "2-22"
+console.log(0 == false);         // true (loose coercion)
+console.log(null == undefined);  // true (language specification rule)
+console.log(null === undefined); // false (different types)`,
+      output: `11
+NaN
+2-22
+true
+true
+false`,
+      executionSteps: [
+        { line: 1, explanation: '+ operator concatenates strings' },
+        { line: 2, explanation: '- operator attempts numeric conversion on "A", producing NaN' },
+        { line: 3, explanation: 'Left-to-right evaluation results in "2-22"' },
+        { line: 5, explanation: 'null loosely equals undefined by language specification rule' }
+      ]
+    },
+    keyPoints: [
+      '+ performs string concatenation if any operand is a string.',
+      'Arithmetic operators (-, *, /) force numeric conversion.',
+      'null == undefined is true; null === undefined is false.'
+    ],
+    interviewTip: 'Another quirk: typeof typeof 1. typeof 1 is "number", and typeof "number" is always "string"!',
+    tags: ['Coercion', 'Operators', 'Output Prediction', 'Tricky']
+  },
+  {
+    id: 'js-49',
+    stack: 'javascript',
+    topic: 'Tricky Output Predictions',
+    title: 'Scope Shadowing in IIFEs',
+    difficulty: 'Intermediate',
+    summary: 'The inner var x declaration is hoisted to the top of the function scope as undefined, shadowing the global variable x.',
+    explanation: [
+      'Variable Shadowing: Declaring a variable inside an inner function with the same identifier as an outer variable shadows the outer variable.',
+      'Function-Level Hoisting: Inside the IIFE, var x is hoisted to the top of the function scope and initialized to undefined.',
+      'Execution: When console.log(x) executes on the first line of the IIFE, the engine finds the locally hoisted x, which has not yet been assigned 40.',
+      'Result: It prints undefined instead of the global 20.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'scope-shadowing.js',
+      code: `var x = 20;
+
+(function() {
+  console.log(x); // undefined (hoisted local var x shadows outer x!)
+  var x = 40;
+})();`,
+      output: `undefined`,
+      executionSteps: [
+        { line: 1, explanation: 'Global var x initialized to 20' },
+        { line: 5, explanation: 'Inner var x hoisted to top of function scope with undefined' },
+        { line: 4, explanation: 'console.log(x) reads local hoisted undefined' }
+      ]
+    },
+    keyPoints: [
+      'Inner declarations shadow outer scope variables.',
+      'var declarations are hoisted within their immediate function scope as undefined.',
+      'Prints undefined rather than outer variable.'
+    ],
+    interviewTip: 'If var x = 40 were changed to let x = 40, accessing x before declaration would throw a ReferenceError due to the TDZ!',
+    tags: ['Hoisting', 'Shadowing', 'IIFE', 'Scope', 'Tricky']
+  },
+  {
+    id: 'js-50',
+    stack: 'javascript',
+    topic: 'Tricky Output Predictions',
+    title: 'Method Reference Losing Execution Context',
+    difficulty: 'Intermediate',
+    summary: 'retrieve() is called as a detached standalone function, losing its implicit binding to user.',
+    explanation: [
+      'Detached Method Reference: Assigning user.getName to a variable (const retrieve = user.getName) extracts a reference to the function itself without binding context.',
+      'Default Binding: When retrieve() is called, it is invoked as a plain function without any object before a dot.',
+      'Result: this defaults to undefined (in strict mode) or window (in non-strict browser mode).',
+      'Resolution: Preserve context by calling user.getName(), using an arrow wrapper (() => user.getName()), or binding with user.getName.bind(user).'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'detached-context.js',
+      code: `const user = {
+  name: "Alex",
+  getName() { return this.name; }
+};
+
+const retrieve = user.getName;
+console.log(retrieve()); // undefined (or window.name in non-strict mode)
+
+// Fix using bind:
+const fixed = user.getName.bind(user);
+console.log(fixed()); // "Alex"`,
+      output: `undefined
+Alex`,
+      executionSteps: [
+        { line: 6, explanation: 'retrieve holds raw function reference detached from user' },
+        { line: 7, explanation: 'Called without context; this.name evaluates to undefined' },
+        { line: 10, explanation: 'bind explicitly binds this to user' }
+      ]
+    },
+    keyPoints: [
+      'Extracting an object method to a variable detaches its this context.',
+      'Invoking the extracted function falls back to default binding (undefined/window).',
+      'Fix using .bind(object) or arrow functions.'
+    ],
+    interviewTip: 'This is the exact reason class components in early React needed this.handleClick = this.handleClick.bind(this) in the constructor.',
+    tags: ['this', 'Context', 'Binding', 'Output Prediction']
+  },
+  {
+    id: 'js-51',
+    stack: 'javascript',
+    topic: 'Tricky Output Predictions',
+    title: 'Arrow Functions inside Object Literals',
+    difficulty: 'Intermediate',
+    summary: 'Arrow functions do not bind this to the calling object; they retain the enclosing global/module context.',
+    explanation: [
+      'Object Literal Scoping: An object literal ({ ... }) does NOT create a new lexical scope. The enclosing lexical scope is the module or global context.',
+      'Arrow Function this: Arrow functions resolve this lexically from their outer enclosing scope. Since the outer scope is window/module, this?.val evaluates to undefined.',
+      'Regular Method: regular() uses standard method invocation syntax where this is implicitly bound to obj -> returns 42.',
+      'Best Practice: Never use arrow functions for object methods that need access to instance properties via this.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'arrow-in-object.js',
+      code: `const obj = {
+  val: 42,
+  regular: function() { return this.val; },
+  arrow: () => this?.val
+};
+
+console.log(obj.regular()); // 42
+console.log(obj.arrow());   // undefined`,
+      output: `42
+undefined`,
+      executionSteps: [
+        { line: 7, explanation: 'obj.regular() called: this bound to obj, returns 42' },
+        { line: 8, explanation: 'obj.arrow() called: arrow function has lexical this from outer scope, returns undefined' }
+      ]
+    },
+    keyPoints: [
+      'Object literals do not create a lexical scope.',
+      'Arrow functions in object properties inherit this from the outer scope, not the object.',
+      'Use standard method shorthand (method() {}) for object methods.'
+    ],
+    interviewTip: 'Remember: arrow functions are great for callbacks inside methods, but should NOT be used as the method declaration itself.',
+    tags: ['Arrow Functions', 'this', 'Objects', 'Output Prediction']
+  },
+
+  // ==========================================
+  // Topic 11: Machine Coding Challenges
+  // ==========================================
+  {
+    id: 'js-52',
+    stack: 'javascript',
+    topic: 'Machine Coding Challenges',
+    title: 'Check if Two Strings are Anagrams',
+    difficulty: 'Intermediate',
+    summary: 'Cleans non-alphanumeric characters, converts to lower-case, sorts the characters, and checks equality.',
+    explanation: [
+      'Definition: An anagram is a word or phrase formed by rearranging the letters of another word (e.g., "listen" -> "silent").',
+      'Sanitization: Strips non-alphanumeric characters using regex /[^a-z0-9]/g and converts all characters to lower case.',
+      'Sorting Approach: Splits each string into an array of characters, sorts them alphabetically, and joins them back. If sorted strings match, they are anagrams.',
+      'Time Complexity: O(n log n) with the sorting approach; can be optimized to O(n) using a character frequency hash map.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'anagram-check.js',
+      code: `function isAnagram(s1, s2) {
+  const clean = str => str.toLowerCase().replace(/[^a-z0-9]/g, "").split("").sort().join("");
+  return clean(s1) === clean(s2);
+}
+
+console.log(isAnagram("listen", "silent")); // true
+console.log(isAnagram("hello", "world"));   // false`,
+      output: `true
+false`,
+      executionSteps: [
+        { line: 1, explanation: 'Cleans and sorts both strings' },
+        { line: 2, explanation: 'Compares sorted character sequences' },
+        { line: 5, explanation: 'isAnagram("listen", "silent") evaluates to true' }
+      ]
+    },
+    keyPoints: [
+      'Cleans whitespace and punctuation before checking.',
+      'Can be solved in O(n log n) using sorting or O(n) using character frequency maps.',
+      'Popular interview question for string manipulation.'
+    ],
+    interviewTip: 'Offer the O(n) frequency map approach if the interviewer asks how to optimize large text strings.',
+    tags: ['Strings', 'Algorithms', 'Anagram', 'Machine Coding']
+  },
+  {
+    id: 'js-53',
+    stack: 'javascript',
+    topic: 'Machine Coding Challenges',
+    title: 'Count Vowels in a String',
+    difficulty: 'Beginner',
+    summary: 'Matches the string against regex /[aeiou]/gi and returns the matched count or 0.',
+    explanation: [
+      'Regex Approach: Uses String.prototype.match() with a case-insensitive and global regex /[aeiou]/gi.',
+      'Null Safety: If no vowels are present, match() returns null instead of an empty array. Using a ternary condition or nullish coalescing prevents TypeError.',
+      'Iterative Alternative: Can also be solved using a Set of vowels (new Set(["a", "e", "i", "o", "u"])) and a for...of loop.',
+      'Time Complexity: O(n) linear scan across string characters.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'count-vowels.js',
+      code: `function countVowels(str) {
+  const matches = str.match(/[aeiou]/gi);
+  return matches ? matches.length : 0;
+}
+
+console.log(countVowels("JavaScript")); // 3
+console.log(countVowels("rhythm"));     // 0`,
+      output: `3
+0`,
+      executionSteps: [
+        { line: 2, explanation: 'Executes regex match for vowels globally and case-insensitively' },
+        { line: 3, explanation: 'Returns matches.length if matched, else fallback to 0' },
+        { line: 6, explanation: '"JavaScript" contains a, a, i -> 3 vowels' }
+      ]
+    },
+    keyPoints: [
+      'Uses /[aeiou]/gi for case-insensitive global matching.',
+      'Safely handles strings with 0 vowels by guarding against null.',
+      'Runs in O(n) time complexity.'
+    ],
+    interviewTip: 'Always mention handling the null return case from match() to demonstrate defensive programming.',
+    tags: ['Regex', 'Strings', 'Counting', 'Beginner']
+  },
+  {
+    id: 'js-54',
+    stack: 'javascript',
+    topic: 'Machine Coding Challenges',
+    title: 'Rotate an Array to the Right by K Steps',
+    difficulty: 'Intermediate',
+    summary: 'Rotates array by k positions using array slice and concat operations.',
+    explanation: [
+      'Modulo Optimization: If k is larger than the array length, rotating k times is equivalent to rotating k % arr.length times.',
+      'Slice & Concat: arr.slice(-steps) captures the tail elements that need to move to the front; arr.slice(0, -steps) captures the remaining front elements.',
+      'Non-Mutating: Does not mutate the input array and returns a new rotated array.',
+      'In-Place Alternative: Can also be performed in-place in O(n) time and O(1) space by reversing the whole array and then reversing both segments.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'rotate-array.js',
+      code: `function rotateRight(arr, k) {
+  if (!arr.length) return arr;
+  const steps = k % arr.length;
+  return arr.slice(-steps).concat(arr.slice(0, -steps));
+}
+
+console.log(rotateRight([1, 2, 3, 4, 5], 2)); // [4, 5, 1, 2, 3]`,
+      output: `[ 4, 5, 1, 2, 3 ]`,
+      executionSteps: [
+        { line: 3, explanation: 'steps = 2 % 5 = 2' },
+        { line: 4, explanation: 'slice(-2) extracts [4, 5]; slice(0, -2) extracts [1, 2, 3]' },
+        { line: 7, explanation: 'Returns [4, 5, 1, 2, 3]' }
+      ]
+    },
+    keyPoints: [
+      'Calculates k % arr.length to prevent redundant full rotations.',
+      'Uses slice(-steps).concat(slice(0, -steps)) for clean, readable code.',
+      'O(n) time complexity.'
+    ],
+    interviewTip: 'Ask the interviewer if they require an in-place mutation or an immutable new array return before coding.',
+    tags: ['Arrays', 'Algorithms', 'Rotation', 'Machine Coding']
+  },
+  {
+    id: 'js-55',
+    stack: 'javascript',
+    topic: 'Machine Coding Challenges',
+    title: 'Flatten a Deeply Nested Array',
+    difficulty: 'Intermediate',
+    summary: 'Recursively flattens multi-dimensional nested arrays using Array.prototype.reduce.',
+    explanation: [
+      'Recursive Reduction: Uses reduce with an initial empty array accumulator [].',
+      'Array Detection: For each item, Array.isArray(item) checks whether the element is an array.',
+      'Recursion: If it is an array, flattenArray is called recursively on it; otherwise, the item is concatenated directly.',
+      'Built-in Alternative: Modern JavaScript supports arr.flat(Infinity), but interviewers specifically look for recursive or iterative manual implementations.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'flatten-array.js',
+      code: `function flattenArray(arr) {
+  return arr.reduce((acc, item) => 
+    acc.concat(Array.isArray(item) ? flattenArray(item) : item), 
+  []);
+}
+
+console.log(flattenArray([1, [2, [3, [4]], 5]])); // [1, 2, 3, 4, 5]`,
+      output: `[ 1, 2, 3, 4, 5 ]`,
+      executionSteps: [
+        { line: 2, explanation: 'reduce processes elements into an accumulated array' },
+        { line: 3, explanation: 'Array.isArray(item) branches into recursive flattening' },
+        { line: 7, explanation: 'Deeply nested array fully flattened to [1, 2, 3, 4, 5]' }
+      ]
+    },
+    keyPoints: [
+      'Recursively traverses nested arrays using Array.isArray.',
+      'Manual implementation of Array.prototype.flat(Infinity).',
+      'Commonly asked frontend machine coding challenge.'
+    ],
+    interviewTip: 'You can also implement this iteratively using a stack to prevent call stack overflow on extremely deep nesting.',
+    tags: ['Recursion', 'Arrays', 'Flatten', 'Machine Coding']
+  },
+  {
+    id: 'js-56',
+    stack: 'javascript',
+    topic: 'Machine Coding Challenges',
+    title: 'Remove Duplicates from an Array',
+    difficulty: 'Beginner',
+    summary: 'Removes duplicate primitive elements from an array utilizing the ES6 Set data structure.',
+    explanation: [
+      'Set Data Structure: An ES6 Set only stores unique values. Passing an array with duplicate elements into new Set(arr) automatically discards duplicates.',
+      'Spread Operator: Spreading the Set back into an array ([...new Set(arr)]) restores standard array formatting.',
+      'Time Complexity: O(n) linear time, which is vastly faster than O(n^2) nested loops or filter with indexOf.',
+      'Objects in Arrays: Note that Set uses SameValueZero comparison. Different object references with identical properties are considered distinct.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'remove-duplicates.js',
+      code: `const removeDuplicates = arr => [...new Set(arr)];
+
+console.log(removeDuplicates([1, 2, 2, 3, 4, 4, 5])); // [1, 2, 3, 4, 5]
+console.log(removeDuplicates(["a", "b", "a", "c"]));   // ["a", "b", "c"]`,
+      output: `[ 1, 2, 3, 4, 5 ]
+[ 'a', 'b', 'c' ]`,
+      executionSteps: [
+        { line: 1, explanation: 'new Set(arr) deduplicates array elements in O(n) time' },
+        { line: 3, explanation: 'Spread converts Set back into a JavaScript array' }
+      ]
+    },
+    keyPoints: [
+      'Clean one-liner: [...new Set(arr)].',
+      'O(n) time complexity.',
+      'Deduplicates primitive numbers, strings, and booleans.'
+    ],
+    interviewTip: 'If deduplicating objects by a specific property (like id), use a Map or filter with a seen Set.',
+    tags: ['Set', 'Arrays', 'Deduplication', 'ES6']
+  },
+  {
+    id: 'js-57',
+    stack: 'javascript',
+    topic: 'Machine Coding Challenges',
+    title: 'Find First Non-Repeating Character',
+    difficulty: 'Intermediate',
+    summary: 'Builds a frequency frequency map of characters and iterates to locate the first character with frequency equal to 1.',
+    explanation: [
+      'Two-Pass Algorithm: Pass 1 builds a frequency map counting occurrences of each character. Pass 2 iterates through the string characters in order to find the first one with a count of 1.',
+      'Time Complexity: O(n) because each pass takes linear time.',
+      'Space Complexity: O(k) where k is the number of distinct characters (bounded at 26 for lowercase English letters).',
+      'Fallback: Returns null if all characters are repeating.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'first-non-repeating.js',
+      code: `function firstNonRepeatingChar(str) {
+  const counts = {};
+  for (let ch of str) counts[ch] = (counts[ch] || 0) + 1;
+  for (let ch of str) {
+    if (counts[ch] === 1) return ch;
+  }
+  return null;
+}
+
+console.log(firstNonRepeatingChar("swiss")); // "w"
+console.log(firstNonRepeatingChar("aabbcc")); // null`,
+      output: `w
+null`,
+      executionSteps: [
+        { line: 3, explanation: 'First loop counts frequencies: s: 3, w: 1, i: 1' },
+        { line: 4, explanation: 'Second loop scans in order: s (3) skipped, w (1) matches!' },
+        { line: 5, explanation: 'Returns "w"' }
+      ]
+    },
+    keyPoints: [
+      'Two-pass O(n) frequency map approach.',
+      'Preserves original string order during second iteration.',
+      'Returns null if no non-repeating character exists.'
+    ],
+    interviewTip: 'Avoid using str.indexOf(ch) === str.lastIndexOf(ch) inside a loop, as that results in O(n^2) quadratic time complexity!',
+    tags: ['Strings', 'Hash Map', 'Algorithms', 'Machine Coding']
+  },
+  {
+    id: 'js-58',
+    stack: 'javascript',
+    topic: 'Machine Coding Challenges',
+    title: 'Binary Search on a Sorted Array',
+    difficulty: 'Intermediate',
+    summary: 'Performs O(log n) search on a sorted array by halving the search window each step.',
+    explanation: [
+      'Sorted Array Prerequisite: Binary search requires the input array to be pre-sorted in ascending order.',
+      'Divide and Conquer: Maintains left and right pointers. Calculates the middle index (mid = Math.floor((left + right) / 2)).',
+      'Halving: If arr[mid] === target, returns the index. If target is larger, search right half (left = mid + 1). If smaller, search left half (right = mid - 1).',
+      'Time Complexity: O(log n) logarithmic time, dramatically faster than O(n) linear search for large datasets.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'binary-search.js',
+      code: `function binarySearch(arr, target) {
+  let left = 0, right = arr.length - 1;
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    if (arr[mid] === target) return mid;
+    if (arr[mid] < target) left = mid + 1;
+    else right = mid - 1;
+  }
+  return -1;
+}
+
+console.log(binarySearch([2, 5, 8, 12, 16, 23], 12)); // 3
+console.log(binarySearch([2, 5, 8, 12, 16, 23], 99)); // -1`,
+      output: `3
+-1`,
+      executionSteps: [
+        { line: 2, explanation: 'Initializes pointers: left = 0, right = 5' },
+        { line: 4, explanation: 'mid = 2 (arr[2] = 8 < 12) -> left becomes 3' },
+        { line: 5, explanation: 'mid = 4 (arr[4] = 16 > 12) -> right becomes 3' },
+        { line: 5, explanation: 'mid = 3 (arr[3] = 12 === 12) -> returns index 3' }
+      ]
+    },
+    keyPoints: [
+      'Requires pre-sorted array.',
+      'O(log n) time complexity, O(1) space complexity.',
+      'Returns target index, or -1 if target is not found.'
+    ],
+    interviewTip: 'To avoid potential 32-bit integer overflow in other languages like Java/C++, developers write left + Math.floor((right - left) / 2).',
+    tags: ['Binary Search', 'Algorithms', 'Sorted Arrays', 'Intermediate']
+  },
+  {
+    id: 'js-59',
+    stack: 'javascript',
+    topic: 'Machine Coding Challenges',
+    title: 'Check if a String is a Palindrome',
+    difficulty: 'Beginner',
+    summary: 'Uses a two-pointer approach comparing alphanumeric characters from start and end inward.',
+    explanation: [
+      'Definition: A palindrome is a word, phrase, or number that reads the same forwards and backwards (e.g. "A man, a plan, a canal: Panama").',
+      'Sanitization: Normalizes string to lowercase and removes non-alphanumeric characters using regex /[^a-z0-9]/g.',
+      'Two-Pointer Approach: Compares characters at left and right indices, incrementing left and decrementing right. If a mismatch is found, returns false immediately.',
+      'Efficiency: Incurs zero extra memory allocation for reversing arrays, running in O(n) time and O(1) extra space.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'palindrome-check.js',
+      code: `function isPalindrome(str) {
+  const clean = str.toLowerCase().replace(/[^a-z0-9]/g, "");
+  let left = 0, right = clean.length - 1;
+  while (left < right) {
+    if (clean[left] !== clean[right]) return false;
+    left++;
+    right--;
+  }
+  return true;
+}
+
+console.log(isPalindrome("A man, a plan, a canal: Panama")); // true
+console.log(isPalindrome("race a car"));                     // false`,
+      output: `true
+false`,
+      executionSteps: [
+        { line: 2, explanation: 'Cleans string to "amanaplanacanalpanama"' },
+        { line: 4, explanation: 'Two pointers step inward comparing characters' },
+        { line: 11, explanation: 'Evaluates to true' }
+      ]
+    },
+    keyPoints: [
+      'Sanitizes punctuation and whitespace before comparison.',
+      'Two-pointer approach avoids array reversing overhead.',
+      'O(n) time and O(1) space complexity.'
+    ],
+    interviewTip: 'Explain why two pointers are preferable to str.split("").reverse().join("") (which creates 3 intermediate objects in memory).',
+    tags: ['Strings', 'Two Pointers', 'Palindrome', 'Machine Coding']
+  },
+  {
+    id: 'js-60',
+    stack: 'javascript',
+    topic: 'Machine Coding Challenges',
+    title: 'Reverse Words in a Sentence',
+    difficulty: 'Beginner',
+    summary: 'Splits the sentence by whitespace regex, reverses word order, and joins back with single spaces.',
+    explanation: [
+      'Trim: Trims leading and trailing whitespace using trim().',
+      'Regex Splitting: Uses /\\s+/ to handle arbitrary amounts of whitespace (multiple spaces, tabs) between words.',
+      'Reversal: Reverses the array of words with reverse() and joins them back with a single space.',
+      'Output: Reverses the sequence of words without reversing the individual letters within each word.'
+    ],
+    codeExample: {
+      language: 'javascript',
+      filename: 'reverse-words.js',
+      code: `function reverseWords(sentence) {
+  return sentence.trim().split(/\\s+/).reverse().join(" ");
+}
+
+console.log(reverseWords("interview preparation javascript")); 
+// "javascript preparation interview"
+
+console.log(reverseWords("  blue   sky  ")); 
+// "sky blue"`,
+      output: `javascript preparation interview
+sky blue`,
+      executionSteps: [
+        { line: 2, explanation: 'trim() removes outer whitespace; split(/\\s+/) splits on multiple spaces' },
+        { line: 2, explanation: 'reverse() reverses word order and join(" ") connects with single space' },
+        { line: 5, explanation: 'Prints "javascript preparation interview"' }
+      ]
+    },
+    keyPoints: [
+      'Uses /\\s+/ to handle multi-space padding gracefully.',
+      'Reverses word order while keeping word letters intact.',
+      'O(n) time complexity.'
+    ],
+    interviewTip: 'Using regex /\\s+/ instead of plain " " is the hallmark of a thorough candidate because real-world inputs often have inconsistent spaces.',
+    tags: ['Strings', 'Reverse Words', 'Array Methods', 'Machine Coding']
   }
 ];

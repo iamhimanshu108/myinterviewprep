@@ -470,5 +470,669 @@ export class SafeBoundary extends React.Component {
     ],
     interviewTip: 'When asked why error boundaries cannot catch event handler errors, explain that event handlers run outside the React render loop. Catch event errors with standard try/catch blocks.',
     tags: ['Error Boundary', 'SSR', 'Hydration', 'Resilience']
+  },
+  // ==========================================
+  // TOPIC: Context API & State Management
+  // ==========================================
+  {
+    id: 'react-9',
+    stack: 'react',
+    topic: 'Context API & State Management',
+    title: 'What is the React Context API and when should you use it vs. a state management library?',
+    difficulty: 'Intermediate',
+    summary: 'Context API provides a way to share values (theme, auth user, locale) across the component tree without prop drilling. It is ideal for low-frequency, global state. For high-frequency updates or complex logic, use Zustand/Redux.',
+    explanation: [
+      'Prop Drilling Problem: Passing props through 5+ component levels becomes unmaintainable. Context provides a "teleportation" mechanism to make values globally available to any descendant.',
+      'Context is NOT a replacement for all global state: Every context update re-renders ALL consumers of that context. If you update auth context on every mouse move, every component reading that context re-renders.',
+      'When to use Redux/Zustand: When state is updated frequently (e.g., real-time data), when state logic is complex (many actions, side effects), or when you need time-travel debugging with Redux DevTools.'
+    ],
+    codeExample: {
+      language: 'jsx',
+      filename: 'context-api.jsx',
+      code: `import React, { createContext, useContext, useState } from 'react';
+
+// 1. Create context with default value
+const ThemeContext = createContext({ theme: 'light', toggleTheme: () => {} });
+
+// 2. Provider wraps the tree and provides the value
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light');
+  const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+// 3. Custom hook for type-safe, documented context usage
+function useTheme() {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
+  return ctx;
+}
+
+// 4. Consumer — no props needed, no matter how deep in the tree!
+function ThemeToggleButton() {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <button onClick={toggleTheme}>
+      Current: {theme} — Click to toggle
+    </button>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <ThemeToggleButton />
+    </ThemeProvider>
+  );
+}`,
+      output: 'ThemeToggleButton accesses theme without receiving any props.',
+      executionSteps: [
+        { line: 4, explanation: 'createContext creates a context object with a default value (used outside Provider)' },
+        { line: 11, explanation: 'Provider\'s value prop is what all consumers receive' },
+        { line: 19, explanation: 'Custom hook wraps useContext and adds error guard for missing Provider' },
+        { line: 25, explanation: 'Consumer accesses context value without any props passed from parent' }
+      ]
+    },
+    keyPoints: [
+      'Split contexts by concern: ThemeContext, AuthContext, LocaleContext — not one giant GlobalContext.',
+      'Context re-renders all consumers on every value change — memoize value with useMemo to reduce renders.',
+      'React Query / SWR manage server state. Context/Zustand manage client state. Do not mix the two concerns.'
+    ],
+    interviewTip: 'The most common Context mistake: putting the entire app state in one context. This causes the whole tree to re-render on any change. Split contexts and memoize values to avoid performance issues.',
+    tags: ['Context API', 'useContext', 'Prop Drilling', 'State Management', 'Provider']
+  },
+  {
+    id: 'react-10',
+    stack: 'react',
+    topic: 'Context API & State Management',
+    title: 'How does useReducer work and when should you choose it over useState?',
+    difficulty: 'Intermediate',
+    summary: 'useReducer manages complex state transitions with a (state, action) => newState pure reducer function. Prefer it over useState when next state depends on multiple sub-values or when actions have names that document intent.',
+    explanation: [
+      'useState limitation: When state has multiple related sub-fields (e.g., { loading, data, error }) and updates are interdependent, managing them with multiple useState calls leads to fragmented, race-condition-prone logic.',
+      'useReducer centralizes state logic: The reducer is a pure function — easy to unit test in isolation without rendering. All state transitions happen in one place, making logic predictable and auditable.',
+      'dispatch(action): Components dispatch named action objects ({ type: "FETCH_SUCCESS", payload: data }). This self-documents what events the system can handle, similar to Redux.'
+    ],
+    codeExample: {
+      language: 'jsx',
+      filename: 'use-reducer.jsx',
+      code: `import { useReducer } from 'react';
+
+// State shape
+const initialState = { loading: false, data: null, error: null };
+
+// Pure reducer — no side effects, just state transitions
+function dataReducer(state, action) {
+  switch (action.type) {
+    case 'FETCH_START':
+      return { loading: true, data: null, error: null };
+    case 'FETCH_SUCCESS':
+      return { loading: false, data: action.payload, error: null };
+    case 'FETCH_ERROR':
+      return { loading: false, data: null, error: action.payload };
+    default:
+      return state;
+  }
+}
+
+function UserProfile({ userId }) {
+  const [state, dispatch] = useReducer(dataReducer, initialState);
+
+  const fetchUser = async () => {
+    dispatch({ type: 'FETCH_START' });
+    try {
+      const res = await fetch(\`/api/users/\${userId}\`);
+      const data = await res.json();
+      dispatch({ type: 'FETCH_SUCCESS', payload: data });
+    } catch (err) {
+      dispatch({ type: 'FETCH_ERROR', payload: err.message });
+    }
+  };
+
+  if (state.loading) return <p>Loading...</p>;
+  if (state.error) return <p>Error: {state.error}</p>;
+  return <div>{state.data?.name}</div>;
+}`,
+      output: 'State transitions are atomic — FETCH_START resets error and data simultaneously.',
+      executionSteps: [
+        { line: 7, explanation: 'Reducer receives current state and action, returns next state' },
+        { line: 9, explanation: 'FETCH_START atomically sets loading=true and clears previous error/data' },
+        { line: 21, explanation: 'dispatch sends action to reducer — React re-renders with new state' }
+      ]
+    },
+    keyPoints: [
+      'useReducer + useContext is the React built-in alternative to Redux for medium-complexity apps.',
+      'Reducers must be pure functions — no side effects, no API calls inside the reducer.',
+      'immer\'s produce() can be used inside reducers to write mutating-style logic that produces immutable state.'
+    ],
+    interviewTip: 'The rule of thumb: use useState for independent simple state. Use useReducer when you have 3+ related state fields, complex transitions, or want to test state logic separately from the component.',
+    tags: ['useReducer', 'State Management', 'Reducer', 'dispatch', 'Actions']
+  },
+  // ==========================================
+  // TOPIC: Component Patterns
+  // ==========================================
+  {
+    id: 'react-11',
+    stack: 'react',
+    topic: 'Component Patterns',
+    title: 'What are Higher-Order Components (HOC), Render Props, and Compound Components patterns?',
+    difficulty: 'Intermediate',
+    summary: 'HOCs are functions wrapping components to inject behavior. Render Props share behavior via function children. Compound Components share implicit state between parent and co-designed child components.',
+    explanation: [
+      'HOC (Higher-Order Component): A function that takes a component and returns a new enhanced component. Used to inject cross-cutting concerns (auth checks, analytics, data fetching) without modifying the original component.',
+      'Render Props: A component receives a function as its children or a prop. The function receives internal state/behavior and returns JSX. Enables extremely flexible code sharing. Now mostly replaced by custom hooks.',
+      'Compound Components: Components that work together and share implicit state via Context. Think <Select>, <Select.Option>, <Tabs>, <Tabs.Panel> — the parent manages state, children consume it through context without explicit props.'
+    ],
+    codeExample: {
+      language: 'jsx',
+      filename: 'component-patterns.jsx',
+      code: `import { createContext, useContext, useState } from 'react';
+
+// ========== Compound Components Pattern ==========
+const TabsContext = createContext(null);
+
+function Tabs({ defaultTab, children }) {
+  const [activeTab, setActiveTab] = useState(defaultTab);
+  return (
+    <TabsContext.Provider value={{ activeTab, setActiveTab }}>
+      <div className="tabs">{children}</div>
+    </TabsContext.Provider>
+  );
+}
+
+function TabsList({ children }) {
+  return <div className="tabs-list">{children}</div>;
+}
+
+function Tab({ id, children }) {
+  const { activeTab, setActiveTab } = useContext(TabsContext);
+  return (
+    <button
+      className={activeTab === id ? 'active' : ''}
+      onClick={() => setActiveTab(id)}
+    >
+      {children}
+    </button>
+  );
+}
+
+function TabPanel({ id, children }) {
+  const { activeTab } = useContext(TabsContext);
+  return activeTab === id ? <div>{children}</div> : null;
+}
+
+// Attach sub-components to parent for clean API:
+Tabs.List = TabsList;
+Tabs.Tab = Tab;
+Tabs.Panel = TabPanel;
+
+// Usage — reads like natural HTML structure:
+function App() {
+  return (
+    <Tabs defaultTab="overview">
+      <Tabs.List>
+        <Tabs.Tab id="overview">Overview</Tabs.Tab>
+        <Tabs.Tab id="details">Details</Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Panel id="overview"><p>Overview content</p></Tabs.Panel>
+      <Tabs.Panel id="details"><p>Details content</p></Tabs.Panel>
+    </Tabs>
+  );
+}`,
+      output: 'Tab switching works with no prop drilling — state shared via Context internally.',
+      executionSteps: [
+        { line: 6, explanation: 'Tabs manages active tab state and provides it via Context' },
+        { line: 20, explanation: 'Tab reads and sets activeTab from Context — no props needed from Tabs' },
+        { line: 33, explanation: 'Sub-components attached as static properties for elegant API design' }
+      ]
+    },
+    keyPoints: [
+      'HOCs: prefer custom hooks in modern React — they achieve the same goal without wrapper hell.',
+      'Compound Components are the best pattern for complex UI components (Select, Modal, Accordion, Tabs).',
+      'Render Props are largely replaced by hooks but still appear in libraries like React Final Form and Downshift.'
+    ],
+    interviewTip: 'For senior interviews: explain the problem each pattern solves and why hooks replaced HOCs and render props for most use cases. But compound components are still the gold standard for stateful UI component libraries.',
+    tags: ['HOC', 'Render Props', 'Compound Components', 'Patterns', 'Composition']
+  },
+  {
+    id: 'react-12',
+    stack: 'react',
+    topic: 'Component Patterns',
+    title: 'What is React.forwardRef and useImperativeHandle, and when do you need them?',
+    difficulty: 'Advanced',
+    summary: 'forwardRef allows parent components to directly access a DOM node or child component\'s imperative API via a ref. useImperativeHandle selectively exposes specific methods rather than the raw DOM node.',
+    explanation: [
+      'The Problem: Refs do not cross component boundaries automatically. A ref on a custom <Input> component points to the Input function itself, not the underlying <input> DOM node.',
+      'React.forwardRef: Wraps your component in a forwardRef call, accepting ref as the second argument and attaching it to the desired DOM element. Essential for building reusable input, modal, and animation components.',
+      'useImperativeHandle: Instead of exposing the raw DOM node, expose a curated API object. This is useful for components like video players (expose play/pause/seek), modals (expose open/close), or form instances (expose submit/reset).'
+    ],
+    codeExample: {
+      language: 'jsx',
+      filename: 'forward-ref.jsx',
+      code: `import { forwardRef, useRef, useImperativeHandle } from 'react';
+
+// ========== Custom Input with forwardRef ==========
+const FancyInput = forwardRef(function FancyInput(props, ref) {
+  const inputRef = useRef(null);
+
+  // Expose curated API instead of raw DOM node
+  useImperativeHandle(ref, () => ({
+    focus() {
+      inputRef.current.focus();
+      inputRef.current.select(); // Also select text on focus
+    },
+    clear() {
+      inputRef.current.value = '';
+    },
+    getValue() {
+      return inputRef.current.value;
+    }
+  }));
+
+  return <input ref={inputRef} {...props} className="fancy-input" />;
+});
+
+// ========== Parent uses the imperative API ==========
+function SearchForm() {
+  const inputRef = useRef(null);
+
+  const handleReset = () => {
+    inputRef.current.clear();   // Calls our custom clear()
+    inputRef.current.focus();   // Calls our custom focus()
+  };
+
+  return (
+    <div>
+      <FancyInput ref={inputRef} placeholder="Search..." />
+      <button onClick={handleReset}>Reset & Focus</button>
+    </div>
+  );
+}`,
+      output: 'Parent can imperatively call .clear() and .focus() on FancyInput without accessing DOM directly.',
+      executionSteps: [
+        { line: 4, explanation: 'forwardRef receives ref as second argument alongside props' },
+        { line: 8, explanation: 'useImperativeHandle replaces what the ref exposes — our curated API instead of DOM node' },
+        { line: 27, explanation: 'Parent calls imperative methods via ref — no need to pass callback props' }
+      ]
+    },
+    keyPoints: [
+      'forwardRef is required for all custom components that wrap DOM elements and need ref access from parents.',
+      'useImperativeHandle should be used sparingly — declarative data flow via props is almost always better.',
+      'Common use cases: focus management, scroll position control, media playback, form submit/validation triggers.'
+    ],
+    interviewTip: 'Mention that overusing imperative refs violates React\'s declarative data flow. Always ask: "can I solve this with state and props?" before reaching for refs and imperative handles.',
+    tags: ['forwardRef', 'useImperativeHandle', 'Refs', 'Imperative', 'DOM']
+  },
+  // ==========================================
+  // TOPIC: Hooks Deep Dive (extra questions)
+  // ==========================================
+  {
+    id: 'react-13',
+    stack: 'react',
+    topic: 'Hooks Deep Dive',
+    title: 'What is useRef and what are its two completely different use cases?',
+    difficulty: 'Beginner',
+    summary: 'useRef returns a mutable container (.current) that persists for the component\'s lifetime without triggering re-renders. It serves two distinct purposes: accessing DOM nodes imperatively, and storing mutable values that survive renders.',
+    explanation: [
+      'DOM Access: const inputRef = useRef(null); attached to a JSX element gives direct access to the DOM node via inputRef.current. Used for focus management, scroll control, canvas drawing, and measuring element dimensions.',
+      'Mutable Persistent Value: useRef stores values that need to persist across renders but should NOT trigger re-renders when changed. Previous value tracking, timer IDs, WebSocket instances, and animation frames are common examples.',
+      'Key Difference from useState: Mutating ref.current does not cause a re-render. This is intentional — refs are a "escape hatch" from React\'s reactive system for values that are not part of the rendering output.'
+    ],
+    codeExample: {
+      language: 'jsx',
+      filename: 'useref-patterns.jsx',
+      code: `import { useRef, useEffect, useState } from 'react';
+
+// USE CASE 1: DOM Access
+function AutoFocusInput() {
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    inputRef.current.focus(); // Direct DOM manipulation
+  }, []);
+
+  return <input ref={inputRef} placeholder="Auto-focused!" />;
+}
+
+// USE CASE 2: Storing mutable values (no re-render)
+function StopwatchWithRef() {
+  const [time, setTime] = useState(0);
+  const intervalRef = useRef(null); // Store timer ID — no re-render needed
+
+  const start = () => {
+    // Guard: don't start if already running
+    if (intervalRef.current) return;
+    intervalRef.current = setInterval(() => {
+      setTime(t => t + 1);
+    }, 1000);
+  };
+
+  const stop = () => {
+    clearInterval(intervalRef.current);
+    intervalRef.current = null; // Mutating ref.current — NO re-render!
+  };
+
+  return (
+    <div>
+      <p>Time: {time}s</p>
+      <button onClick={start}>Start</button>
+      <button onClick={stop}>Stop</button>
+    </div>
+  );
+}`,
+      output: 'Input auto-focuses on mount. Timer stores ID in ref — clearing it does not trigger re-render.',
+      executionSteps: [
+        { line: 5, explanation: 'useRef(null) creates a container; initial value is null before DOM mounts' },
+        { line: 8, explanation: 'After mount, inputRef.current is the actual input DOM node' },
+        { line: 17, explanation: 'intervalRef stores the timer ID — mutating it never causes re-renders' },
+        { line: 26, explanation: 'Setting intervalRef.current = null is a mutation, not a state update' }
+      ]
+    },
+    keyPoints: [
+      'Never read ref.current during render — its value may be stale or null during the render phase.',
+      'Previous value pattern: prevValueRef.current = value; inside useEffect after render captures the last rendered value.',
+      'For callback refs: attach a function to ref prop to execute logic when DOM node mounts/unmounts.'
+    ],
+    interviewTip: 'Interviewers often test: "what\'s the difference between useRef and useState for storing a timer ID?" Answer: both persist, but useState triggers re-renders, useRef does not — use ref for values that affect behavior but not what is rendered.',
+    tags: ['useRef', 'DOM', 'Mutable Values', 'Hooks', 'Render Cycle']
+  },
+  {
+    id: 'react-14',
+    stack: 'react',
+    topic: 'Hooks Deep Dive',
+    title: 'Explain the useEffect dependency array — what are the rules and common pitfalls?',
+    difficulty: 'Intermediate',
+    summary: 'The useEffect dependency array tells React when to re-run the effect. Missing dependencies cause stale closures. Excessive dependencies cause unnecessary re-runs. The cleanup function prevents memory leaks.',
+    explanation: [
+      'No array: Effect runs after every render. Equivalent to componentDidUpdate for every prop/state change.',
+      'Empty array []: Effect runs once after initial mount only. Equivalent to componentDidMount. Common source of stale closure bugs when the effect uses values from props/state.',
+      'With deps [a, b]: Effect re-runs whenever a or b changes (compared by reference using Object.is). Always include every value from the component scope used inside the effect — the React eslint-plugin-exhaustive-deps rule enforces this.'
+    ],
+    codeExample: {
+      language: 'jsx',
+      filename: 'useeffect-deps.jsx',
+      code: `import { useState, useEffect, useRef } from 'react';
+
+function LiveSearch({ query, onResults }) {
+  // ❌ BUG: onResults missing from deps — stale closure!
+  // useEffect(() => {
+  //   fetchResults(query).then(data => onResults(data));
+  // }, [query]);
+
+  // ✅ Include ALL used values in deps array
+  useEffect(() => {
+    let cancelled = false;
+
+    async function search() {
+      const data = await fetchResults(query);
+      // Cleanup prevents setting state after unmount or query change
+      if (!cancelled) {
+        onResults(data);
+      }
+    }
+    search();
+
+    // Cleanup: cancel previous search when query changes
+    return () => { cancelled = true; };
+  }, [query, onResults]); // ✅ Both values included
+
+  // ✅ Stable ref for callbacks to avoid dep array churn
+  const onResultsRef = useRef(onResults);
+  useEffect(() => { onResultsRef.current = onResults; });
+
+  useEffect(() => {
+    // onResultsRef.current always has the latest callback
+    // without needing to add it to the dep array
+    fetchResults(query).then(data => onResultsRef.current(data));
+  }, [query]); // Only query triggers re-runs
+}`,
+      output: 'Search fires on query change. Cancelled if query changes again before previous resolves.',
+      executionSteps: [
+        { line: 10, explanation: 'let cancelled = false acts as a cancellation token for this effect execution' },
+        { line: 15, explanation: 'Checks cancelled before calling onResults — prevents stale updates' },
+        { line: 19, explanation: 'Cleanup: sets cancelled=true when query changes or component unmounts' }
+      ]
+    },
+    keyPoints: [
+      'Functions defined outside useEffect should be in deps or created with useCallback to maintain stable identity.',
+      'Object and array literals in deps cause infinite loops — they are new references each render.',
+      'useEffectEvent (React 19+) provides a stable callback identity that always reads the latest value.'
+    ],
+    interviewTip: 'The most common useEffect interview question: "why does this infinite loop?" Answer is almost always: an object/array/function is in the dependency array and gets recreated on every render, triggering the effect again.',
+    tags: ['useEffect', 'Dependency Array', 'Cleanup', 'Stale Closures', 'Side Effects']
+  },
+  // ==========================================
+  // TOPIC: Performance & Memoization (extra)
+  // ==========================================
+  {
+    id: 'react-15',
+    stack: 'react',
+    topic: 'Performance & Memoization',
+    title: 'Explain React.memo, useMemo, and useCallback — what exactly do they memoize?',
+    difficulty: 'Intermediate',
+    summary: 'React.memo prevents re-rendering a component if its props have not changed. useMemo caches the result of an expensive computation. useCallback caches a function reference to maintain stable identity across renders.',
+    explanation: [
+      'React.memo wraps a component: When the parent re-renders, React skips re-rendering the wrapped child if its props are shallowly equal to the previous render. Does NOT affect state or context changes inside the child.',
+      'useMemo(() => compute(a, b), [a, b]): Caches the returned VALUE. Recomputes only when a or b changes. Use for expensive calculations (sorting large arrays, complex filtering, derived data).',
+      'useCallback(() => fn(a), [a]): Caches the FUNCTION REFERENCE. Without it, a new function object is created each render — breaking React.memo children that receive this function as a prop.'
+    ],
+    codeExample: {
+      language: 'jsx',
+      filename: 'memoization.jsx',
+      code: `import { useState, useMemo, useCallback, memo } from 'react';
+
+// 1. React.memo — memoized child component
+const ExpensiveList = memo(function ExpensiveList({ items, onItemClick }) {
+  console.log('ExpensiveList rendering...');
+  return (
+    <ul>
+      {items.map(item => (
+        <li key={item.id} onClick={() => onItemClick(item.id)}>
+          {item.name}
+        </li>
+      ))}
+    </ul>
+  );
+});
+
+function Dashboard({ rawData }) {
+  const [filter, setFilter] = useState('');
+  const [count, setCount] = useState(0);
+
+  // 2. useMemo — cache expensive sort/filter computation
+  const processedItems = useMemo(() => {
+    console.log('Computing filtered items...');
+    return rawData
+      .filter(item => item.name.toLowerCase().includes(filter))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [rawData, filter]);  // Recomputes ONLY when rawData or filter changes
+
+  // 3. useCallback — stable function reference for memo child
+  const handleItemClick = useCallback((id) => {
+    console.log('Item clicked:', id);
+  }, []); // No deps — function never needs to change
+
+  return (
+    <div>
+      <input value={filter} onChange={e => setFilter(e.target.value)} />
+      <button onClick={() => setCount(c => c + 1)}>Count: {count}</button>
+      {/* ExpensiveList won't re-render when only count changes */}
+      <ExpensiveList items={processedItems} onItemClick={handleItemClick} />
+    </div>
+  );
+}`,
+      output: 'Clicking Count button does not trigger ExpensiveList render — memo + useCallback prevent it.',
+      executionSteps: [
+        { line: 4, explanation: 'memo wraps ExpensiveList — re-renders only when items or onItemClick changes' },
+        { line: 21, explanation: 'useMemo caches the filtered/sorted array — recomputes only when rawData or filter changes' },
+        { line: 29, explanation: 'useCallback caches handleItemClick — same reference every render prevents memo invalidation' }
+      ]
+    },
+    keyPoints: [
+      'Do NOT prematurely memoize: memoization has cost (memory + comparison). Only add it when profiling shows it helps.',
+      'React.memo uses shallow comparison — will not prevent re-renders if props are new object/array references.',
+      'useCallback is primarily useful when passing callbacks to memo-wrapped children or as deps of other hooks.'
+    ],
+    interviewTip: 'A very common anti-pattern: wrapping everything with useMemo/useCallback. Premature optimization adds complexity. Always profile with React DevTools Profiler first, then memoize only identified bottlenecks.',
+    tags: ['React.memo', 'useMemo', 'useCallback', 'Memoization', 'Performance']
+  },
+  // ==========================================
+  // TOPIC: Custom Hooks (extra questions)
+  // ==========================================
+  {
+    id: 'react-16',
+    stack: 'react',
+    topic: 'Custom Hooks',
+    title: 'How do you build a custom hook for data fetching with loading, error, and abort support?',
+    difficulty: 'Intermediate',
+    summary: 'A custom useFetch hook encapsulates the data fetching lifecycle (loading, success, error, abort) into a reusable hook, eliminating duplicated useEffect + useState patterns across components.',
+    explanation: [
+      'The pattern: Combine useState for state management with useEffect for side effects. The hook returns { data, loading, error } for the component to consume.',
+      'Abort Controller: When the URL changes or the component unmounts, cancel the in-flight fetch using AbortController. This prevents state updates on unmounted components and race conditions when requests resolve out of order.',
+      'Generic with TypeScript: type the hook with a generic <T> parameter so the returned data is strongly typed for each use case.'
+    ],
+    codeExample: {
+      language: 'tsx',
+      filename: 'useFetch.tsx',
+      code: `import { useState, useEffect } from 'react';
+
+interface FetchState<T> {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+}
+
+function useFetch<T>(url: string): FetchState<T> {
+  const [state, setState] = useState<FetchState<T>>({
+    data: null,
+    loading: true,
+    error: null,
+  });
+
+  useEffect(() => {
+    // Create abort controller for this fetch
+    const controller = new AbortController();
+
+    setState({ data: null, loading: true, error: null });
+
+    fetch(url, { signal: controller.signal })
+      .then(res => {
+        if (!res.ok) throw new Error(\`HTTP \${res.status}\`);
+        return res.json() as Promise<T>;
+      })
+      .then(data => setState({ data, loading: false, error: null }))
+      .catch(err => {
+        if (err.name === 'AbortError') return; // Ignore cancellation
+        setState({ data: null, loading: false, error: err.message });
+      });
+
+    // Cleanup: abort previous request when url changes or unmounts
+    return () => controller.abort();
+  }, [url]);
+
+  return state;
+}
+
+// Usage — clean and reusable:
+function UserProfile({ userId }: { userId: string }) {
+  const { data, loading, error } = useFetch<User>(\`/api/users/\${userId}\`);
+  if (loading) return <Spinner />;
+  if (error) return <ErrorMessage message={error} />;
+  return <div>{data?.name}</div>;
+}`,
+      output: 'Fetches user on mount and on userId change. Aborts previous request automatically.',
+      executionSteps: [
+        { line: 18, explanation: 'AbortController creates a signal to cancel the fetch request' },
+        { line: 29, explanation: 'AbortError is ignored — it is expected when cleanup cancels the request' },
+        { line: 33, explanation: 'Cleanup function aborts the previous request before the new one starts' }
+      ]
+    },
+    keyPoints: [
+      'Custom hooks must start with "use" — this lets React\'s linter enforce the rules of hooks.',
+      'Extract complex useEffect logic into custom hooks to keep components clean and focused on rendering.',
+      'React Query and SWR replace custom useFetch hooks with caching, deduplication, and background refresh.'
+    ],
+    interviewTip: 'This pattern demonstrates: custom hooks, TypeScript generics, AbortController, race condition handling, and cleanup — making it one of the most comprehensive interview questions in a single hook.',
+    tags: ['Custom Hooks', 'useFetch', 'AbortController', 'Data Fetching', 'TypeScript']
+  },
+  // ==========================================
+  // TOPIC: React 18/19 & Concurrency (extra)
+  // ==========================================
+  {
+    id: 'react-17',
+    stack: 'react',
+    topic: 'React 18/19 & Concurrency',
+    title: 'What is the useTransition hook and how does it differentiate urgent from non-urgent state updates?',
+    difficulty: 'Advanced',
+    summary: 'useTransition marks state updates as "transitions" — lower-priority, interruptible updates. React can pause them to handle urgent updates (like typing) first, preventing UI freezes during expensive re-renders.',
+    explanation: [
+      'The Problem: Filtering a 10,000-item list on every keystroke blocks the main thread. Each filter update triggers a synchronous re-render that freezes the input field for 100-200ms.',
+      'useTransition: const [isPending, startTransition] = useTransition(). Wrap the slow state update in startTransition(() => setFilteredList(...)). React marks this as interruptible — it can be abandoned if the user types again.',
+      'isPending: A boolean that is true while the transition is processing. Use it to show a loading indicator without blocking the urgent input update.'
+    ],
+    codeExample: {
+      language: 'jsx',
+      filename: 'use-transition.jsx',
+      code: `import { useState, useTransition } from 'react';
+
+const LARGE_LIST = Array.from({ length: 10_000 }, (_, i) => ({
+  id: i,
+  name: \`Item \${i}\`,
+}));
+
+function SearchableList() {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState(LARGE_LIST);
+  const [isPending, startTransition] = useTransition();
+
+  function handleSearch(e) {
+    const value = e.target.value;
+
+    // URGENT: Update input immediately — no delay
+    setQuery(value);
+
+    // NON-URGENT: Mark as transition — can be interrupted
+    startTransition(() => {
+      const filtered = LARGE_LIST.filter(item =>
+        item.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setResults(filtered);
+    });
+  }
+
+  return (
+    <div>
+      {/* Input stays responsive — no freezing! */}
+      <input value={query} onChange={handleSearch} placeholder="Search 10k items..." />
+
+      {/* Loading indicator while transition is pending */}
+      {isPending && <p style={{ opacity: 0.5 }}>Filtering...</p>}
+
+      <ul>
+        {results.map(item => <li key={item.id}>{item.name}</li>)}
+      </ul>
+    </div>
+  );
+}`,
+      output: 'Input updates instantly. List filter is debounced by React\'s scheduler — no freezing.',
+      executionSteps: [
+        { line: 11, explanation: 'useTransition returns [isPending, startTransition]' },
+        { line: 16, explanation: 'setQuery is urgent — renders immediately so input stays responsive' },
+        { line: 19, explanation: 'startTransition marks setResults as low-priority and interruptible' },
+        { line: 30, explanation: 'isPending shows a subtle loading state during the transition' }
+      ]
+    },
+    keyPoints: [
+      'useDeferredValue is the hook equivalent for values rather than state setters — defers a value\'s update.',
+      'Transitions are not cancellations — they complete eventually. They just yield to higher-priority updates.',
+      'React Suspense integration: transitions keep the previous UI visible while the new content loads behind the scenes.'
+    ],
+    interviewTip: 'useTransition solves the same problem as debouncing but at the React scheduler level — no setTimeout needed. It is tightly integrated with React\'s rendering priority system (Concurrent Mode).',
+    tags: ['useTransition', 'Concurrent Mode', 'isPending', 'Interruptible Renders', 'React 18']
   }
 ];

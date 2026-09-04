@@ -177,32 +177,19 @@ export default function App() {
       const questionsInStack = filteredQuestions.filter((q) => q.stack === stackKey);
       if (questionsInStack.length === 0) return;
 
-      // Group by topic
-      const topicMap: Record<string, Question[]> = {};
+      // Group by topic preserving the natural curriculum order
+      const topicMap = new Map<string, Question[]>();
       questionsInStack.forEach((q) => {
-        if (!topicMap[q.topic]) {
-          topicMap[q.topic] = [];
+        if (!topicMap.has(q.topic)) {
+          topicMap.set(q.topic, []);
         }
-        topicMap[q.topic].push(q);
+        topicMap.get(q.topic)!.push(q);
       });
 
-      // Sort questions inside each topic: Beginner -> Intermediate -> Advanced
-      const topicGroups = Object.entries(topicMap).map(([topic, questions]) => {
-        const sortedQuestions = [...questions].sort((a, b) => {
-          const diff = (DIFFICULTY_ORDER[a.difficulty] || 2) - (DIFFICULTY_ORDER[b.difficulty] || 2);
-          if (diff !== 0) return diff;
-          return a.id.localeCompare(b.id);
-        });
-        return { topic, questions: sortedQuestions };
-      });
-
-      // Sort topics by lowest difficulty (topics with Beginner questions come first)
-      topicGroups.sort((a, b) => {
-        const minA = Math.min(...a.questions.map((q) => DIFFICULTY_ORDER[q.difficulty] || 2));
-        const minB = Math.min(...b.questions.map((q) => DIFFICULTY_ORDER[q.difficulty] || 2));
-        if (minA !== minB) return minA - minB;
-        return a.topic.localeCompare(b.topic);
-      });
+      const topicGroups = Array.from(topicMap.entries()).map(([topic, questions]) => ({
+        topic,
+        questions
+      }));
 
       // Assign sequential question numbers
       topicGroups.forEach((group) => {
