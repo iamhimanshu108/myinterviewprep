@@ -156,7 +156,13 @@ export default function App() {
       'java',
       'node',
       'express',
-      'typescript'
+      'typescript',
+      'rest',
+      'auth',
+      'database',
+      'middleware',
+      'reactnative',
+      'devops'
     ];
 
     const result: Record<Exclude<TechStack, 'all'>, { topic: string; questions: Question[] }[]> = {
@@ -167,7 +173,13 @@ export default function App() {
       java: [],
       node: [],
       express: [],
-      typescript: []
+      typescript: [],
+      rest: [],
+      auth: [],
+      database: [],
+      middleware: [],
+      reactnative: [],
+      devops: []
     };
 
     const numberMap = new Map<string, number>();
@@ -330,7 +342,7 @@ export default function App() {
                 </div>
               ) : (
                 <div className="space-y-8">
-                  {(['html', 'javascript', 'python', 'react', 'java', 'node', 'express', 'typescript'] as const).map((stackKey) => {
+                  {(['html', 'javascript', 'python', 'react', 'java', 'node', 'express', 'typescript', 'rest', 'auth', 'database', 'middleware', 'reactnative', 'devops'] as const).map((stackKey) => {
                     const topicGroups = groupedByStackAndTopic[stackKey];
                     if (!topicGroups || topicGroups.length === 0) return null;
 

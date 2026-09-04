@@ -7,9 +7,16 @@ export type TechStack =
   | 'java' 
   | 'node' 
   | 'express' 
-  | 'typescript';
+  | 'typescript'
+  | 'rest'
+  | 'auth'
+  | 'database'
+  | 'middleware'
+  | 'reactnative'
+  | 'devops';
 
 export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced';
+
 
 export interface CodeStep {
   line: number;

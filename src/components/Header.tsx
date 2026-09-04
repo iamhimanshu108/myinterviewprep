@@ -95,6 +95,48 @@ export const STACK_CONFIG: Record<
     color: 'text-blue-400',
     bg: 'bg-blue-500/10',
     border: 'border-blue-500/30'
+  },
+  rest: {
+    label: 'REST API',
+    icon: '🌍',
+    color: 'text-slate-400',
+    bg: 'bg-slate-500/10',
+    border: 'border-slate-500/30'
+  },
+  auth: {
+    label: 'Auth (JWT)',
+    icon: '🔒',
+    color: 'text-rose-500',
+    bg: 'bg-rose-500/10',
+    border: 'border-rose-500/30'
+  },
+  database: {
+    label: 'Database',
+    icon: '🗄️',
+    color: 'text-emerald-500',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/30'
+  },
+  middleware: {
+    label: 'Middleware',
+    icon: '⚙️',
+    color: 'text-purple-500',
+    bg: 'bg-purple-500/10',
+    border: 'border-purple-500/30'
+  },
+  reactnative: {
+    label: 'React Native',
+    icon: '📱',
+    color: 'text-indigo-400',
+    bg: 'bg-indigo-500/10',
+    border: 'border-indigo-500/30'
+  },
+  devops: {
+    label: 'DevOps',
+    icon: '🚀',
+    color: 'text-pink-400',
+    bg: 'bg-pink-500/10',
+    border: 'border-pink-500/30'
   }
 };
 

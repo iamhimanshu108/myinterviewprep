@@ -21,7 +21,7 @@ export interface WorkflowSection {
   id: string;
   num: number;
   label: string;
-  group: 'Foundations' | 'Lifecycle' | 'Architecture' | 'Implementation' | 'Wrap up';
+  group: 'Phase 1: Beginner' | 'Phase 2: Intermediate' | 'Phase 3: Advanced' | 'Phase 4: Expert' | 'Phase 5: Mastery';
 }
 
 export interface ComparisonColumn {
@@ -73,16 +73,11 @@ export const BACKEND_WORKFLOWS: Record<BackendWorkflowTopic, WorkflowTopicData> 
     accentColor: '#10B981', // Emerald
     tags: ['POST 201', 'GET 200', 'PUT vs PATCH', 'DELETE 204', 'ORM / JPA', 'Transactions'],
     sections: [
-      { id: 'crud-01', num: 1, label: 'The CRUD Cycle', group: 'Foundations' },
-      { id: 'crud-02', num: 2, label: 'HTTP Verbs & Status Codes', group: 'Foundations' },
-      { id: 'crud-03', num: 3, label: 'PUT vs PATCH', group: 'Foundations' },
-      { id: 'crud-04', num: 4, label: 'Interactive CRUD Pipeline', group: 'Lifecycle' },
-      { id: 'crud-05', num: 5, label: '3-Tier Layered Architecture', group: 'Architecture' },
-      { id: 'crud-06', num: 6, label: 'Express.js Implementation', group: 'Implementation' },
-      { id: 'crud-07', num: 7, label: 'Spring Boot Implementation', group: 'Implementation' },
-      { id: 'crud-08', num: 8, label: 'FastAPI Implementation', group: 'Implementation' },
-      { id: 'crud-09', num: 9, label: 'Cross-Framework Comparison', group: 'Wrap up' },
-      { id: 'crud-10', num: 10, label: 'Common CRUD Bugs', group: 'Wrap up' },
+      { id: 'crud-01', num: 1, label: 'Core Concept & Architecture', group: 'Phase 1: Beginner' },
+      { id: 'crud-04', num: 2, label: 'Interactive Request Lifecycle', group: 'Phase 2: Intermediate' },
+      { id: 'crud-06', num: 3, label: 'Real-World Implementations', group: 'Phase 3: Advanced' },
+      { id: 'crud-09', num: 4, label: 'Architectural Comparison', group: 'Phase 4: Expert' },
+      { id: 'crud-10', num: 5, label: 'Knowledge Check & Pitfalls', group: 'Phase 5: Mastery' },
     ],
     flowSteps: [
       {
@@ -408,16 +403,11 @@ async def delete_product(product_id: int, db: Session = Depends(get_db)):
     accentColor: '#C84B1F', // Orange/Rust from reference
     tags: ['Stateless', 'bcryptjs', 'JWT HS256', 'httpOnly Cookies', 'AuthN vs AuthZ'],
     sections: [
-      { id: 'auth-01', num: 1, label: 'The Problem: Statelessness', group: 'Foundations' },
-      { id: 'auth-02', num: 2, label: 'Authentication vs Authorization', group: 'Foundations' },
-      { id: 'auth-03', num: 3, label: 'Why We Hash Passwords', group: 'Foundations' },
-      { id: 'auth-04', num: 4, label: 'The Student ID Card (JWT)', group: 'Lifecycle' },
-      { id: 'auth-05', num: 5, label: 'Step-by-Step Auth Flow', group: 'Lifecycle' },
-      { id: 'auth-06', num: 6, label: 'Express.js Implementation', group: 'Implementation' },
-      { id: 'auth-07', num: 7, label: 'Spring Boot Implementation', group: 'Implementation' },
-      { id: 'auth-08', num: 8, label: 'FastAPI Implementation', group: 'Implementation' },
-      { id: 'auth-09', num: 9, label: 'Cross-Framework Comparison', group: 'Wrap up' },
-      { id: 'auth-10', num: 10, label: 'Security Traps & Quizzes', group: 'Wrap up' },
+      { id: 'auth-01', num: 1, label: 'The Problem: Statelessness', group: 'Phase 1: Beginner' },
+      { id: 'auth-04', num: 2, label: 'Token Lifecycle & Security Flow', group: 'Phase 2: Intermediate' },
+      { id: 'auth-06', num: 3, label: 'Real-World Implementations', group: 'Phase 3: Advanced' },
+      { id: 'auth-09', num: 4, label: 'Architectural Comparison', group: 'Phase 4: Expert' },
+      { id: 'auth-10', num: 5, label: 'Knowledge Check & Pitfalls', group: 'Phase 5: Mastery' },
     ],
     flowSteps: [
       {
@@ -718,16 +708,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     accentColor: '#3B82F6', // Blue
     tags: ['Resource URIs', 'Idempotency', 'HTTP 200/201/204/400/404', 'Query Filtering', 'HATEOAS'],
     sections: [
-      { id: 'rest-01', num: 1, label: 'REST Core Principles', group: 'Foundations' },
-      { id: 'rest-02', num: 2, label: 'URI Naming: Nouns over Verbs', group: 'Foundations' },
-      { id: 'rest-03', num: 3, label: 'Safe vs Idempotent Methods', group: 'Foundations' },
-      { id: 'rest-04', num: 4, label: 'HTTP Status Codes Matrix', group: 'Lifecycle' },
-      { id: 'rest-05', num: 5, label: 'Interactive REST Dispatcher', group: 'Lifecycle' },
-      { id: 'rest-06', num: 6, label: 'Express.js Implementation', group: 'Implementation' },
-      { id: 'rest-07', num: 7, label: 'Spring Boot Implementation', group: 'Implementation' },
-      { id: 'rest-08', num: 8, label: 'FastAPI Implementation', group: 'Implementation' },
-      { id: 'rest-09', num: 9, label: 'Cross-Framework Comparison', group: 'Wrap up' },
-      { id: 'rest-10', num: 10, label: 'REST Anti-Patterns', group: 'Wrap up' },
+      { id: 'rest-01', num: 1, label: 'REST Core Principles', group: 'Phase 1: Beginner' },
+      { id: 'rest-04', num: 2, label: 'Interactive REST Dispatcher', group: 'Phase 2: Intermediate' },
+      { id: 'rest-06', num: 3, label: 'Real-World Implementations', group: 'Phase 3: Advanced' },
+      { id: 'rest-09', num: 4, label: 'Architectural Comparison', group: 'Phase 4: Expert' },
+      { id: 'rest-10', num: 5, label: 'Knowledge Check & Pitfalls', group: 'Phase 5: Mastery' },
     ],
     flowSteps: [
       {
@@ -985,16 +970,11 @@ async def create_order(payload: OrderCreate, response: Response):
     accentColor: '#8B5CF6', // Purple
     tags: ['Next() Chain', 'Filter Chain', 'CORS', 'Rate Limiting', 'Global Exception Handler'],
     sections: [
-      { id: 'mw-01', num: 1, label: 'What is Middleware?', group: 'Foundations' },
-      { id: 'mw-02', num: 2, label: 'The Pipeline Concept (Onion Model)', group: 'Foundations' },
-      { id: 'mw-03', num: 3, label: 'Order of Execution Matters', group: 'Foundations' },
-      { id: 'mw-04', num: 4, label: 'Interactive Middleware Stepper', group: 'Lifecycle' },
-      { id: 'mw-05', num: 5, label: 'Error Handling Middleware', group: 'Architecture' },
-      { id: 'mw-06', num: 6, label: 'Express.js Implementation', group: 'Implementation' },
-      { id: 'mw-07', num: 7, label: 'Spring Boot Implementation', group: 'Implementation' },
-      { id: 'mw-08', num: 8, label: 'FastAPI Implementation', group: 'Implementation' },
-      { id: 'mw-09', num: 9, label: 'Cross-Framework Comparison', group: 'Wrap up' },
-      { id: 'mw-10', num: 10, label: 'Middleware Pitfalls', group: 'Wrap up' },
+      { id: 'middleware-01', num: 1, label: 'Middleware Interception', group: 'Phase 1: Beginner' },
+      { id: 'middleware-04', num: 2, label: 'Interactive Middleware Pipeline', group: 'Phase 2: Intermediate' },
+      { id: 'middleware-06', num: 3, label: 'Real-World Implementations', group: 'Phase 3: Advanced' },
+      { id: 'middleware-09', num: 4, label: 'Architectural Comparison', group: 'Phase 4: Expert' },
+      { id: 'middleware-10', num: 5, label: 'Knowledge Check & Pitfalls', group: 'Phase 5: Mastery' },
     ],
     flowSteps: [
       {
@@ -1274,16 +1254,11 @@ async def generic_exception_handler(request: Request, exc: Exception):
     category: 'frontend',
     tags: ['Virtual DOM / Fiber', 'Hooks Lifecycle', 'TanStack Query CRUD', 'Optimistic UI', 'Axios Interceptors', 'Cookie Auth'],
     sections: [
-      { id: 'react-01', num: 1, label: 'Virtual DOM & Fiber Architecture', group: 'Foundations' },
-      { id: 'react-02', num: 2, label: 'Component Lifecycle & Hooks Rules', group: 'Foundations' },
-      { id: 'react-03', num: 3, label: 'State Management Spectrum', group: 'Foundations' },
-      { id: 'react-04', num: 4, label: 'Interactive React Data Flow', group: 'Lifecycle' },
-      { id: 'react-05', num: 5, label: 'Server State vs Client State', group: 'Architecture' },
-      { id: 'react-06', num: 6, label: 'TanStack Query CRUD Implementation', group: 'Implementation' },
-      { id: 'react-07', num: 7, label: 'Auth Context & Axios Interceptors', group: 'Implementation' },
-      { id: 'react-08', num: 8, label: 'Next.js App Router & Server Actions', group: 'Implementation' },
-      { id: 'react-09', num: 9, label: 'Frontend Architectural Comparison', group: 'Wrap up' },
-      { id: 'react-10', num: 10, label: 'Common React Anti-Patterns', group: 'Wrap up' },
+      { id: 'react-01', num: 1, label: 'React Rendering Concepts', group: 'Phase 1: Beginner' },
+      { id: 'react-04', num: 2, label: 'Interactive Component Lifecycle', group: 'Phase 2: Intermediate' },
+      { id: 'react-06', num: 3, label: 'Real-World Implementations', group: 'Phase 3: Advanced' },
+      { id: 'react-09', num: 4, label: 'Architectural Comparison', group: 'Phase 4: Expert' },
+      { id: 'react-10', num: 5, label: 'Knowledge Check & Pitfalls', group: 'Phase 5: Mastery' },
     ],
     flowSteps: [
       {
@@ -1623,16 +1598,11 @@ export async function deleteProductAction(productId: string) {
     category: 'mobile',
     tags: ['New Architecture (Fabric / JSI)', 'TurboModules', 'Keychain / Keystore', 'Offline CRUD', 'React Navigation', 'AppState'],
     sections: [
-      { id: 'react-native-01', num: 1, label: 'Bridge vs Fabric & TurboModules (JSI)', group: 'Foundations' },
-      { id: 'react-native-02', num: 2, label: 'Threading Model: UI, JS, & Shadow', group: 'Foundations' },
-      { id: 'react-native-03', num: 3, label: 'Secure Storage: Keychain vs AsyncStorage', group: 'Foundations' },
-      { id: 'react-native-04', num: 4, label: 'Interactive Mobile Request Lifecycle', group: 'Lifecycle' },
-      { id: 'react-native-05', num: 5, label: 'Offline-First Synchronization Pattern', group: 'Architecture' },
-      { id: 'react-native-06', num: 6, label: 'Hardware-Backed Auth Implementation', group: 'Implementation' },
-      { id: 'react-native-07', num: 7, label: 'Offline CRUD & SQLite Sync Engine', group: 'Implementation' },
-      { id: 'react-native-08', num: 8, label: 'Protected Mobile Navigation & AppState', group: 'Implementation' },
-      { id: 'react-native-09', num: 9, label: 'Mobile Architecture Comparison', group: 'Wrap up' },
-      { id: 'react-native-10', num: 10, label: 'Common Mobile Anti-Patterns', group: 'Wrap up' },
+      { id: 'react-native-01', num: 1, label: 'Mobile Architecture Shift', group: 'Phase 1: Beginner' },
+      { id: 'react-native-04', num: 2, label: 'Interactive Native Bridge', group: 'Phase 2: Intermediate' },
+      { id: 'react-native-06', num: 3, label: 'Real-World Implementations', group: 'Phase 3: Advanced' },
+      { id: 'react-native-09', num: 4, label: 'Architectural Comparison', group: 'Phase 4: Expert' },
+      { id: 'react-native-10', num: 5, label: 'Knowledge Check & Pitfalls', group: 'Phase 5: Mastery' },
     ],
     flowSteps: [
       {
@@ -1958,16 +1928,11 @@ export const RootNavigator = () => {
     category: 'devops',
     tags: ['Docker Multi-stage', 'GitHub Actions', 'Nginx Reverse Proxy', 'AWS ECS / K8s', 'Zero Downtime', 'Prometheus / Sentry'],
     sections: [
-      { id: 'devops-01', num: 1, label: 'The Modern DevOps Lifecycle', group: 'Foundations' },
-      { id: 'devops-02', num: 2, label: 'Containerization & Multi-Stage Builds', group: 'Foundations' },
-      { id: 'devops-03', num: 3, label: 'CI/CD Pipeline Stages', group: 'Foundations' },
-      { id: 'devops-04', num: 4, label: 'Interactive Deployment Pipeline Flow', group: 'Lifecycle' },
-      { id: 'devops-05', num: 5, label: 'Edge Ingress, SSL, & Rate Limiting', group: 'Architecture' },
-      { id: 'devops-06', num: 6, label: 'Multi-Stage Dockerfile & Compose', group: 'Implementation' },
-      { id: 'devops-07', num: 7, label: 'GitHub Actions CI/CD Workflow', group: 'Implementation' },
-      { id: 'devops-08', num: 8, label: 'Nginx Gateway & SSL Configuration', group: 'Implementation' },
-      { id: 'devops-09', num: 9, label: 'DevOps & Deployment Matrix', group: 'Wrap up' },
-      { id: 'devops-10', num: 10, label: 'Critical Deployment Mistakes', group: 'Wrap up' },
+      { id: 'devops-01', num: 1, label: 'CI/CD Automation', group: 'Phase 1: Beginner' },
+      { id: 'devops-04', num: 2, label: 'Interactive Deployment Pipeline', group: 'Phase 2: Intermediate' },
+      { id: 'devops-06', num: 3, label: 'Real-World Implementations', group: 'Phase 3: Advanced' },
+      { id: 'devops-09', num: 4, label: 'Architectural Comparison', group: 'Phase 4: Expert' },
+      { id: 'devops-10', num: 5, label: 'Knowledge Check & Pitfalls', group: 'Phase 5: Mastery' },
     ],
     flowSteps: [
       {

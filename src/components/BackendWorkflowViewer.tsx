@@ -177,40 +177,55 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
 
 
         {/* Grouped Chapter Navigation for Active Topic */}
-        <nav className="space-y-4" aria-label="Backend Topic Navigation">
-          {(Object.keys(groupedNav) as (keyof typeof groupedNav)[]).map((groupName) => (
-            <div key={groupName} className="space-y-0.5">
-              <div className="font-mono-ref text-[9px] uppercase tracking-widest text-slate-500 font-semibold px-6 py-1">
-                {groupName}
+        <nav className="space-y-6" aria-label="Backend Topic Navigation">
+          {(Object.keys(groupedNav) as (keyof typeof groupedNav)[]).map((groupName, groupIdx) => {
+            const parts = groupName.split(': ');
+            const phase = parts[0] || '';
+            const title = parts.length > 1 ? parts[1] : '';
+
+            return (
+            <div key={groupName} className="relative">
+              {/* Timeline Connector */}
+              {groupIdx !== Object.keys(groupedNav).length - 1 && (
+                <div className="absolute left-[34px] top-8 bottom-[-24px] w-[2px] bg-slate-800/60 z-0"></div>
+              )}
+
+              <div className="flex items-center gap-2 px-4 mb-2 z-10 relative">
+                <div className="h-5 px-1.5 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-[8px] font-bold font-mono-ref tracking-widest text-orange-500 shadow-sm">
+                  {phase.toUpperCase()}
+                </div>
+                {title && <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</div>}
               </div>
 
+              <div className="space-y-0.5 relative z-10">
               {groupedNav[groupName].map((item) => {
                 const isActive = activeSectionId === item.id;
                 return (
                   <button
                     key={item.id}
                     onClick={() => scrollToSection(item.id)}
-                    className={`w-full flex items-center gap-2.5 px-6 py-1.5 text-left font-sans text-xs transition-colors border-l-2 ${
+                    className={`w-full flex items-center gap-3 px-6 py-2 text-left font-sans text-xs transition-colors group relative ${
                       isActive
-                        ? 'border-orange-500 text-white bg-orange-500/10 font-medium'
-                        : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/60'
+                        ? 'text-white bg-slate-900/40 font-medium'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-900/20'
                     }`}
                   >
-                    <span
-                      className={`w-4 h-4 flex items-center justify-center rounded font-mono-ref text-[9px] shrink-0 transition-colors ${
+                    <div className="relative flex items-center justify-center shrink-0 ml-1">
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center font-mono-ref text-[9px] transition-all border ${
                         isActive
-                          ? 'bg-orange-500 text-white font-bold'
-                          : 'bg-slate-800 text-slate-400'
-                      }`}
-                    >
-                      {item.num}
-                    </span>
-                    <span className="truncate">{item.label}</span>
+                          ? 'bg-orange-500 border-orange-400 text-white font-bold shadow-[0_0_10px_rgba(249,115,22,0.3)]'
+                          : 'bg-slate-950 border-slate-700 text-slate-500 group-hover:border-slate-500 group-hover:text-slate-300'
+                      }`}>
+                        {item.num}
+                      </div>
+                    </div>
+                    <span className="truncate leading-tight">{item.label}</span>
                   </button>
                 );
               })}
+              </div>
             </div>
-          ))}
+          )})}
         </nav>
       </aside>
 
@@ -219,9 +234,9 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
         
         {/* ── SECTION 01: FOUNDATIONS ── */}
         <section id={`${selectedTopic}-01`} className="mb-12 scroll-mt-20">
-          <div className="flex items-baseline gap-4 mb-4">
-            <div className="font-fraunces text-4xl sm:text-5xl font-black text-slate-800 select-none">
-              01
+          <div className="flex items-start gap-4 mb-4">
+            <div className="px-2 py-1 bg-green-500/10 border border-green-500/20 text-green-500 rounded font-mono-ref text-xs font-bold shrink-0 mt-1">
+              PHASE 1
             </div>
             <div>
               <h3 className="font-fraunces text-xl sm:text-2xl font-bold text-white">
@@ -257,9 +272,9 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
 
         {/* ── SECTION 04: INTERACTIVE ANIMATED LIFECYCLE FLOW ── */}
         <section id={`${selectedTopic}-04`} className="mb-14 scroll-mt-20">
-          <div className="flex items-baseline gap-4 mb-4">
-            <div className="font-fraunces text-4xl sm:text-5xl font-black text-slate-800 select-none">
-              02
+          <div className="flex items-start gap-4 mb-4">
+            <div className="px-2 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-500 rounded font-mono-ref text-xs font-bold shrink-0 mt-1">
+              PHASE 2
             </div>
             <div>
               <h3 className="font-fraunces text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
@@ -426,9 +441,9 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
 
         {/* ── SECTION 05: CODEBASES COMPARISON ── */}
         <section id={`${selectedTopic}-06`} className="mb-14 scroll-mt-20">
-          <div className="flex items-baseline gap-4 mb-4">
-            <div className="font-fraunces text-4xl sm:text-5xl font-black text-slate-800 select-none">
-              03
+          <div className="flex items-start gap-4 mb-4">
+            <div className="px-2 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded font-mono-ref text-xs font-bold shrink-0 mt-1">
+              PHASE 3
             </div>
             <div>
               <h3 className="font-fraunces text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
@@ -530,9 +545,9 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
 
         {/* ── SECTION 09: SIDE-BY-SIDE ARCHITECTURAL COMPARISON MATRIX ── */}
         <section id={`${selectedTopic}-09`} className="mb-14 scroll-mt-20">
-          <div className="flex items-baseline gap-4 mb-4">
-            <div className="font-fraunces text-4xl sm:text-5xl font-black text-slate-800 select-none">
-              04
+          <div className="flex items-start gap-4 mb-4">
+            <div className="px-2 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded font-mono-ref text-xs font-bold shrink-0 mt-1">
+              PHASE 4
             </div>
             <div>
               <h3 className="font-fraunces text-xl sm:text-2xl font-bold text-white">
@@ -592,9 +607,9 @@ export const BackendWorkflowViewer: React.FC<Props> = ({ initialTopic = 'rest', 
 
         {/* ── SECTION 10: INTERACTIVE QUIZ & COMMON MISTAKES ── */}
         <section id={`${selectedTopic}-10`} className="mb-14 scroll-mt-20">
-          <div className="flex items-baseline gap-4 mb-4">
-            <div className="font-fraunces text-4xl sm:text-5xl font-black text-slate-800 select-none">
-              05
+          <div className="flex items-start gap-4 mb-4">
+            <div className="px-2 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded font-mono-ref text-xs font-bold shrink-0 mt-1">
+              PHASE 5
             </div>
             <div>
               <h3 className="font-fraunces text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
