@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export const RestCohortNotesViewer: React.FC = () => {
+export const ApiCohortNotesViewer: React.FC = () => {
   const [activeSectionId, setActiveSectionId] = useState<string>('s01');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);

@@ -54,7 +54,7 @@ export const STACK_CONFIG: Record<
   node: { label: 'NodeJs', icon: '🟢', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
   express: { label: 'Expressjs', icon: '🚂', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
   typescript: { label: 'TypeScript', icon: 'TS', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  rest: { label: 'REST API', icon: '🌍', color: 'text-slate-400', bg: 'bg-slate-500/10', border: 'border-slate-500/30' },
+  api: { label: 'REST API', icon: '🌍', color: 'text-slate-400', bg: 'bg-slate-500/10', border: 'border-slate-500/30' },
   auth: { label: 'Auth (JWT)', icon: '🔒', color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/30' },
   database: { label: 'Database', icon: '🗄️', color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
   middleware: { label: 'Middleware', icon: '⚙️', color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
@@ -181,7 +181,20 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
               >
                 <Layers className="w-3.5 h-3.5 text-sky-400" />
-                <span>Question</span>
+                <span>Interview</span>
+              </button>
+
+              <button
+                id="btn-nav-practice"
+                onClick={() => onChangeViewMode('practice')}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  viewMode === 'practice'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                }`}
+              >
+                <Terminal className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Practice</span>
               </button>
             </div>
           </div>
@@ -194,12 +207,14 @@ export const Header: React.FC<HeaderProps> = ({
                 <ScrollableContainer>
                 {[
                   { id: 'mvc' as BackendWorkflowTopic, label: 'Layered MVC', icon: Server, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/40', tags: 'mvc architecture design pattern models views controllers routes' },
-                  { id: 'rest' as BackendWorkflowTopic, label: 'REST API', icon: Globe, color: 'text-blue-400', bg: 'bg-blue-500/20', border: 'border-blue-500/40', tags: 'http methods verbs status codes stateless json api endpoints post get' },
+                  { id: 'api' as BackendWorkflowTopic, label: 'REST API', icon: Globe, color: 'text-blue-400', bg: 'bg-blue-500/20', border: 'border-blue-500/40', tags: 'http methods verbs status codes stateless json api endpoints post get' },
                   { id: 'auth' as BackendWorkflowTopic, label: 'AUTH (JWT)', icon: Lock, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/40', tags: 'jwt tokens bcrypt hashing password security login register authentication authorization' },
                   { id: 'crud' as BackendWorkflowTopic, label: 'CRUD & DB', icon: Database, color: 'text-emerald-400', bg: 'bg-emerald-500/20', border: 'border-emerald-500/40', tags: 'sql nosql orm create read update delete postgres mongodb database persistence' },
                   { id: 'middleware' as BackendWorkflowTopic, label: 'Middleware', icon: Sliders, color: 'text-purple-400', bg: 'bg-purple-500/20', border: 'border-purple-500/40', tags: 'express next logger cors error handling request response' },
+                  { id: 'typescript' as BackendWorkflowTopic, label: 'TypeScript', icon: Binary, color: 'text-blue-400', bg: 'bg-blue-500/20', border: 'border-blue-500/40', tags: 'typescript types interfaces generics static typed' },
                   { id: 'react' as BackendWorkflowTopic, label: 'React (Web)', icon: Atom, color: 'text-cyan-400', bg: 'bg-cyan-500/20', border: 'border-cyan-500/40', tags: 'react frontend spa components props state hooks' },
                   { id: 'os-memory' as BackendWorkflowTopic, label: 'OS & Memory', icon: Cpu, color: 'text-slate-400', bg: 'bg-slate-500/20', border: 'border-slate-500/40', tags: 'os memory heap stack processes threads' },
+                  { id: 'networking' as BackendWorkflowTopic, label: 'Networking', icon: Network, color: 'text-indigo-400', bg: 'bg-indigo-500/20', border: 'border-indigo-500/40', tags: 'networking tcp ip udp dns http sockets routing' },
                   { id: 'devops' as BackendWorkflowTopic, label: 'DevOps', icon: Rocket, color: 'text-pink-400', bg: 'bg-pink-500/20', border: 'border-pink-500/40', tags: 'devops deployment ci cd docker containers cloud aws linux' }
                 ].filter(t => !searchQuery || t.label.toLowerCase().includes(searchQuery.toLowerCase()) || (t.tags && t.tags.includes(searchQuery.toLowerCase())))
                 .map((t) => {

@@ -1,9 +1,9 @@
 import { Question } from '../../types';
 
-export const REST_QUESTIONS: Question[] = [
+export const API_QUESTIONS: Question[] = [
   {
     id: 'rest-1',
-    stack: 'rest',
+    stack: 'api',
     topic: 'REST Principles & HTTP Basics',
     title: 'What is a REST API and what are its guiding constraints?',
     difficulty: 'Beginner',
@@ -52,7 +52,7 @@ DELETE https://api.example.com/users/123 HTTP/1.1`,
   },
   {
     id: 'rest-2',
-    stack: 'rest',
+    stack: 'api',
     topic: 'HTTP Methods & Status Codes',
     title: 'What is the difference between PUT and PATCH? When would you use each?',
     difficulty: 'Intermediate',
@@ -110,7 +110,7 @@ DELETE https://api.example.com/users/123 HTTP/1.1`,
   },
   {
     id: 'rest-3',
-    stack: 'rest',
+    stack: 'api',
     topic: 'HTTP Methods & Status Codes',
     title: 'Explain the 200, 300, 400, and 500 blocks of HTTP Status Codes.',
     difficulty: 'Beginner',
@@ -130,7 +130,7 @@ DELETE https://api.example.com/users/123 HTTP/1.1`,
   },
   {
     id: 'rest-4',
-    stack: 'rest',
+    stack: 'api',
     topic: 'API Design & Best Practices',
     title: 'How do you handle Pagination and Filtering in a REST API?',
     difficulty: 'Intermediate',
@@ -179,7 +179,7 @@ GET /users?status=active&role=admin&sort=-createdAt HTTP/1.1
   },
   {
     id: 'rest-5',
-    stack: 'rest',
+    stack: 'api',
     topic: 'Advanced REST Concepts',
     title: 'What is HATEOAS in REST Architecture?',
     difficulty: 'Advanced',
@@ -222,7 +222,7 @@ GET /users?status=active&role=admin&sort=-createdAt HTTP/1.1
   },
   {
     id: 'rest-6',
-    stack: 'rest',
+    stack: 'api',
     topic: 'API Security & Best Practices',
     title: 'How do you handle API Versioning? What are the pros and cons of each approach?',
     difficulty: 'Intermediate',
@@ -242,7 +242,7 @@ GET /users?status=active&role=admin&sort=-createdAt HTTP/1.1
   },
   {
     id: 'rest-7',
-    stack: 'rest',
+    stack: 'api',
     topic: 'Advanced REST Concepts',
     title: 'What is Idempotency in HTTP methods? How do you make POST requests safe from duplication?',
     difficulty: 'Advanced',
@@ -290,7 +290,7 @@ app.post('/charge', async (req, res) => {
   },
   {
     id: 'rest-8',
-    stack: 'rest',
+    stack: 'api',
     topic: 'API Security & Best Practices',
     title: 'Explain Rate Limiting and Throttling in APIs.',
     difficulty: 'Intermediate',

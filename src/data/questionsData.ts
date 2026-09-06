@@ -8,7 +8,7 @@ import { HTML_QUESTIONS } from './stacks/html';
 import { PYTHON_QUESTIONS } from './stacks/python';
 import { TYPESCRIPT_QUESTIONS } from './stacks/typescript';
 
-import { REST_QUESTIONS } from './stacks/rest';
+import { API_QUESTIONS } from './stacks/api';
 import { AUTH_QUESTIONS } from './stacks/auth';
 import { DATABASE_QUESTIONS } from './stacks/database';
 import { MIDDLEWARE_QUESTIONS } from './stacks/middleware';
@@ -24,7 +24,7 @@ export {
   HTML_QUESTIONS,
   PYTHON_QUESTIONS,
   TYPESCRIPT_QUESTIONS,
-  REST_QUESTIONS,
+  API_QUESTIONS,
   AUTH_QUESTIONS,
   DATABASE_QUESTIONS,
   MIDDLEWARE_QUESTIONS,
@@ -41,7 +41,7 @@ export const QUESTIONS_DATA: Question[] = [
   ...NODE_QUESTIONS,
   ...EXPRESS_QUESTIONS,
   ...TYPESCRIPT_QUESTIONS,
-  ...REST_QUESTIONS,
+  ...API_QUESTIONS,
   ...AUTH_QUESTIONS,
   ...DATABASE_QUESTIONS,
   ...MIDDLEWARE_QUESTIONS,

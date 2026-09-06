@@ -8,7 +8,7 @@ export type TechStack =
   | 'node' 
   | 'express' 
   | 'typescript'
-  | 'rest'
+  | 'api'
   | 'auth'
   | 'database'
   | 'middleware'
@@ -51,12 +51,10 @@ export interface UserProgress {
   bookmarkedIds: string[];
   notes: Record<string, string>;
 }
-
-export type ViewMode = 'workflow' | 'questions';
-
+export type ViewMode = 'workflow' | 'questions' | 'practice';
 export type BackendWorkflowTopic = 
   | 'mvc'
-  | 'rest' 
+  | 'api'
   | 'auth' 
   | 'crud' 
   | 'middleware' 

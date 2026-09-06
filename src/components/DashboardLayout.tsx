@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { TechStack, ViewMode, Question, Difficulty, BackendWorkflowTopic } from '../types';
 import { BACKEND_WORKFLOWS } from '../data/backendWorkflowsData';
 import { QUESTIONS_DATA } from '../data/questionsData';
@@ -13,9 +13,15 @@ import { Header, STACK_CONFIG } from './Header';
 import { QuestionCard } from './QuestionCard';
 import { BackendWorkflowViewer } from './BackendWorkflowViewer';
 import { AuthCohortNotesViewer } from './AuthCohortNotesViewer';
-import { RestCohortNotesViewer } from './RestCohortNotesViewer';
+import { ApiCohortNotesViewer } from './ApiCohortNotesViewer';
 import { CrudCohortNotesViewer } from './CrudCohortNotesViewer';
 import { MiddlewareCohortNotesViewer } from './MiddlewareCohortNotesViewer';
+import { LayeredMvcCohortNotesViewer } from './LayeredMvcCohortNotesViewer';
+import { ReactCohortNotesViewer } from './ReactCohortNotesViewer';
+import { OsMemoryCohortNotesViewer } from './OsMemoryCohortNotesViewer';
+import { NetworkingCohortNotesViewer } from './NetworkingCohortNotesViewer';
+import { TypescriptCohortNotesViewer } from './TypescriptCohortNotesViewer';
+import { PracticeViewer } from './PracticeViewer';
 import { RightTopicNavbar } from './RightTopicNavbar';
 import { BookOpen, PanelLeftOpen } from 'lucide-react';
 
@@ -25,6 +31,7 @@ const STORAGE_KEY_BOOKMARKS = 'interview_prep_bookmarks_v3';
 export function DashboardLayout() {
   const { topicId, stackId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   // Navigation & Filtering
   const [selectedStack, setSelectedStack] = useState<TechStack>('all');
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
@@ -39,14 +46,21 @@ export function DashboardLayout() {
 
   // Sync Router URL params to internal state on mount or URL change
   useEffect(() => {
-    if (topicId) {
+    if (location.pathname.startsWith('/practice')) {
+      setViewMode('practice');
+      if (stackId) {
+        setSelectedStack(stackId as TechStack);
+      } else {
+        setSelectedStack('javascript');
+      }
+    } else if (topicId) {
       setViewMode('workflow');
       setBackendWorkflowTopic(topicId as BackendWorkflowTopic);
     } else if (stackId) {
       setViewMode('questions');
       setSelectedStack(stackId as TechStack);
     }
-  }, [topicId, stackId]);
+  }, [topicId, stackId, location.pathname]);
 
   // Persistence States
   const [completedIds, setCompletedIds] = useState<string[]>(() => {
@@ -116,7 +130,11 @@ export function DashboardLayout() {
 
   // Reset topic & difficulty when stack changes
   const handleSelectStack = (stack: TechStack) => {
-    navigate(`/questions/${stack}`);
+    if (viewMode === 'practice') {
+      navigate(`/practice/${stack}`);
+    } else {
+      navigate(`/questions/${stack}`);
+    }
   };
 
   // Filtered questions
@@ -175,7 +193,7 @@ export function DashboardLayout() {
       'node',
       'express',
       'typescript',
-      'rest',
+      'api',
       'auth',
       'database',
       'middleware',
@@ -192,7 +210,7 @@ export function DashboardLayout() {
       node: [],
       express: [],
       typescript: [],
-      rest: [],
+      api: [],
       auth: [],
       database: [],
       middleware: [],
@@ -290,6 +308,7 @@ export function DashboardLayout() {
         viewMode={viewMode}
         onChangeViewMode={(mode) => {
           if (mode === 'workflow') navigate(`/flows/${backendWorkflowTopic}`);
+          else if (mode === 'practice') navigate(`/practice`);
           else navigate(`/questions/${selectedStack}`);
         }}
         backendWorkflowTopic={backendWorkflowTopic}
@@ -304,18 +323,32 @@ export function DashboardLayout() {
         <div className="flex-1 animate-fade-up">
           {backendWorkflowTopic === 'auth' ? (
             <AuthCohortNotesViewer />
-          ) : backendWorkflowTopic === 'rest' ? (
-            <RestCohortNotesViewer />
+          ) : backendWorkflowTopic === 'api' ? (
+            <ApiCohortNotesViewer />
           ) : backendWorkflowTopic === 'crud' ? (
             <CrudCohortNotesViewer />
           ) : backendWorkflowTopic === 'middleware' ? (
             <MiddlewareCohortNotesViewer />
+          ) : backendWorkflowTopic === 'mvc' ? (
+            <LayeredMvcCohortNotesViewer />
+          ) : backendWorkflowTopic === 'typescript' ? (
+            <TypescriptCohortNotesViewer />
+          ) : backendWorkflowTopic === 'react' ? (
+            <ReactCohortNotesViewer />
+          ) : backendWorkflowTopic === 'os-memory' ? (
+            <OsMemoryCohortNotesViewer />
+          ) : backendWorkflowTopic === 'networking' ? (
+            <NetworkingCohortNotesViewer />
           ) : (
             <BackendWorkflowViewer 
               initialTopic={backendWorkflowTopic} 
               onTopicChange={setBackendWorkflowTopic}
             />
           )}
+        </div>
+      ) : viewMode === 'practice' ? (
+        <div className="flex-1 animate-fade-up">
+          <PracticeViewer selectedStack={selectedStack} />
         </div>
       ) : (
         <main className="flex-1 max-w-[1500px] w-full mx-auto px-4 sm:px-6 py-5">
@@ -373,7 +406,7 @@ export function DashboardLayout() {
                 </div>
               ) : (
                 <div className="space-y-8">
-                  {(['html', 'javascript', 'python', 'react', 'java', 'node', 'express', 'typescript', 'rest', 'auth', 'database', 'middleware', 'reactnative', 'devops'] as const).map((stackKey) => {
+                  {(['html', 'javascript', 'python', 'react', 'java', 'node', 'express', 'typescript', 'api', 'auth', 'database', 'middleware', 'reactnative', 'devops'] as const).map((stackKey) => {
                     const topicGroups = groupedByStackAndTopic[stackKey];
                     if (!topicGroups || topicGroups.length === 0) return null;
 
