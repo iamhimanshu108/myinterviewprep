@@ -23,7 +23,7 @@ import { NetworkingCohortNotesViewer } from './NetworkingCohortNotesViewer';
 import { TypescriptCohortNotesViewer } from './TypescriptCohortNotesViewer';
 import { PracticeViewer } from './PracticeViewer';
 import { RightTopicNavbar } from './RightTopicNavbar';
-import { BookOpen, PanelLeftOpen } from 'lucide-react';
+import { BookOpen, PanelLeftOpen, Loader2 } from 'lucide-react';
 
 const STORAGE_KEY_COMPLETED = 'interview_prep_completed_v3';
 const STORAGE_KEY_BOOKMARKS = 'interview_prep_bookmarks_v3';
@@ -43,6 +43,16 @@ export function DashboardLayout() {
   const [animatedCodeOnly, setAnimatedCodeOnly] = useState<boolean>(false);
   const [activeNavId, setActiveNavId] = useState<string | null>(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(true);
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+
+  // Trigger smooth spinner on navigation changes
+  useEffect(() => {
+    setIsTransitioning(true);
+    const timer = setTimeout(() => {
+      setIsTransitioning(false);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
 
   // Sync Router URL params to internal state on mount or URL change
   useEffect(() => {
@@ -319,7 +329,12 @@ export function DashboardLayout() {
       />
 
       {/* Main Content Area */}
-      {viewMode === 'workflow' ? (
+      {isTransitioning ? (
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
+          <Loader2 className="w-10 h-10 text-sky-500 animate-spin mb-4" />
+          <p className="text-slate-400 font-medium text-sm animate-pulse">Loading content...</p>
+        </div>
+      ) : viewMode === 'workflow' ? (
         <div className="flex-1 animate-fade-up">
           {backendWorkflowTopic === 'auth' ? (
             <AuthCohortNotesViewer />

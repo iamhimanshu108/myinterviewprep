@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { TechStack, Question, Difficulty } from '../types';
 import { STACK_CONFIG } from './Header';
 import { 
@@ -209,45 +210,55 @@ export const RightTopicNavbar: React.FC<RightTopicNavbarProps> = ({
                       </div>
 
                       {/* Submenu: Questions under this topic */}
-                      {!isCollapsed && (
-                        <div className="space-y-0.5 pl-3 border-l border-slate-800/60 ml-2.5 my-1">
-                          {group.questions.map((q) => {
-                            const qNum = questionNumberMap.get(q.id);
-                            const isCompleted = completedIds.includes(q.id);
-                            const isQuestionActive = activeId === `question-card-${q.id}`;
+                      <AnimatePresence initial={false}>
+                        {!isCollapsed && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25, ease: 'easeInOut' }}
+                            className="overflow-hidden"
+                          >
+                            <div className="space-y-0.5 pl-3 border-l border-slate-800/60 ml-2.5 my-1">
+                              {group.questions.map((q) => {
+                                const qNum = questionNumberMap.get(q.id);
+                                const isCompleted = completedIds.includes(q.id);
+                                const isQuestionActive = activeId === `question-card-${q.id}`;
 
-                            return (
-                              <button
-                                key={q.id}
-                                onClick={() => onSelectQuestion(q.id)}
-                                className={`w-full flex items-center gap-1.5 px-2 py-1 rounded text-left text-[11px] transition-all ${
-                                  isQuestionActive
-                                    ? 'bg-sky-500/20 text-sky-200 font-semibold border-l-2 border-sky-400 pl-1.5'
-                                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
-                                }`}
-                                title={q.title}
-                              >
-                                {isCompleted ? (
-                                  <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                                ) : (
-                                  <span 
-                                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${DIFFICULTY_DOT[q.difficulty]}`}
-                                    title={q.difficulty}
-                                  />
-                                )}
+                                return (
+                                  <button
+                                    key={q.id}
+                                    onClick={() => onSelectQuestion(q.id)}
+                                    className={`w-full flex items-center gap-1.5 px-2 py-1 rounded text-left text-[11px] transition-all ${
+                                      isQuestionActive
+                                        ? 'bg-sky-500/20 text-sky-200 font-semibold border-l-2 border-sky-400 pl-1.5'
+                                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                                    }`}
+                                    title={q.title}
+                                  >
+                                    {isCompleted ? (
+                                      <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                                    ) : (
+                                      <span 
+                                        className={`w-1.5 h-1.5 rounded-full shrink-0 ${DIFFICULTY_DOT[q.difficulty]}`}
+                                        title={q.difficulty}
+                                      />
+                                    )}
 
-                                <span className="font-mono text-[10px] text-sky-400/90 shrink-0 font-medium">
-                                  Q{qNum}
-                                </span>
+                                    <span className="font-mono text-[10px] text-sky-400/90 shrink-0 font-medium">
+                                      Q{qNum}
+                                    </span>
 
-                                <span className="truncate flex-1">
-                                  {q.title}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
+                                    <span className="truncate flex-1">
+                                      {q.title}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   );
                 })}
